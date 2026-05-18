@@ -1,7 +1,7 @@
 `timescale 1ns/10ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company:         Tel Aviv University
-// Engineer:        
+// Engineer:        Saleh Khalil, Mahmood Stitia
 // 
 // Create Date:     05/05/2019 08:59:38 PM
 // Design Name:     EE3 lab1
@@ -35,6 +35,12 @@ module Ctl(clk, reset, trig, split, init_regs, count_enabled);
           state <= IDLE;
         else
           // FILL HERE STATE TRANSITIONS
+          case (state)
+            IDLE      : (~reset & trig)? state <= COUNTING : state <= IDLE;
+            COUNTING  : (~reset & trig)? state <= PAUSED   : state <= COUNTING;
+            PAUSED    : (~reset & trig)? 
+            default   : state <= IDLE;
+          endcase
      end
      
    //-------------Output Function (Lambda) ----------------

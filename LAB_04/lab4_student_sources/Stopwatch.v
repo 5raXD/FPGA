@@ -1,7 +1,7 @@
 `timescale 1ns/10ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company:         Tel Aviv University
-// Engineer:        
+// Engineer:        Saleh Khalil, Mahmood Stitia
 // 
 // Create Date:     05/05/2019 01:28AM
 // Design Name:     EE3 lab1
