@@ -28,6 +28,7 @@ module Debouncer(clk, input_unstable, output_stable);
    output reg output_stable;
    
    parameter COUNTER_BITS = 7;
+   reg prev_msb;
    
    reg [COUNTER_BITS-1:0] counter; // Hysteresis counter
    
@@ -41,6 +42,8 @@ module Debouncer(clk, input_unstable, output_stable);
             
         // Synchronously generate 1-cycle-pulse upon the transition from 0 mode to 1 mode.
         // TODO
+        prev_msb <= counter[COUNTER_BITS-1];
+        output_stable <= (~prev_msb) & counter[COUNTER_BITS-1];
      end
        
 endmodule
