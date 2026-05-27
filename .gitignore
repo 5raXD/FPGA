@@ -1,2 +1,5 @@
 .dstore
-.vcd
+*.vcd
+*.vvp
+a.out
+Ctl_tb

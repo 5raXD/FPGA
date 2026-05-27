@@ -81,6 +81,7 @@ module Ctl_tb();
 
                 {reset, trig, split} = cii;
                 #10
+                {reset, trig, split} = 0;
                 case(ai)
                     0: begin // if Started from IDLE
                         casez(cii)
