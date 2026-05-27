@@ -35,20 +35,21 @@ module Ctl(clk, reset, trig, split, init_regs, count_enabled);
         else begin
           // FILL HERE STATE TRANSITIONS
           case (state)
-            IDLE      : (trig)? state <= COUNTING : state <= IDLE;
-            COUNTING  : (trig)? state <= PAUSED   : state <= COUNTING;
+            IDLE      : state <= (trig)? COUNTING : IDLE;
+            COUNTING  : state <= (trig)? PAUSED   : COUNTING;
             PAUSED    : begin
                 casez({reset, trig, split})
-                  3'b000: state <= PAUSED;
-                  3'b1??: state <= IDLE;
-                  3'b01?: state <= COUNTING;
-                  default : state <= PAUSED;
+                  3'b000 : state <= PAUSED;
+                  3'b001 : state <= IDLE;   
+                  3'b01? : state <= COUNTING;   
+                  3'b1?? : state <= IDLE;      
+                  default: state <= PAUSED;
                 endcase
               end
-            end
             default   : state <= IDLE;
           endcase
      end
+   end
      
    //-------------Output Function (Lambda) ----------------
 	 assign init_regs     = (state == IDLE); // FILL HERE
