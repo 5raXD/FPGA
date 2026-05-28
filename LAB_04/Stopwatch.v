@@ -45,6 +45,7 @@ module Stopwatch(clk, btnC, btnU, btnR, btnL, seg, an, dp, led_left, led_right);
     
 	// FILL HERE INSTANTIATIONS
     wire [15:0] time_reading_left, time_reading_right;
+    reg right_split_active, left_split_active;
 
     ///////////////////////////
 	// Buttons Stabilization //
@@ -130,8 +131,18 @@ module Stopwatch(clk, btnC, btnU, btnR, btnL, seg, an, dp, led_left, led_right);
     ///////////////////////////
 
     always @(posedge clk) begin // TOGGLE SELECTED STOPWATCH
-        if(reset) selected_stopwatch <= LEFT;
-        else if(toggle) selected_stopwatch <= ~selected_stopwatch;  
+        if(reset) begin 
+            selected_stopwatch <= LEFT;
+            left_split_active <= 1'b0;
+            right_split_active <= 1'b0;
+        end
+        else begin 
+            if(toggle) selected_stopwatch <= ~selected_stopwatch;  
+            if(split) begin
+                right_split_active <= (selected_stopwatch == RIGHT)? ~right_split_active : right_split_active;
+                left_split_active  <= (selected_stopwatch == LEFT) ? ~left_split_active  : left_split_active;
+            end
+        end
     end
 
 
@@ -139,11 +150,15 @@ module Stopwatch(clk, btnC, btnU, btnR, btnL, seg, an, dp, led_left, led_right);
 	assign led_left  = (selected_stopwatch == LEFT)? 3'b111 : 3'b000; // left stopwatch is selected
     assign trig_left   = (selected_stopwatch == LEFT)? trig  : 1'b0;
     assign split_left  = (selected_stopwatch == LEFT)? split : 1'b0;
+    assign show_sample_left  = left_split_active;
+    assign count_sample_left = split_left & ~left_split_active;
 
     // right stopwatch signals
     assign led_right = (selected_stopwatch == RIGHT)? 3'b111 : 3'b000; // right stopwatch is selected
     assign trig_right  = (selected_stopwatch == RIGHT)? trig  : 1'b0;
     assign split_right = (selected_stopwatch == RIGHT)? split : 1'b0;
+    assign show_sample_right  = right_split_active;
+    assign count_sample_right = split_right & ~right_split_active;
 
     assign time_reading = {time_reading_left[15:8], time_reading_right[15:8]};
 
