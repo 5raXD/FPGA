@@ -68,12 +68,12 @@ module Ctl_tb();
                 reset = 1;
                 #10
                 reset = 0;
-                if(ai != 0) begin
+                if(ai != IDLE) begin
                     trig = 1;
                     #10
                     trig = 0;
                 end
-                if(ai == 2) begin
+                if(ai == PAUSED) begin
                     trig = 1;
                     #10
                     trig = 0;
@@ -83,7 +83,7 @@ module Ctl_tb();
                 #10
                 {reset, trig, split} = 0;
                 case(ai)
-                    0: begin // if Started from IDLE
+                    IDLE: begin // if Started from IDLE
                         casez(cii)
                             3'b00? : correct = correct & init_regs & ~count_enabled & (uut.state == IDLE); //10
                             3'b1?? : correct = correct & init_regs & ~count_enabled & (uut.state == IDLE); //10
@@ -91,7 +91,7 @@ module Ctl_tb();
                             default: correct = 0;
                         endcase
                     end
-                    1: begin // if Started from COUNTING
+                    COUNTING: begin // if Started from COUNTING
                         casez(cii)
                             3'b1?? : correct = correct & init_regs & ~count_enabled & (uut.state == IDLE); //10
                             3'b00? : correct = correct & ~init_regs & count_enabled & (uut.state == COUNTING); //01
@@ -99,7 +99,7 @@ module Ctl_tb();
                             default: correct = 0;
                         endcase
                     end
-                    2: begin // if Started from PAUSED
+                    PAUSED: begin // if Started from PAUSED
                         casez(cii)
                             3'b1?? : correct = correct & init_regs & ~count_enabled & (uut.state == IDLE); //10
                             3'b01? : correct = correct & ~init_regs & count_enabled & (uut.state == COUNTING); //01
