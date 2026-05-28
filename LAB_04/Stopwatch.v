@@ -40,6 +40,7 @@ module Stopwatch(clk, btnC, btnU, btnR, btnL, seg, an, dp, led_left, led_right);
     wire trig_right, split_right, init_regs_right, count_enabled_right, count_sample_right, show_sample_right;
     wire trig_left,  split_left,  init_regs_left,  count_enabled_left, count_sample_left, show_sample_left;
     // selected stopwatch
+    localparam LEFT = 1'b0, RIGHT = 1'b1;
     reg selected_stopwatch; //left -> 0; right -> 1
     
 	// FILL HERE INSTANTIATIONS
@@ -49,27 +50,27 @@ module Stopwatch(clk, btnC, btnU, btnR, btnL, seg, an, dp, led_left, led_right);
 	// Buttons Stabilization //
     ///////////////////////////
 	Debouncer #(.COUNTER_BITS(20)) debounce_reset(
-	.clk(clk),
-	.input_unstable(btnC),
-	.output_stable(reset)
+        .clk(clk),
+        .input_unstable(btnC),
+        .output_stable(reset)
 	);
 	
 	Debouncer #(.COUNTER_BITS(20)) debounce_trigger(
-	.clk(clk),
-	.input_unstable(btnU),
-	.output_stable(trig)
+        .clk(clk),
+        .input_unstable(btnU),
+        .output_stable(trig)
 	);
 	
 	Debouncer #(.COUNTER_BITS(20)) debounce_split(
-	.clk(clk),
-	.input_unstable(btnR),
-	.output_stable(split)
+        .clk(clk),
+        .input_unstable(btnR),
+        .output_stable(split)
 	);
 	
 	Debouncer #(.COUNTER_BITS(20)) debounce_toggle(
-	.clk(clk),
-	.input_unstable(btnL),
-	.output_stable(toggle)
+        .clk(clk),
+        .input_unstable(btnL),
+        .output_stable(toggle)
 	);
 
     ///////////////////////////
@@ -129,24 +130,21 @@ module Stopwatch(clk, btnC, btnU, btnR, btnL, seg, an, dp, led_left, led_right);
     ///////////////////////////
 
     always @(posedge clk) begin // TOGGLE SELECTED STOPWATCH
-        if(reset) selected_stopwatch <= 0;     
+        if(reset) selected_stopwatch <= LEFT;
         else if(toggle) selected_stopwatch <= ~selected_stopwatch;  
     end
 
 
     // left stopwatch signals
-	assign led_left  = (selected_stopwatch == 1'b0) ? 3'b111 : 3'b000; // left stopwatch is selected
-    assign trig_left   = selected_stopwatch ? 1'b0  : trig;
-    assign split_left  = selected_stopwatch ? 1'b0  : split;
+	assign led_left  = (selected_stopwatch == LEFT)? 3'b111 : 3'b000; // left stopwatch is selected
+    assign trig_left   = (selected_stopwatch == LEFT)? trig  : 1'b0;
+    assign split_left  = (selected_stopwatch == LEFT)? split : 1'b0;
 
     // right stopwatch signals
-    assign led_right = (selected_stopwatch == 1'b1) ? 3'b111 : 3'b000; // right stopwatch is selected
-    assign trig_right  = selected_stopwatch ? trig  : 1'b0;
-    assign split_right = selected_stopwatch ? split : 1'b0;
+    assign led_right = (selected_stopwatch == RIGHT)? 3'b111 : 3'b000; // right stopwatch is selected
+    assign trig_right  = (selected_stopwatch == RIGHT)? trig  : 1'b0;
+    assign split_right = (selected_stopwatch == RIGHT)? split : 1'b0;
 
     assign time_reading = {time_reading_left[15:8], time_reading_right[15:8]};
-
-
-
 
 endmodule
