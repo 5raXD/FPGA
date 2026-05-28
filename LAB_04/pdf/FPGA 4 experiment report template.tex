@@ -1,0 +1,199 @@
+\documentclass[11pt,a4paper]{article}
+
+% ----- Encoding & fonts (Calibri-like sans-serif look) -----
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+
+% ----- Layout -----
+\usepackage[margin=1in]{geometry}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{parskip}
+\usepackage[hidelinks]{hyperref}
+
+% ----- Helpers -----
+% A blank-cell strut that gives every status-table row a fillable height.
+\newcommand{\fillrow}{\rule[-0.9em]{0pt}{2.4em}}
+% A short underline for fill-in fields (name / ID).
+\newcommand{\fillin}[1]{\underline{\hspace{#1}}}
+% An answer area: a label followed by reserved vertical space.
+\newcommand{\answerspace}[1]{%
+  \par\vspace{1mm}\noindent\textit{Answer / images:}\par\vspace{#1}%
+}
+
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+% ======================================================================
+%  PART 0 - Title block (exact replica of the .docx template)
+% ======================================================================
+\begin{center}
+  {\fontsize{22}{26}\selectfont \textbf{FPGA experiment report}}
+\end{center}
+
+\vspace{0.5em}
+Task: FPGA 4
+
+\vspace{1em}
+Student 1\hspace{1.5em}name: \fillin{4cm}\hspace{1.5em}ID: \fillin{3cm}
+
+Student 2:\hspace{1.5em}name: \fillin{4cm}\hspace{1.5em}ID: \fillin{3cm}
+
+\vspace{1.5em}
+
+% ======================================================================
+%  PART 1 - Status update
+% ======================================================================
+{\fontsize{14}{17}\selectfont \textbf{Part 1 - Status update}}
+
+\vspace{0.5em}
+Fill in the following table according to your progress at the time of the submission.
+Each row should refer to one of the modules together with its simulation.
+
+The status column should be filled with one of the following:
+\begin{itemize}[noitemsep,topsep=2pt]
+  \item Done - If both are written and simulation passed.
+  \item Partially done - If you started writing the module and simulation but it's not working properly.
+  \item Not started - If you didn't get to that part of the task.
+\end{itemize}
+
+When the status is partially done, please use the notes/comments column to explain in a few more words what is the status of the module and what is the status of the simulation.
+
+\vspace{0.5em}
+Fill here:
+
+\vspace{0.5em}
+\begin{tabularx}{\textwidth}{|p{3.8cm}|p{3cm}|X|}
+\hline
+Module name/Step & status & notes/comments \\ \hline
+\fillrow Control                       & & \\ \hline
+\fillrow Debouncer                     & & \\ \hline
+\fillrow Stopwatch                     & & \\ \hline
+\fillrow Elaborated Design             & & \\ \hline
+\fillrow Synthesis                     & & \\ \hline
+\fillrow Setting up constraints        & & \\ \hline
+\fillrow Implementing the design       & & \\ \hline
+\fillrow FPGA programming and debugging & & \\ \hline
+\end{tabularx}
+
+\vspace{1.5em}
+\textbf{Issues:}
+
+In this section please describe the current issues you are facing.
+\begin{itemize}[noitemsep,topsep=2pt]
+  \item Per each module and simulation, if you receive any errors at the time of submission, please describe which errors and what they mean.
+\end{itemize}
+
+Fill here:
+\begin{itemize}[topsep=2pt]
+  \item Control:
+  \item Debouncer:
+  \item Stopwatch:
+  \item Elaborated Design:
+  \item Synthesis:
+  \item Setting up constraints:
+  \item Implementing the design:
+  \item FPGA programming and debugging:
+\end{itemize}
+
+\vspace{1.5em}
+
+% ======================================================================
+%  PART 2 - Simulations and answers
+% ======================================================================
+{\fontsize{14}{17}\selectfont \textbf{Part 2 - Simulations and answers}}
+
+\vspace{0.5em}
+In this section, please add the images for each simulation as described in the report. Remember to use annotations and explain in your own words what is shown in each simulation.
+
+In some of the tasks in the report, there are also questions that you should answer here.
+
+Make sure to include images of all simulations running at the time of submission, even if they are not correct.
+
+\vspace{0.5em}
+Fill here:
+\begin{itemize}[topsep=2pt]
+  \item Control:
+  \item Debouncer:
+  \item Stopwatch:
+  \item Elaborated Design:
+  \item Synthesis:
+  \item Setting up constraints:
+  \item Implementing the design:
+  \item FPGA programming and debugging:
+\end{itemize}
+
+\clearpage
+
+% ======================================================================
+%  PART 3 - Questions to fill and answer (from Experiment 4 assignment)
+% ======================================================================
+{\fontsize{14}{17}\selectfont \textbf{Part 3 - Questions to fill and answer}}
+
+\vspace{0.3em}
+The following are all the items from the \emph{Experiment FPGA 4 -- Dual Stopwatch} assignment that explicitly ask for content in the progress report. Answer each one below (add waveforms, screenshots and explanations where requested).
+
+\vspace{0.8em}
+\textbf{Task 2 -- Control}
+\begin{enumerate}[label=(\roman*),leftmargin=2.2em,topsep=2pt]
+  \item Provide an annotated waveform of your simulation. In addition, take a screenshot of the Tcl console window showing the ``Test Passed'' message and the ``\$finish called\ldots'' message. Explain what is shown in the simulation.
+  \answerspace{3.5cm}
+  \item The FSM is presented as a Mealy state diagram. Explain whether this FSM is a Moore FSM.
+  \answerspace{3cm}
+\end{enumerate}
+
+\vspace{0.8em}
+\textbf{Task 3 -- Debouncer}
+\begin{enumerate}[label=(\alph*),leftmargin=2.2em,topsep=2pt,start=3]
+  \item Discuss the tradeoff between choosing high and low values for the counter, and how this is related to the low-pass-filter debouncing approach we saw in the previous experiments.
+  \answerspace{3.5cm}
+\end{enumerate}
+
+\vspace{0.8em}
+\textbf{Task 4 -- Stopwatch}
+\begin{enumerate}[label=(\alph*),leftmargin=2.2em,topsep=2pt]
+  \item Design a block diagram for the Stopwatch module. Use the previous designs as instantiated modules (no need to show the internal logic); show and explain any other logic and connectivity.
+  \answerspace{4cm}
+\end{enumerate}
+
+\vspace{0.8em}
+\textbf{Task 5 -- Elaborated Design}
+\begin{enumerate}[label=(\alph*),leftmargin=2.2em,topsep=2pt,start=2]
+  \item Provide the screenshot of the elaborated design schematic.
+  \answerspace{4cm}
+\end{enumerate}
+
+\vspace{0.8em}
+\textbf{Task 6 -- Synthesis}
+\begin{enumerate}[label=(\roman*),leftmargin=2.2em,topsep=2pt]
+  \item Provide a screenshot of the synthesized design schematic.
+  \answerspace{4cm}
+  \item Describe the differences that appeared in the synthesized design compared to the elaborated design.
+  \answerspace{3cm}
+  \item Describe the issues you encountered during synthesis and how you solved them (errors, critical warnings, and warnings).
+  \answerspace{3cm}
+\end{enumerate}
+
+\vspace{0.8em}
+\textbf{Task 8 -- Implementing the design}
+\begin{enumerate}[label=(\roman*),leftmargin=2.2em,topsep=2pt]
+  \item Provide a screenshot of the design timing summary where you must exhibit positive slack both for setup and for hold times.
+  \answerspace{4cm}
+  \item Specify the lengths (in nanoseconds) of your critical setup path (i.e. the \emph{path length} with the lowest setup slack -- do not just specify the slack value).
+  \answerspace{3cm}
+\end{enumerate}
+
+\vspace{0.8em}
+\textbf{Task 9 -- FPGA programming and debugging}
+\begin{enumerate}[label=(\alph*),leftmargin=2.2em,topsep=2pt,start=3]
+  \item After your design was successfully approved, remove the debug core, re-implement the design, and provide a screenshot of your Project Manager $\rightarrow$ Project Summary screen including post-implementation Timing, Power, and Utilization details (table view).
+  \answerspace{4cm}
+\end{enumerate}
+
+\end{document}
