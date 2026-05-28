@@ -34,13 +34,16 @@ module Stopwatch(clk, btnC, btnU, btnR, btnL, seg, an, dp, led_left, led_right);
     output  wire [2:0] led_right;
 
     wire [15:0] time_reading;
+    // button signals
     wire trig, split, reset, toggle;
-    wire trig_right, split_right, init_regs_right, count_enabled_right;
-    wire trig_left, split_left, init_regs_left, count_enabled_left;
-    reg selected_stopwatch;
+    // counter signals
+    wire trig_right, split_right, init_regs_right, count_enabled_right, count_sample_right, show_sample_right;
+    wire trig_left,  split_left,  init_regs_left,  count_enabled_left, count_sample_left, show_sample_left;
+    // selected stopwatch
+    reg selected_stopwatch; //left -> 0; right -> 1
     
 	// FILL HERE INSTANTIATIONS
-    wire reset, trig, split, toggle = 1'b1;
+    wire [15:0] time_reading_left, time_reading_right;
 
     ///////////////////////////
 	// Buttons Stabilization //
@@ -93,29 +96,57 @@ module Stopwatch(clk, btnC, btnU, btnR, btnL, seg, an, dp, led_left, led_right);
     //   7-Segment Display   //
     ///////////////////////////
     Seg_7_Display display(
-        .sw(time_reading),
+        .x(time_reading),
         .clk(clk),
-        .dp(0),
-        .seg(seg),
+        .clr(reset),
+        .a_to_g(seg),
         .an(an),
-        .dp(dp)
+        .dp(dp) 
     );
 
     ///////////////////////////
     //        Counters       //
     ///////////////////////////
-    
+    Counter counter_right(
+        .clk(clk),
+        .init_regs(reset),
+        .count_enabled(count_enabled_right),
+        .count_sample(count_sample_right),
+        .show_sample(show_sample_right),
+        .time_reading(time_reading_right)
+    );
+    Counter counter_left(
+        .clk(clk),
+        .init_regs(reset),
+        .count_enabled(count_enabled_left),
+        .count_sample(count_sample_left),
+        .show_sample(show_sample_left),
+        .time_reading(time_reading_left)
+    );
+
+    ///////////////////////////
+    //    Stopwatch Logic    //
+    ///////////////////////////
+
+    always @(posedge clk) begin // TOGGLE SELECTED STOPWATCH
+        if(reset) selected_stopwatch <= 0;     
+        else if(toggle) selected_stopwatch <= ~selected_stopwatch;  
+    end
 
 
+    // left stopwatch signals
+	assign led_left  = (selected_stopwatch == 1'b0) ? 3'b111 : 3'b000; // left stopwatch is selected
+    assign trig_left   = selected_stopwatch ? 1'b0  : trig;
+    assign split_left  = selected_stopwatch ? 1'b0  : split;
 
-    ///////////////////////////
-    ///////////////////////////
-    ///////////////////////////
-    ///////////////////////////
-    ///////////////////////////
-    ///////////////////////////
-    ///////////////////////////
-    ///////////////////////////
+    // right stopwatch signals
+    assign led_right = (selected_stopwatch == 1'b1) ? 3'b111 : 3'b000; // right stopwatch is selected
+    assign trig_right  = selected_stopwatch ? trig  : 1'b0;
+    assign split_right = selected_stopwatch ? split : 1'b0;
+
+    assign time_reading = {time_reading_left[15:8], time_reading_right[15:8]};
+
+
 
 
 endmodule
