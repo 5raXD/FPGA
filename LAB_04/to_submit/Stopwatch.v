@@ -131,14 +131,14 @@ module Stopwatch(clk, btnC, btnU, btnR, btnL, seg, an, dp, led_left, led_right);
     ///////////////////////////
 
     always @(posedge clk) begin // TOGGLE SELECTED STOPWATCH
-        if(reset) begin 
+        if(reset) begin
             selected_stopwatch <= LEFT;
             left_split_active <= 1'b0;
             right_split_active <= 1'b0;
         end
-        else begin 
-            if(toggle) selected_stopwatch <= ~selected_stopwatch;  
-            if(split) begin
+        else begin
+            if(toggle) selected_stopwatch <= ~selected_stopwatch;
+            if(split && !count_enabled_right && !count_enabled_left) begin
                 right_split_active <= (selected_stopwatch == RIGHT)? ~right_split_active : right_split_active;
                 left_split_active  <= (selected_stopwatch == LEFT) ? ~left_split_active  : left_split_active;
             end
