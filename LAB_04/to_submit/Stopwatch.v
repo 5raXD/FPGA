@@ -45,6 +45,7 @@ module Stopwatch(clk, btnC, btnU, btnR, btnL, seg, an, dp, led_left, led_right);
     
 	// FILL HERE INSTANTIATIONS
     wire [15:0] time_reading_left, time_reading_right;
+    wire reset_left, reset_right;
 
     // reg right_split_active, left_split_active;
 
