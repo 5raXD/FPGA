@@ -155,7 +155,7 @@ module Stopwatch(clk, btnC, btnU, btnR, btnL, seg, an, dp, led_left, led_right);
     assign split_left  = (selected_stopwatch == LEFT)? split : 1'b0;
     // assign show_sample_left  = left_split_active;
     // assign count_sample_left = split_left & ~left_split_active;
-    assign reset_left = reset | (!init_regs_left & !count_enabled_left); 
+    assign reset_left = reset | (~init_regs_left & ~count_enabled_left); 
 
     // right stopwatch signals
     assign led_right = (selected_stopwatch == RIGHT)? 3'b111 : 3'b000; // right stopwatch is selected
@@ -163,7 +163,7 @@ module Stopwatch(clk, btnC, btnU, btnR, btnL, seg, an, dp, led_left, led_right);
     assign split_right = (selected_stopwatch == RIGHT)? split : 1'b0;
     // assign show_sample_right  = right_split_active;
     // assign count_sample_right = split_right & ~right_split_active;
-    assign reset_right = reset | (!init_regs_right & !count_enabled_right);
+    assign reset_right = reset | (~init_regs_right & ~count_enabled_right);
 
     assign time_reading = {time_reading_left[15:8], time_reading_right[15:8]};
 
