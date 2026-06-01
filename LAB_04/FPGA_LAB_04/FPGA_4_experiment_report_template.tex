@@ -502,88 +502,136 @@ Stopwatch.v
 
 \begin{lstlisting}
 `timescale 1ns/10ps
-module Stopwatch(clk, btnC, btnU, btnR, btnL,
-                 seg, an, dp, led_left, led_right);
+module Stopwatch(clk, btnC, btnU, btnR, btnL, seg, an, dp, led_left, led_right);
 
     input              clk, btnC, btnU, btnR, btnL;
-    output wire [6:0]  seg;
-    output wire [3:0]  an;
-    output wire        dp;
-    output wire [2:0]  led_left;
-    output wire [2:0]  led_right;
+    output  wire [6:0] seg;
+    output  wire [3:0] an;
+    output  wire       dp; 
+    output  wire [2:0] led_left;
+    output  wire [2:0] led_right;
 
     wire [15:0] time_reading;
+    // button signals
     wire trig, split, reset, toggle;
-    wire trig_right, split_right, init_regs_right, count_enabled_right,
-         count_sample_right, show_sample_right;
-    wire trig_left,  split_left,  init_regs_left,  count_enabled_left,
-         count_sample_left, show_sample_left;
-
+    // counter signals
+    wire trig_right, split_right, init_regs_right, count_enabled_right, count_sample_right, show_sample_right;
+    wire trig_left,  split_left,  init_regs_left,  count_enabled_left, count_sample_left, show_sample_left;
+    // selected stopwatch
     localparam LEFT = 1'b0, RIGHT = 1'b1;
-    reg selected_stopwatch;
+    reg selected_stopwatch; //left -> 0; right -> 1
+    
+	// FILL HERE INSTANTIATIONS
     wire [15:0] time_reading_left, time_reading_right;
-    reg right_split_active, left_split_active;
+    // reg right_split_active, left_split_active;
 
-    // Button debouncing
-    Debouncer #(.COUNTER_BITS(20)) debounce_reset  (.clk(clk), .input_unstable(btnC), .output_stable(reset));
-    Debouncer #(.COUNTER_BITS(20)) debounce_trigger(.clk(clk), .input_unstable(btnU), .output_stable(trig));
-    Debouncer #(.COUNTER_BITS(20)) debounce_split  (.clk(clk), .input_unstable(btnR), .output_stable(split));
-    Debouncer #(.COUNTER_BITS(20)) debounce_toggle (.clk(clk), .input_unstable(btnL), .output_stable(toggle));
+    ///////////////////////////
+	// Buttons Stabilization //
+    ///////////////////////////
+	Debouncer #(.COUNTER_BITS(20)) debounce_reset(
+        .clk(clk),
+        .input_unstable(btnC),
+        .output_stable(reset)
+	);
+	
+	Debouncer #(.COUNTER_BITS(20)) debounce_trigger(
+        .clk(clk),
+        .input_unstable(btnU),
+        .output_stable(trig)
+	);
+	
+	Debouncer #(.COUNTER_BITS(20)) debounce_split(
+        .clk(clk),
+        .input_unstable(btnR),
+        .output_stable(split)
+	);
+	
+	Debouncer #(.COUNTER_BITS(20)) debounce_toggle(
+        .clk(clk),
+        .input_unstable(btnL),
+        .output_stable(toggle)
+	);
 
-    // Controls
-    Ctl ctl_right(.clk(clk), .reset(reset),
-                  .trig(trig_right),  .split(split_right),
-                  .init_regs(init_regs_right), .count_enabled(count_enabled_right));
-    Ctl ctl_left (.clk(clk), .reset(reset),
-                  .trig(trig_left),   .split(split_left),
-                  .init_regs(init_regs_left),  .count_enabled(count_enabled_left));
+    ///////////////////////////
+    //        Controls       //
+    ///////////////////////////
+    Ctl ctl_right(
+        .clk(clk),
+        .reset(reset),
+        .trig(trig_right),
+        .split(split_right),
+        .init_regs(init_regs_right),
+        .count_enabled(count_enabled_right)
+    );
+    Ctl ctl_left(
+        .clk(clk),
+        .reset(reset),
+        .trig(trig_left),
+        .split(split_left),
+        .init_regs(init_regs_left),
+        .count_enabled(count_enabled_left)
+    );
 
-    // Shared 7-segment display
-    Seg_7_Display display(.x(time_reading), .clk(clk), .clr(reset),
-                          .a_to_g(seg), .an(an), .dp(dp));
+    ///////////////////////////
+    //   7-Segment Display   //
+    ///////////////////////////
+    Seg_7_Display display(
+        .x(time_reading),
+        .clk(clk),
+        .clr(reset),
+        .a_to_g(seg),
+        .an(an),
+        .dp(dp) 
+    );
 
-    // Counters
-    Counter counter_right(.clk(clk), .init_regs(reset),
-                          .count_enabled(count_enabled_right),
-                          .count_sample(count_sample_right),
-                          .show_sample(show_sample_right),
-                          .time_reading(time_reading_right));
-    Counter counter_left (.clk(clk), .init_regs(reset),
-                          .count_enabled(count_enabled_left),
-                          .count_sample(count_sample_left),
-                          .show_sample(show_sample_left),
-                          .time_reading(time_reading_left));
+    ///////////////////////////
+    //        Counters       //
+    ///////////////////////////
+    Counter counter_right(
+        .clk(clk),
+        .init_regs(reset | init_regs_right),
+        .count_enabled(count_enabled_right),
+        .count_sample(count_sample_right),
+        .show_sample(show_sample_right),
+        .time_reading(time_reading_right)
+    );
+    Counter counter_left(
+        .clk(clk),
+        .init_regs(reset | init_regs_left),
+        .count_enabled(count_enabled_left),
+        .count_sample(count_sample_left),
+        .show_sample(show_sample_left),
+        .time_reading(time_reading_left)
+    );
 
-    // Selection logic
-    always @(posedge clk) begin
-        if (reset) begin
+    ///////////////////////////
+    //    Stopwatch Logic    //
+    ///////////////////////////
+
+    always @(posedge clk) begin // TOGGLE SELECTED STOPWATCH
+        if(reset) begin
             selected_stopwatch <= LEFT;
-            left_split_active  <= 1'b0;
-            right_split_active <= 1'b0;
-        end else begin
-            if (toggle) selected_stopwatch <= ~selected_stopwatch;
-            if (split) begin
-                right_split_active <= (selected_stopwatch == RIGHT)? ~right_split_active : right_split_active;
-                left_split_active  <= (selected_stopwatch == LEFT) ? ~left_split_active  : left_split_active;
-            end
+        end
+        else begin
+            if(toggle) selected_stopwatch <= ~selected_stopwatch;
         end
     end
 
-    // Routing - LEFT
-    assign led_left          = (selected_stopwatch == LEFT)? 3'b111 : 3'b000;
-    assign trig_left         = (selected_stopwatch == LEFT)? trig   : 1'b0;
-    assign split_left        = (selected_stopwatch == LEFT)? split  : 1'b0;
-    assign show_sample_left  = left_split_active;
-    assign count_sample_left = split_left & ~left_split_active;
 
-    // Routing - RIGHT
-    assign led_right          = (selected_stopwatch == RIGHT)? 3'b111 : 3'b000;
-    assign trig_right         = (selected_stopwatch == RIGHT)? trig   : 1'b0;
-    assign split_right        = (selected_stopwatch == RIGHT)? split  : 1'b0;
-    assign show_sample_right  = right_split_active;
-    assign count_sample_right = split_right & ~right_split_active;
+    // left stopwatch signals
+	assign led_left  = (selected_stopwatch == LEFT)? 3'b111 : 3'b000; // left stopwatch is selected
+    assign trig_left   = (selected_stopwatch == LEFT)? trig  : 1'b0;
+    assign split_left  = (selected_stopwatch == LEFT)? split : 1'b0;
+    assign show_sample_left  = 1'b0;
+    assign count_sample_left = 1'b0;
 
-    // Display shares two digits per side (seconds nibbles)
+    // right stopwatch signals
+    assign led_right = (selected_stopwatch == RIGHT)? 3'b111 : 3'b000; // right stopwatch is selected
+    assign trig_right  = (selected_stopwatch == RIGHT)? trig  : 1'b0;
+    assign split_right = (selected_stopwatch == RIGHT)? split : 1'b0;
+    assign show_sample_right  = 1'b0;
+    assign count_sample_right = 1'b0;
+
     assign time_reading = {time_reading_left[15:8], time_reading_right[15:8]};
 
 endmodule
