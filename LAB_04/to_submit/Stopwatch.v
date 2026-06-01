@@ -43,9 +43,7 @@ module Stopwatch(clk, btnC, btnU, btnR, btnL, seg, an, dp, led_left, led_right);
     localparam LEFT = 1'b0, RIGHT = 1'b1;
     reg selected_stopwatch; //left -> 0; right -> 1
     
-	// FILL HERE INSTANTIATIONS
     wire [15:0] time_reading_left, time_reading_right;
-    // reg right_split_active, left_split_active;
 
     ///////////////////////////
 	// Buttons Stabilization //
@@ -133,17 +131,9 @@ module Stopwatch(clk, btnC, btnU, btnR, btnL, seg, an, dp, led_left, led_right);
     always @(posedge clk) begin // TOGGLE SELECTED STOPWATCH
         if(reset) begin
             selected_stopwatch <= LEFT;
-            // left_split_active <= 1'b0;
-            // right_split_active <= 1'b0;
         end
         else begin
             if(toggle) selected_stopwatch <= ~selected_stopwatch;
-            // if(split) begin
-            //     if(selected_stopwatch == RIGHT && !count_enabled_right)
-            //         right_split_active <= ~right_split_active;
-            //     if(selected_stopwatch == LEFT && !count_enabled_left)
-            //         left_split_active <= ~left_split_active;
-            // end
         end
     end
 
