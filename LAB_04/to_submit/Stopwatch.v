@@ -111,7 +111,7 @@ module Stopwatch(clk, btnC, btnU, btnR, btnL, seg, an, dp, led_left, led_right);
     ///////////////////////////
     Counter counter_right(
         .clk(clk),
-        .init_regs(reset),
+        .init_regs(reset | init_regs_right),
         .count_enabled(count_enabled_right),
         .count_sample(count_sample_right),
         .show_sample(show_sample_right),
@@ -119,7 +119,7 @@ module Stopwatch(clk, btnC, btnU, btnR, btnL, seg, an, dp, led_left, led_right);
     );
     Counter counter_left(
         .clk(clk),
-        .init_regs(reset),
+        .init_regs(reset | init_regs_left),
         .count_enabled(count_enabled_left),
         .count_sample(count_sample_left),
         .show_sample(show_sample_left),
