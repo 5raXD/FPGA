@@ -26,5 +26,25 @@ module Ps2_Top(
     output wire       led         // U16 - strobe LED (LD0)
     );
 
+    wire rstn = ~reset;
+    wire keyPressed;
+    wire [7:0] scancode;
+
+    Ps2_Display u_display(
+    .clk  (clk),
+    .rstn (rstn),
+    .keyPressed (keyPressed),
+    .scancode   (scancode),
+    .seg  (seg),
+    .an   (an),
+    .dp   (dp),
+    .led  (led));
+
+    Ps2_Interface u_interface(
+    .PS2Clk   (PS2Clk),
+    .rstn     (rstn),
+    .PS2Data  (PS2Data),
+    .scancode (scancode),
+    .keyPressed (keyPressed));
 
 endmodule
