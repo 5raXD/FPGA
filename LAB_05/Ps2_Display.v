@@ -36,6 +36,7 @@ module Ps2_Display(
     output wire       dp,          // decimal point
     output reg        led          // strobe LED, one visible blink per press
     );
+    
 
 
 endmodule
