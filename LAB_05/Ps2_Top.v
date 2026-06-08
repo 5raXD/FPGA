@@ -9,7 +9,7 @@
 // Project Name:    lab5
 // Target Devices:  Xilinx BASYS3 Board, FPGA model XC7A35T-1CPG236C
 // Tool versions:   Vivado 2016.4 / Icarus Verilog (simulation)
-// Description:     
+// Description:     top lvl taking from Figure 1 from the pdf
 //
 // Dependencies:    Ps2_Interface, Ps2_Display, Seg_7_Display
 //
