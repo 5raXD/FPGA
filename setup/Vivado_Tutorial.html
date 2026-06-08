@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Vivado Software Tutorial — FPGA Lab</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --link: #58a6ff;
+    --accent: #f78166;
+    --code-bg: #1f2428;
+    --highlight: #ffd33d;
+    --warn: #d29922;
+    --err:  #f85149;
+    --ok:   #3fb950;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    font-size: 16px;
+  }
+  .wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+  h1, h2, h3 {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+    margin-top: 2em;
+    color: #fff;
+  }
+  h1 { font-size: 2em; }
+  h2 { font-size: 1.5em; }
+  h3 { font-size: 1.2em; border-bottom: none; }
+  a { color: var(--link); }
+  hr { border: 0; border-top: 1px solid var(--border); margin: 2em 0; }
+  ul, ol { padding-left: 1.5em; }
+  blockquote {
+    border-left: 4px solid var(--warn);
+    background: rgba(210, 153, 34, 0.08);
+    margin: 1em 0;
+    padding: 10px 14px;
+    color: #f0d58a;
+    border-radius: 4px;
+  }
+  blockquote strong { color: var(--warn); }
+  .toc {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 22px;
+  }
+  .toc ol { margin: 0; }
+  .toc a { text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* Inline code & copy chip */
+  code {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.92em;
+    color: #ffa657;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    position: relative;
+    margin: 1em 0;
+  }
+  pre code {
+    background: transparent;
+    color: var(--text);
+    padding: 0;
+    font-size: 0.9em;
+  }
+
+  /* Copy button */
+  .copy-block { position: relative; }
+  .copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #21262d;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 4px 10px;
+    font-size: 0.78em;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s ease;
+  }
+  .copy-btn:hover {
+    background: #30363d;
+    border-color: #58a6ff;
+  }
+  .copy-btn.copied {
+    background: var(--ok);
+    color: #fff;
+    border-color: var(--ok);
+  }
+
+  /* Highlighted star item: the chip name */
+  .chip-card {
+    background: linear-gradient(180deg, #1f2937 0%, #161b22 100%);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 20px 0;
+    box-shadow: 0 0 0 1px rgba(247, 129, 102, 0.15);
+  }
+  .chip-card .label {
+    font-size: 0.8em;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .chip-card .value {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 1.4em;
+    color: var(--highlight);
+    font-weight: 600;
+    display: inline-block;
+    margin-right: 12px;
+    user-select: all;
+  }
+  .chip-card .desc {
+    color: var(--muted);
+    font-size: 0.9em;
+    margin-top: 6px;
+  }
+
+  .inline-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 3px 8px;
+    margin: 0 2px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.92em;
+  }
+  .inline-copy .val { color: #ffa657; user-select: all; }
+  .inline-copy .icp-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.85em;
+    padding: 0 2px;
+  }
+  .inline-copy .icp-btn:hover { color: var(--link); }
+  .inline-copy .icp-btn.copied { color: var(--ok); }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--panel); }
+
+  .callout {
+    border-left: 4px solid var(--link);
+    background: rgba(88, 166, 255, 0.06);
+    padding: 10px 14px;
+    margin: 1em 0;
+    border-radius: 4px;
+  }
+  .danger { border-left-color: var(--err); background: rgba(248,81,73,0.07); color: #ffb4b0; }
+  .danger strong { color: var(--err); }
+
+  .small { color: var(--muted); font-size: 0.9em; }
+  .tag {
+    display: inline-block;
+    background: #21262d;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 1px 8px;
+    font-size: 0.75em;
+    color: var(--muted);
+    margin-left: 6px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Vivado Software Tutorial <span class="tag">FPGA Lab · v1.32</span></h1>
+<p class="small">Compatible with Vivado 2016.4 / 2023.2 ML Edition.</p>
+
+<!-- HIGHLIGHTED CHIP CARD -->
+<div class="chip-card">
+  <div class="label">Lab FPGA · Default Part (Basys 3)</div>
+  <span class="value" id="chip-value">xc7a35tlcpg236-2L</span>
+  <button class="copy-btn" data-target="chip-value" style="position:static; vertical-align:middle;">Copy</button>
+  <div class="desc">Search this exact catalog name in Vivado's <em>Default Part</em> screen when creating a new project. Family: Artix-7. Package: CPG236. Speed grade: -2L (low-power).</div>
+</div>
+
+<div class="toc">
+<strong>Contents</strong>
+<ol>
+  <li><a href="#s1">Vivado Installation</a></li>
+  <li><a href="#s2">Vivado Project Creation</a></li>
+  <li><a href="#s3">Constraints file (XDC)</a></li>
+  <li><a href="#s4">Behavioral Simulation</a></li>
+  <li><a href="#s5">Implementing the design and checking timing</a></li>
+  <li><a href="#s6">Integrated Logic Analyzer Setup</a></li>
+  <li><a href="#s7">Integrated Logic Analyzer Removal</a></li>
+  <li><a href="#s8">Integrated Logic Analyzer Usage</a></li>
+  <li><a href="#s9">Programming the FPGA</a></li>
+  <li><a href="#s10">Warnings and Errors</a></li>
+</ol>
+</div>
+
+<h2 id="s1">1. Vivado Installation</h2>
+<ol>
+  <li>Download Vivado <strong>2023.2 ML Edition</strong>. The download link redirects to free Xilinx account creation.</li>
+  <li>Run the installer. If a newer version is offered, click <em>Continue</em>, then <em>Next</em>.</li>
+  <li>Enter Xilinx username and password. Choose <strong>“Download and Install Now”</strong>.</li>
+  <li>Select <strong>Vivado ML Standard</strong> and click <em>Next</em>.</li>
+  <li>On the component-selection screen, keep the same checkboxes as the lab's reference screenshot — most importantly, keep <strong>Artix-7</strong> checked.</li>
+  <li>Accept all license agreements.</li>
+  <li>Confirm installation path, then proceed.</li>
+</ol>
+
+<blockquote>
+  <strong>Popular installation bug:</strong> on some PCs, after installing Vivado, it won't run but keeps showing a request to update Visual Studio. Ignore these warnings, then go to the Vivado installation directory and remove the file named <code>xvcredist.exe</code>.
+</blockquote>
+
+<h2 id="s2">2. Vivado Project Creation</h2>
+<p>Launch Vivado, go to <code>File → New Project</code>, then walk the wizard:</p>
+<ol>
+  <li><strong>Project Name:</strong> e.g. <code>lab1</code>, choose a location.
+    <div class="callout danger">
+      <strong>Lab rule:</strong> the project location must be on <strong>drive G</strong> if you're working in the lab right now, and the path <strong>must not contain spaces or Hebrew characters</strong>.
+    </div>
+  </li>
+  <li><strong>Project Type:</strong> leave as <em>RTL project</em>, uncheck “Do not specify sources at this time”.</li>
+  <li><strong>Add Sources</strong> (next 3 screens):
+    <table>
+      <thead><tr><th>(1) Add design/sim sources</th><th>(2) Add IP</th><th>(3) Add constraints</th></tr></thead>
+      <tbody><tr>
+        <td>If you have sources ready, add them now. <strong>Check “copy sources into project”</strong> — otherwise they'll be left outside the project directory.</td>
+        <td>Mostly skipped in the lab.</td>
+        <td>Add the <code>.xdc</code> file from the lab team. <strong>Check “copy constraints files into project”</strong>.</td>
+      </tr></tbody>
+    </table>
+    To add more sources later: <code>Project Manager → Add Sources</code>.
+  </li>
+  <li>
+    <strong>Default Part:</strong> in the search box type the catalog name —
+    <span class="inline-copy">
+      <span class="val" data-copy="xc7a35tlcpg236-2L">xc7a35tlcpg236-2L</span>
+      <button class="icp-btn" data-copy-text="xc7a35tlcpg236-2L" title="Copy">⧉</button>
+    </span>
+    . This is our chip. Select the (1 match) result, click <em>Next</em>, then <em>Finish</em>.
+  </li>
+</ol>
+
+<h2 id="s3">3. Constraints file (XDC)</h2>
+<p>The XDC file lets a designer present “special requests” to the otherwise-automatic synthesis/implementation flow. In our lab we use only two kinds:</p>
+
+<h3>Timing constraints</h3>
+<p>Define clock constraints, e.g. a 10 ns period (50% duty cycle):</p>
+<div class="copy-block">
+<pre><code id="code-clk">create_clock -period 10 -name sys_clk_pin -waveform {0 5} -add [get_ports clk]</code></pre>
+<button class="copy-btn" data-target="code-clk">Copy</button>
+</div>
+<p>After timing analysis, see whether constraints are met in <code>(Synthesis/Implementation) → Report Timing Analysis</code> in the Flow Navigator.</p>
+
+<h3>IO constraints</h3>
+<p>Connect the FPGA package pins to the top-module ports. Example: tie pin <code>W5</code> (oscillator crystal output) to port <code>clk</code> at LVCMOS33:</p>
+<div class="copy-block">
+<pre><code id="code-pin">set_property PACKAGE_PIN W5 [get_ports clk]
+set_property IOSTANDARD LVCMOS33 [get_ports clk]</code></pre>
+<button class="copy-btn" data-target="code-pin">Copy</button>
+</div>
+<div class="callout"><strong>Note:</strong> Ports that are not used in your design <em>must</em> be commented out.</div>
+
+<h2 id="s4">4. Behavioral Simulation</h2>
+<p>Logical (behavioral) simulation tests correctness before the slow synthesis/implementation flow. Suppose you wrote a module <code>FA.v</code> and a test-bench <code>FA_tb.v</code> (with an <code>initial</code> block).</p>
+<ol>
+  <li>Choose the test bench: <code>Simulation Settings → Simulation top module</code> → pick <code>FA_tb</code> → OK.
+    <br><em>Alternatively:</em> right-click <code>FA_tb.v</code> under <em>Simulation Sources</em> and choose <strong>Set as Top</strong>.
+  </li>
+  <li>Run: <code>Simulation → Run Simulation → Run Behavioral Simulation</code>.
+    <blockquote>
+      <strong>Popular simulation problem:</strong> on some PCs, clicking “Run Behavioral Simulation” freezes Vivado at "Executing simulate step". Usually caused by antivirus — disable it or add Vivado to the exception list.
+    </blockquote>
+  </li>
+  <li>After elaboration, a wave-diagram view opens:
+    <ol>
+      <li>Click <strong>zoom-fit</strong> to set a decent time scale.</li>
+      <li>Watch the <strong>TCL console</strong> for errors.</li>
+      <li>Run more simulation steps if <code>$finish</code> wasn't reached in your test-bench.</li>
+      <li>Re-run from start after modifying the test-bench or UUT.</li>
+      <li>Drag more signals onto the waveform area to inspect them.</li>
+    </ol>
+  </li>
+</ol>
+
+<h2 id="s5">5. Implementing the design and checking timing</h2>
+<p>Timing analysis can run after synthesis (path delays over the synthesized netlist), but running it after <em>implementation</em> is more realistic — it includes FPGA placement and routing delays.</p>
+<p>After <code>Implementation → Run Implementation</code>, always check errors and critical warnings, then the <strong>Timing</strong> tab at the bottom.</p>
+<ul>
+  <li><strong>Setup paths:</strong> potential setup-time violations. Example: Path 1 with 4.646 ns net-delay + 1.414 ns logic-delay = ~6.06 ns total, with a positive slack of 3.936 ns — meaning you could hypothetically reduce the clock period by ~3.936 ns and still be correct.</li>
+  <li><strong>Hold paths:</strong> the opposite — too-short paths. Hold violations occur when a path doesn't have enough delay to keep the contaminating signal alive through the hold window.</li>
+</ul>
+
+<h2 id="s6">6. Integrated Logic Analyzer Setup</h2>
+<p>Vivado's <strong>ILA</strong> is a debug-core added alongside your design, letting you watch internal signals (FF outputs, wires, etc.) live from the actual FPGA on your screen.</p>
+<p>After running synthesis: <code>Synthesis → Set up debug</code>. In the wizard's “Nets to debug” screen, choose nets either (1) from the netlist, or (2) by Ctrl-clicking nets in the synthesized schematic.</p>
+<p><strong>Notes:</strong></p>
+<ol>
+  <li>Because ILA is added <em>after</em> synthesis, optimization may have renamed nets.</li>
+  <li>Don't choose the clock — it's recognized automatically.</li>
+  <li>Don't pick nets <em>before</em> input-buffers or <em>after</em> output-buffers — they're non-debuggable.</li>
+</ol>
+<p>Click the <strong>+</strong> button to add selected nets. On the “ILA Core Options” screen, choose the number of samples to be stored when the trigger occurs (e.g. <code>1024</code>). The more signals and the longer the depth, the more on-chip memory is consumed — placement may fail if resources are exhausted.</p>
+<p>Click <em>Next</em>, then <em>Finish</em>. Debugged nets appear as dashed lines.</p>
+
+<h2 id="s7">7. Integrated Logic Analyzer Removal</h2>
+<p>Go to <code>Synthesis → Set up debug</code>, and on the first wizard screen choose <strong>“Disconnect all nets and remove debug cores.”</strong> Re-run synthesis.</p>
+<p>If synthesis fails, manually remove the ILA-related lines from the XDC — start at <code>create_debug_core u_ila_0 ila</code> and remove everything below.</p>
+
+<h2 id="s8">8. Integrated Logic Analyzer Usage</h2>
+<p>After successful ILA setup, implementation and device programming, Hardware Manager auto-detects the ILA core. Set up trigger signals (1, 2, 3), then (4) set the trigger to <strong>OR</strong> so any one trigger fires.</p>
+<ol>
+  <li>Add the signals you want to monitor.</li>
+  <li>Set triggers (e.g. react on exiting from <code>0</code> level) and <strong>arm the ILA core</strong>.</li>
+  <li>The ILA now waits for a trigger.</li>
+  <li>Hit a button on the board to fire the trigger — samples from the debugged nets appear on the wave-diagram view.</li>
+</ol>
+
+<h2 id="s9">9. Programming the FPGA</h2>
+
+<h3>Step 1 — Generate bitstream</h3>
+<p>After synthesis &amp; implementation succeed: <code>Program and Debug → Generate Bitstream</code>. The Artix-7 bitstream is typically <strong>17,536,096 bits</strong> long and can be compressed.</p>
+
+<h3>Step 2 — Connect Basys3 to PC</h3>
+<ul>
+  <li>USB extender cable (on the desk, popping out from the monitor-cables hole).</li>
+  <li><strong>Pay attention to JTAG cable orientation</strong> when inserting into the on-board port.</li>
+  <li>Power on the board with the power switch.</li>
+  <li>In Vivado: <code>Program and Debug → Hardware Manager → Open Target → Auto Connect</code>.</li>
+</ul>
+
+<h3>Step 3 — Programming mode (set by JP1 jumper)</h3>
+<table>
+<thead><tr><th>Mode</th><th>JP1 position</th><th>Notes</th></tr></thead>
+<tbody>
+<tr>
+  <td><strong>JTAG</strong> <span class="tag">preferred</span></td>
+  <td>upper</td>
+  <td><em>Volatile.</em> FPGA loses config on power-off. Generate <code>.bit</code>, then in Hardware Manager right-click the device → <strong>Program Device</strong> → select the <code>.bit</code> (usually pre-filled; otherwise look under <code>lab1.runs/impl_1</code>).</td>
+</tr>
+<tr>
+  <td><strong>QSPI</strong> <span class="tag">not used in lab</span></td>
+  <td>middle</td>
+  <td>Two-step. Set JP1 to JTAG, go to <code>Project Properties → Bitstream</code>, check <code>-bin_file</code>, regenerate the bitstream. Then <strong>Add Configuration Memory</strong> → select memory <code>s25fl032p</code> → agree to program → pick the <code>.bin</code> → OK. <em>Non-volatile.</em> When the DONE LED lights, power off, switch JP1 to QSPI (middle), and power on — FPGA auto-loads from flash in &lt; 1 s.</td>
+</tr>
+<tr>
+  <td><strong>USB</strong> <span class="tag">not used in lab</span></td>
+  <td>bottom</td>
+  <td>Format a USB drive as FAT32, place a single <code>.bit</code> file in the root, attach to the J2 USB-HID port, set JP1 to USB (bottom), and push the PROG button or power-cycle the Basys3.</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="s10">10. Warnings and Errors</h2>
+<p>Common <span style="color:var(--warn)">warnings</span>, <span style="color:var(--accent)">critical warnings</span> and <span style="color:var(--err)">errors</span> in Vivado:</p>
+<ol>
+  <li><strong>[Synth 8-5788]</strong> Register X in module M has both Set and reset with same priority — your <code>always@</code> block doesn't cleanly separate reset vs non-reset behaviour.</li>
+  <li><strong>[Synth 8-689]</strong> width (N) of port connection 'X' does not match port width (K) of module 'M' — wire X's bit-width doesn't match the port. Check buses/registers.</li>
+  <li><strong>[Synth 8-3848]</strong> Net 'X' in module/entity 'M' does not have driver — floating wire, or port 'X' wasn't connected.</li>
+  <li><strong>[Synth 8-3295]</strong> tying undriven pin M:X to constant 0 — synthesizer couldn't find X's functionality, ties it to 0.</li>
+  <li><strong>[Synth 8-3331]</strong> design M has unconnected port X — forgot to wire IO port X of module M.</li>
+  <li><strong>[Synth 8-3332]</strong> Sequential element (M/X_reg) is unused and will be removed from module M — declared but unused register, optimized out.</li>
+  <li><strong>[Synth 8-327]</strong> inferring latch for variable X — combinational logic with incomplete <code>if/else</code> or <code>case</code> without <code>default</code>.</li>
+  <li><strong>[Synth 8-5788]</strong> (same code, different cause) — X had no proper initialization value. Synchronous blocks should look like:
+    <div class="copy-block">
+    <pre><code id="code-reset">if (reset) begin
+    // ALL FLIP_FLOPS INITIALIZATIONS
+end else begin
+    // ALL THE LOGIC
+end</code></pre>
+    <button class="copy-btn" data-target="code-reset">Copy</button>
+    </div>
+    Initialize all registers this way. The warning fires when X is assigned outside this if/else.
+  </li>
+  <li><strong>[Vivado 12-584]</strong> No ports matched 'clk' — XDC refers to ports that don't exist in the top-level. Check the correct module is marked as top.</li>
+  <li><strong>… multi-driven net Q …</strong> — same register assigned from two separate <code>always@</code> blocks.</li>
+  <li><strong>Found timing loop</strong> — combinational logic forms a cycle (not allowed). Vivado points at a random spot on the loop; use that hint to find where to insert at least one flip-flop. Often these loops cross several modules and are hard to fix.</li>
+</ol>
+
+<hr>
+<p class="small">Rendered from <code>Vivado_Tutorial.pdf</code> (v1.32, 18 pages). Click any <strong>Copy</strong> button to copy the snippet to your clipboard.</p>
+
+</div>
+
+<script>
+  // Big buttons (data-target → element id)
+  document.querySelectorAll('.copy-btn[data-target]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const el = document.getElementById(btn.dataset.target);
+      if (!el) return;
+      const text = el.innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const old = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = old;
+          btn.classList.remove('copied');
+        }, 1400);
+      });
+    });
+  });
+
+  // Inline tiny buttons (data-copy-text)
+  document.querySelectorAll('[data-copy-text]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const text = btn.dataset.copyText;
+      navigator.clipboard.writeText(text).then(() => {
+        const old = btn.textContent;
+        btn.textContent = '✓';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = old;
+          btn.classList.remove('copied');
+        }, 1200);
+      });
+    });
+  });
+</script>
+</body>
+</html>
