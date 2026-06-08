@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PS/2 Keyboard Protocol — A Beginner's Visual Guide (Lab 5)</title>
+<style>
+  :root{
+    --bg:#0f172a; --panel:#1e293b; --ink:#e2e8f0; --muted:#94a3b8;
+    --accent:#38bdf8; --accent2:#fbbf24; --good:#34d399; --bad:#f87171;
+    --clk:#fbbf24; --data:#34d399; --start:#60a5fa; --stop:#a78bfa; --parity:#f472b6;
+    --code:#0b1220;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--ink);line-height:1.65;
+  }
+  header{
+    background:linear-gradient(135deg,#1e3a8a,#0ea5e9);padding:40px 20px;text-align:center;
+    box-shadow:0 4px 20px rgba(0,0,0,.4);
+  }
+  header h1{margin:0;font-size:2.2rem}
+  header p{margin:8px 0 0;color:#dbeafe}
+  main{max-width:1100px;margin:0 auto;padding:30px 20px}
+  nav.toc{
+    background:var(--panel);border-radius:12px;padding:20px 24px;margin-bottom:30px;
+    border:1px solid #334155;
+  }
+  nav.toc h2{margin:0 0 10px;color:var(--accent)}
+  nav.toc ol{margin:0;padding-left:20px}
+  nav.toc a{color:var(--ink);text-decoration:none}
+  nav.toc a:hover{color:var(--accent)}
+  section{
+    background:var(--panel);border-radius:12px;padding:28px;margin-bottom:24px;
+    border:1px solid #334155;box-shadow:0 2px 10px rgba(0,0,0,.25);
+  }
+  section h2{color:var(--accent);border-bottom:2px solid #334155;padding-bottom:8px;margin-top:0}
+  section h3{color:var(--accent2);margin-top:24px}
+  code,pre{font-family:"JetBrains Mono",Menlo,Consolas,monospace;font-size:.9rem}
+  pre{
+    background:var(--code);padding:16px;border-radius:8px;overflow-x:auto;
+    border-left:4px solid var(--accent);
+  }
+  code{background:#0b1220;padding:2px 6px;border-radius:4px;color:#fde68a}
+  pre code{background:none;padding:0;color:var(--ink)}
+  .callout{
+    background:rgba(56,189,248,.1);border-left:4px solid var(--accent);
+    padding:14px 18px;border-radius:6px;margin:16px 0;
+  }
+  .callout.warn{background:rgba(248,113,113,.1);border-left-color:var(--bad)}
+  .callout.tip{background:rgba(52,211,153,.1);border-left-color:var(--good)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media (max-width:760px){.grid2{grid-template-columns:1fr}}
+  table{width:100%;border-collapse:collapse;margin:14px 0}
+  th,td{border:1px solid #334155;padding:8px 12px;text-align:left}
+  th{background:#1e293b;color:var(--accent2)}
+  tr:nth-child(even){background:rgba(255,255,255,.02)}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:10px 0}
+  .legend span{display:inline-flex;align-items:center;gap:6px;font-size:.9rem}
+  .legend i{display:inline-block;width:14px;height:14px;border-radius:3px}
+  svg{display:block;margin:18px auto;max-width:100%;height:auto}
+  .bit{font-family:monospace;font-size:.95rem}
+  .pill{
+    display:inline-block;padding:2px 10px;border-radius:999px;
+    font-size:.8rem;font-weight:700;background:#334155;color:var(--ink);
+  }
+  .pill.make{background:#065f46;color:#d1fae5}
+  .pill.break{background:#7c2d12;color:#fed7aa}
+  .pill.ext{background:#4c1d95;color:#ddd6fe}
+  footer{text-align:center;color:var(--muted);padding:30px;font-size:.9rem}
+  .step{
+    counter-increment:step;
+    background:rgba(255,255,255,.03);padding:14px 16px;border-radius:8px;margin:10px 0;
+    border-left:3px solid var(--accent2);
+  }
+  .step::before{
+    content:"Step " counter(step);
+    display:inline-block;background:var(--accent2);color:#0f172a;
+    padding:2px 10px;border-radius:6px;font-weight:700;margin-right:10px;font-size:.85rem;
+  }
+  .steps{counter-reset:step}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>PS/2 Keyboard Protocol — A Beginner's Visual Guide</h1>
+  <p>Tel Aviv University · FPGA Lab · Experiment 5 — Keyboard</p>
+</header>
+
+<main>
+
+<nav class="toc">
+  <h2>Table of Contents</h2>
+  <ol>
+    <li><a href="#what">What is PS/2? (Background you don't have yet)</a></li>
+    <li><a href="#connector">The Physical Connector &amp; Pins</a></li>
+    <li><a href="#signals">The Two Signals: Clock &amp; Data</a></li>
+    <li><a href="#frame">The 11-Bit Transmission Frame</a></li>
+    <li><a href="#read">Reading FROM the Keyboard (Device → Host)</a></li>
+    <li><a href="#write">Writing TO the Keyboard (Host → Device) — optional</a></li>
+    <li><a href="#scancodes">Scan Codes: Make, Break, Extended</a></li>
+    <li><a href="#fpga">How This Maps to Your FPGA Design</a></li>
+    <li><a href="#pitfalls">Common Pitfalls (Lab 5 Hints!)</a></li>
+  </ol>
+</nav>
+
+<!-- ============================================================ -->
+<section id="what">
+<h2>1. What is PS/2? (Background you don't have yet)</h2>
+
+<p>
+PS/2 is an <strong>old, simple, serial communication protocol</strong> invented by IBM in 1987 for connecting keyboards and mice to a PC. The connector is the small round purple/green plug your dad used to plug into the back of a computer before USB became universal.
+</p>
+
+<p>
+Even though USB has replaced it on most modern computers, PS/2 is <strong>perfect for teaching</strong> because:
+</p>
+<ul>
+  <li>It uses only <strong>2 wires</strong> for communication (plus power + ground).</li>
+  <li>It is <strong>slow</strong> (10–16.7 kHz), so an FPGA running at 100 MHz has tons of time to react.</li>
+  <li>It is <strong>synchronous serial</strong> — the keyboard supplies its own clock, so you don't need any complicated clock recovery.</li>
+  <li>The frame format is <strong>fixed and tiny</strong> (11 bits per byte), making decoding easy.</li>
+</ul>
+
+<div class="callout tip">
+<strong>In one sentence:</strong> PS/2 is a 2-wire serial link where the keyboard sends you one byte at a time, wrapped in a tiny 11-bit envelope, and it provides its own clock pulses to tell you exactly when each bit is valid.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="connector">
+<h2>2. The Physical Connector &amp; Pins</h2>
+
+<p>
+The PS/2 connector is a <strong>6-pin mini-DIN</strong>. Of the 6 pins, only 4 actually matter:
+</p>
+
+<svg viewBox="0 0 500 320" width="500">
+  <!-- Round connector outline (front view) -->
+  <circle cx="250" cy="160" r="120" fill="#1e293b" stroke="#94a3b8" stroke-width="3"/>
+  <circle cx="250" cy="160" r="100" fill="#0f172a" stroke="#475569" stroke-width="1"/>
+  <!-- Key notch (the alignment tab) -->
+  <rect x="244" y="40" width="12" height="22" fill="#94a3b8" rx="2"/>
+  <text x="250" y="35" text-anchor="middle" fill="#94a3b8" font-size="11">Alignment Notch</text>
+
+  <!-- 6 pins arranged like a real PS/2 -->
+  <!-- Pin 1: DATA  -->
+  <circle cx="200" cy="110" r="10" fill="#34d399"/><text x="200" y="113" text-anchor="middle" font-size="11" font-weight="bold" fill="#0f172a">1</text>
+  <!-- Pin 2: NC -->
+  <circle cx="170" cy="160" r="10" fill="#475569"/><text x="170" y="163" text-anchor="middle" font-size="11" font-weight="bold" fill="#e2e8f0">2</text>
+  <!-- Pin 3: GND -->
+  <circle cx="220" cy="200" r="10" fill="#1f2937"/><text x="220" y="203" text-anchor="middle" font-size="11" font-weight="bold" fill="#e2e8f0">3</text>
+  <!-- Pin 4: VCC -->
+  <circle cx="280" cy="200" r="10" fill="#f87171"/><text x="280" y="203" text-anchor="middle" font-size="11" font-weight="bold" fill="#0f172a">4</text>
+  <!-- Pin 5: CLK -->
+  <circle cx="330" cy="160" r="10" fill="#fbbf24"/><text x="330" y="163" text-anchor="middle" font-size="11" font-weight="bold" fill="#0f172a">5</text>
+  <!-- Pin 6: NC -->
+  <circle cx="300" cy="110" r="10" fill="#475569"/><text x="300" y="113" text-anchor="middle" font-size="11" font-weight="bold" fill="#e2e8f0">6</text>
+
+  <text x="250" y="310" text-anchor="middle" fill="#94a3b8" font-size="12">Front view of female PS/2 connector (looking into the socket)</text>
+</svg>
+
+<table>
+<tr><th>Pin #</th><th>Name</th><th>Color in diagram</th><th>Purpose</th></tr>
+<tr><td>1</td><td><strong>DATA</strong></td><td><span style="color:#34d399">green</span></td><td>Carries one bit at a time (the actual message)</td></tr>
+<tr><td>2</td><td>—</td><td>gray</td><td>Not connected</td></tr>
+<tr><td>3</td><td>GND</td><td>black</td><td>Ground (0 V reference)</td></tr>
+<tr><td>4</td><td>VCC</td><td><span style="color:#f87171">red</span></td><td>+5 V power for the keyboard</td></tr>
+<tr><td>5</td><td><strong>CLK</strong></td><td><span style="color:#fbbf24">yellow</span></td><td>Clock signal generated by the keyboard</td></tr>
+<tr><td>6</td><td>—</td><td>gray</td><td>Not connected</td></tr>
+</table>
+
+<div class="callout">
+<strong>The whole game</strong> from an FPGA perspective is just two signals: <code>PS2Clk</code> and <code>PS2Data</code>. Power and ground are handled by the Basys3 board for you.
+</div>
+
+<h3>Electrical behavior — "Open-collector"</h3>
+<p>
+Both <code>CLK</code> and <code>DATA</code> are <strong>open-collector with pull-up resistors</strong>. Practically this means:
+</p>
+<ul>
+  <li>The line floats high (logic <strong>1</strong>) when nobody is talking.</li>
+  <li>Either side (keyboard or host) can pull it low (logic <strong>0</strong>).</li>
+  <li>This allows <em>bi-directional</em> communication on the same wires.</li>
+</ul>
+</section>
+
+<!-- ============================================================ -->
+<section id="signals">
+<h2>3. The Two Signals: Clock &amp; Data</h2>
+
+<p>
+The keyboard <strong>only generates clock pulses when it has something to say</strong>. The rest of the time, both lines just sit idle at logic 1. This is one of the most important quirks of PS/2 — and the source of Important Design Note #3 in your assignment.
+</p>
+
+<div class="legend">
+  <span><i style="background:var(--clk)"></i> CLK (yellow)</span>
+  <span><i style="background:var(--data)"></i> DATA (green)</span>
+</div>
+
+<svg viewBox="0 0 700 220" width="700">
+  <!-- Axes -->
+  <line x1="40" y1="40" x2="680" y2="40" stroke="#475569" stroke-dasharray="2 4"/>
+  <line x1="40" y1="120" x2="680" y2="120" stroke="#475569" stroke-dasharray="2 4"/>
+
+  <!-- CLK label -->
+  <text x="10" y="45" fill="#fbbf24" font-size="13" font-weight="bold">CLK</text>
+  <text x="10" y="125" fill="#34d399" font-size="13" font-weight="bold">DATA</text>
+
+  <!-- CLK trace: idle high, then pulses, then idle high -->
+  <polyline fill="none" stroke="#fbbf24" stroke-width="2"
+    points="40,30 150,30 160,50 200,50 210,30 250,30 260,50 300,50 310,30 350,30 360,50 400,50 410,30 450,30 460,50 500,50 510,30 680,30"/>
+
+  <!-- DATA trace: idle high, then changes, then idle high -->
+  <polyline fill="none" stroke="#34d399" stroke-width="2"
+    points="40,110 150,110 150,130 250,130 250,110 350,110 350,130 410,130 410,110 510,110 510,110 680,110"/>
+
+  <!-- Labels -->
+  <text x="80" y="175" fill="#94a3b8" font-size="12">IDLE (both high)</text>
+  <line x1="40" y1="155" x2="150" y2="155" stroke="#94a3b8" stroke-dasharray="3 3"/>
+  <text x="280" y="175" fill="#94a3b8" font-size="12">Keyboard transmits — clock pulses appear</text>
+  <line x1="150" y1="155" x2="510" y2="155" stroke="#94a3b8" stroke-dasharray="3 3"/>
+  <text x="560" y="175" fill="#94a3b8" font-size="12">IDLE again</text>
+  <line x1="510" y1="155" x2="680" y2="155" stroke="#94a3b8" stroke-dasharray="3 3"/>
+
+  <text x="350" y="210" text-anchor="middle" fill="#94a3b8" font-size="11">Clock period ≈ 60–100 µs  (10–16.7 kHz)</text>
+</svg>
+
+<div class="callout warn">
+<strong>Very important:</strong> Do <em>not</em> design your FPGA module as if PS2Clk were a continuous oscillator. It only ticks during a transmission, then stops. Your logic must therefore react to the <strong>falling edges</strong> of PS2Clk while they exist, and not wait for a clock that may never come.
+</div>
+
+<h3>When do you sample DATA?</h3>
+<p>
+The keyboard guarantees that <strong>DATA is stable on the falling edge of CLK</strong>. So your rule is simple:
+</p>
+<pre><code>// Pseudo-code
+on every falling_edge(PS2Clk):
+    capture PS2Data into the next position of a shift register</code></pre>
+</section>
+
+<!-- ============================================================ -->
+<section id="frame">
+<h2>4. The 11-Bit Transmission Frame</h2>
+
+<p>
+Every single byte the keyboard sends is wrapped in an envelope of <strong>11 bits</strong>:
+</p>
+
+<svg viewBox="0 0 820 200" width="820">
+  <!-- Bits -->
+  <g font-family="monospace" font-size="13" text-anchor="middle">
+    <!-- Start -->
+    <rect x="20" y="60" width="60" height="60" fill="#60a5fa" rx="6"/>
+    <text x="50" y="95" fill="#0f172a" font-weight="bold">0</text>
+    <text x="50" y="50" fill="#60a5fa" font-size="11">Start</text>
+    <text x="50" y="140" fill="#94a3b8" font-size="10">always 0</text>
+
+    <!-- Data 0..7 -->
+    <g>
+      <rect x="90" y="60" width="60" height="60" fill="#34d399" rx="6"/>
+      <text x="120" y="95" fill="#0f172a" font-weight="bold">D0</text>
+      <text x="120" y="50" fill="#34d399" font-size="11">LSB</text>
+    </g>
+    <rect x="160" y="60" width="60" height="60" fill="#34d399" rx="6"/><text x="190" y="95" fill="#0f172a" font-weight="bold">D1</text>
+    <rect x="230" y="60" width="60" height="60" fill="#34d399" rx="6"/><text x="260" y="95" fill="#0f172a" font-weight="bold">D2</text>
+    <rect x="300" y="60" width="60" height="60" fill="#34d399" rx="6"/><text x="330" y="95" fill="#0f172a" font-weight="bold">D3</text>
+    <rect x="370" y="60" width="60" height="60" fill="#34d399" rx="6"/><text x="400" y="95" fill="#0f172a" font-weight="bold">D4</text>
+    <rect x="440" y="60" width="60" height="60" fill="#34d399" rx="6"/><text x="470" y="95" fill="#0f172a" font-weight="bold">D5</text>
+    <rect x="510" y="60" width="60" height="60" fill="#34d399" rx="6"/><text x="540" y="95" fill="#0f172a" font-weight="bold">D6</text>
+    <g>
+      <rect x="580" y="60" width="60" height="60" fill="#34d399" rx="6"/>
+      <text x="610" y="95" fill="#0f172a" font-weight="bold">D7</text>
+      <text x="610" y="50" fill="#34d399" font-size="11">MSB</text>
+    </g>
+
+    <!-- Parity -->
+    <rect x="650" y="60" width="60" height="60" fill="#f472b6" rx="6"/>
+    <text x="680" y="95" fill="#0f172a" font-weight="bold">P</text>
+    <text x="680" y="50" fill="#f472b6" font-size="11">Parity</text>
+    <text x="680" y="140" fill="#94a3b8" font-size="10">odd</text>
+
+    <!-- Stop -->
+    <rect x="720" y="60" width="60" height="60" fill="#a78bfa" rx="6"/>
+    <text x="750" y="95" fill="#0f172a" font-weight="bold">1</text>
+    <text x="750" y="50" fill="#a78bfa" font-size="11">Stop</text>
+    <text x="750" y="140" fill="#94a3b8" font-size="10">always 1</text>
+  </g>
+
+  <!-- 8 data bits brace -->
+  <text x="365" y="180" text-anchor="middle" fill="#94a3b8" font-size="12">— 8 data bits, LSB first —</text>
+</svg>
+
+<table>
+<tr><th>Bit</th><th>Name</th><th>Value</th><th>Meaning</th></tr>
+<tr><td>1</td><td>Start</td><td>0</td><td>Tells host "a frame is starting"</td></tr>
+<tr><td>2–9</td><td>Data 0..7</td><td>0/1</td><td>The 8-bit payload (scan code), <strong>LSB first</strong></td></tr>
+<tr><td>10</td><td>Parity</td><td>0/1</td><td><strong>Odd parity</strong>: total number of 1s in bits 2–10 is odd</td></tr>
+<tr><td>11</td><td>Stop</td><td>1</td><td>Tells host "frame complete, line idle"</td></tr>
+</table>
+
+<div class="callout tip">
+<strong>Key takeaway:</strong> the actual data byte you care about (the scan code) is just 8 of the 11 bits. The other 3 are an envelope — but you must still shift them in, otherwise your timing gets misaligned.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="read">
+<h2>5. Reading FROM the Keyboard (Device → Host)</h2>
+
+<p>This is <strong>the only direction you need for Lab 5</strong>. Here is the full picture, bit by bit.</p>
+
+<h3>The full waveform</h3>
+
+<svg viewBox="0 0 820 280" width="820">
+  <!-- baselines -->
+  <line x1="60" y1="40" x2="800" y2="40" stroke="#475569" stroke-dasharray="2 3"/>
+  <line x1="60" y1="150" x2="800" y2="150" stroke="#475569" stroke-dasharray="2 3"/>
+
+  <text x="10" y="45" fill="#fbbf24" font-size="13" font-weight="bold">CLK</text>
+  <text x="10" y="155" fill="#34d399" font-size="13" font-weight="bold">DATA</text>
+
+  <!-- 11 clock pulses: idle high, fall, low for 30, rise -->
+  <!-- Each bit period = 60 px -->
+  <g stroke="#fbbf24" stroke-width="2" fill="none">
+    <!-- idle high -->
+    <polyline points="60,30 90,30"/>
+    <!-- bit 1: start -->
+    <polyline points="90,30 90,50 120,50 120,30 150,30"/>
+    <!-- bit 2..11 -->
+    <polyline points="150,30 150,50 180,50 180,30 210,30 210,50 240,50 240,30 270,30 270,50 300,50 300,30 330,30 330,50 360,50 360,30 390,30 390,50 420,50 420,30 450,30 450,50 480,50 480,30 510,30 510,50 540,50 540,30 570,30 570,50 600,50 600,30 630,30 630,50 660,50 660,30 690,30 690,50 720,50 720,30 750,30 750,50 780,50 780,30 800,30"/>
+  </g>
+
+  <!-- DATA: Start=0, byte=0x1C (00011100) LSB first -> 0,0,1,1,1,0,0,0, parity=odd, stop=1
+       Number of 1s in 0x1C = 3 (odd) so parity bit = 0 to make total odd?
+       Odd parity = make total count odd. data has 3 ones (odd) -> parity=0.
+       Sequence on wire after start: 0(D0) 0(D1) 1(D2) 1(D3) 1(D4) 0(D5) 0(D6) 0(D7) 0(P) 1(stop)
+       Heights: low=160, high=140 -->
+  <g stroke="#34d399" stroke-width="2" fill="none">
+    <!-- idle high -->
+    <polyline points="60,140 90,140"/>
+    <!-- start bit goes low at 90 and stays low for 30 cycles -->
+    <polyline points="90,140 90,160 150,160"/>
+    <!-- D0 = 0  -->  <polyline points="150,160 210,160"/>
+    <!-- D1 = 0  -->  <polyline points="210,160 270,160"/>
+    <!-- D2 = 1  -->  <polyline points="270,160 270,140 330,140"/>
+    <!-- D3 = 1  -->  <polyline points="330,140 390,140"/>
+    <!-- D4 = 1  -->  <polyline points="390,140 450,140"/>
+    <!-- D5 = 0  -->  <polyline points="450,140 450,160 510,160"/>
+    <!-- D6 = 0  -->  <polyline points="510,160 570,160"/>
+    <!-- D7 = 0  -->  <polyline points="570,160 630,160"/>
+    <!-- P = 0   -->  <polyline points="630,160 690,160"/>
+    <!-- stop = 1 -->  <polyline points="690,160 690,140 800,140"/>
+  </g>
+
+  <!-- Bit labels -->
+  <g font-size="10" text-anchor="middle" fill="#94a3b8">
+    <text x="120" y="195">Start</text>
+    <text x="180" y="195">D0=0</text>
+    <text x="240" y="195">D1=0</text>
+    <text x="300" y="195">D2=1</text>
+    <text x="360" y="195">D3=1</text>
+    <text x="420" y="195">D4=1</text>
+    <text x="480" y="195">D5=0</text>
+    <text x="540" y="195">D6=0</text>
+    <text x="600" y="195">D7=0</text>
+    <text x="660" y="195">P=0</text>
+    <text x="720" y="195">Stop</text>
+  </g>
+
+  <!-- falling edge arrows for sampling -->
+  <g fill="#f87171" font-size="11">
+    <text x="430" y="225" text-anchor="middle">↑ Sample DATA on every falling edge of CLK ↑</text>
+  </g>
+
+  <text x="430" y="260" text-anchor="middle" fill="#94a3b8" font-size="11">Example: keyboard sends scan code 0x1C (= the letter 'A')</text>
+</svg>
+
+<h3>Step-by-step algorithm</h3>
+
+<div class="steps">
+  <div class="step">Idle. Both CLK and DATA are high. Your FPGA waits, watching for a falling edge on CLK.</div>
+  <div class="step">CLK falls. DATA is low — that's the <strong>Start bit</strong>. Shift it into bit 0 of an 11-bit shift register.</div>
+  <div class="step">On each of the next 8 falling edges, sample DATA and shift it in. You are collecting D0…D7, LSB first.</div>
+  <div class="step">On the 10th falling edge, capture the parity bit. (You may verify it or just trust the keyboard.)</div>
+  <div class="step">On the 11th falling edge, capture the stop bit. It should be 1. If it isn't, the frame was corrupt.</div>
+  <div class="step">Now bits 1..8 of your shift register hold the scan code byte. Latch it into <code>scancode[7:0]</code>.</div>
+</div>
+
+<div class="callout warn">
+<strong>Lab 5 design hint #3 says:</strong> "Try analyzing the packet before the last cycle." Why? Because once the stop bit arrives, the clock stops toggling — if your FSM was waiting for an 11th falling edge that has already happened to <em>then</em> output the result, you'll be stuck. Output the byte on the 10th (parity) edge instead, while the clock is still alive.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="write">
+<h2>6. Writing TO the Keyboard (Host → Device)</h2>
+
+<p>
+You don't need this for Lab 5, but it's worth a glance to round out your understanding. To send a command (e.g. "turn on Caps-Lock LED"), the <em>host</em> must briefly take control of both lines:
+</p>
+
+<ol>
+  <li>Pull CLK low for at least 100 µs (this tells the keyboard "stop talking, I want to send").</li>
+  <li>Pull DATA low, then release CLK.</li>
+  <li>The keyboard now generates the clock pulses, and the host puts each bit on DATA at the right time.</li>
+  <li>Same 11-bit envelope is used, with one extra bit at the end (the device's ACK).</li>
+</ol>
+
+<div class="callout">
+The keyboard <strong>always supplies the clock</strong>, even when it is the host that is talking. The host only asks for permission to transmit by pulling CLK low.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="scancodes">
+<h2>7. Scan Codes: Make, Break, Extended</h2>
+
+<p>
+The 8-bit byte the keyboard sends you is not ASCII. It is a <strong>scan code</strong> — an arbitrary number assigned to each physical key. The same physical key produces different bytes depending on what just happened to it:
+</p>
+
+<table>
+<tr><th>Event</th><th>What the keyboard sends</th><th>Example: key 'A'</th></tr>
+<tr>
+  <td><span class="pill make">MAKE</span> — you press the key</td>
+  <td>The scan code itself</td>
+  <td><code>0x1C</code></td>
+</tr>
+<tr>
+  <td><span class="pill make">REPEAT</span> — you hold the key</td>
+  <td>The same scan code, over and over, every ~100 ms</td>
+  <td><code>0x1C 0x1C 0x1C …</code></td>
+</tr>
+<tr>
+  <td><span class="pill break">BREAK</span> — you release the key</td>
+  <td><code>0xF0</code> followed by the scan code</td>
+  <td><code>0xF0 0x1C</code></td>
+</tr>
+<tr>
+  <td><span class="pill ext">EXTENDED</span> — arrow keys, numpad /, etc.</td>
+  <td><code>0xE0</code> followed by the scan code (and <code>0xE0 0xF0 xx</code> on release)</td>
+  <td>Right Arrow: <code>0xE0 0x74</code></td>
+</tr>
+</table>
+
+<h3>Visualizing a key press &amp; release</h3>
+
+<svg viewBox="0 0 800 130" width="800">
+  <!-- timeline -->
+  <line x1="40" y1="60" x2="780" y2="60" stroke="#475569" stroke-width="1"/>
+  <text x="20" y="65" fill="#94a3b8" font-size="12">time →</text>
+
+  <!-- press arrow -->
+  <line x1="100" y1="20" x2="100" y2="55" stroke="#34d399" stroke-width="2"/>
+  <polygon points="95,50 105,50 100,60" fill="#34d399"/>
+  <text x="100" y="15" text-anchor="middle" fill="#34d399" font-size="11">press</text>
+
+  <!-- hold arrows -->
+  <text x="270" y="15" text-anchor="middle" fill="#fbbf24" font-size="11">hold (autorepeat)</text>
+
+  <!-- release arrow -->
+  <line x1="560" y1="20" x2="560" y2="55" stroke="#f87171" stroke-width="2"/>
+  <polygon points="555,50 565,50 560,60" fill="#f87171"/>
+  <text x="560" y="15" text-anchor="middle" fill="#f87171" font-size="11">release</text>
+
+  <!-- bytes sent -->
+  <g font-family="monospace" font-size="12" text-anchor="middle">
+    <rect x="80" y="75" width="50" height="25" fill="#065f46" rx="4"/><text x="105" y="92" fill="#d1fae5">1C</text>
+    <rect x="180" y="75" width="50" height="25" fill="#065f46" rx="4"/><text x="205" y="92" fill="#d1fae5">1C</text>
+    <rect x="260" y="75" width="50" height="25" fill="#065f46" rx="4"/><text x="285" y="92" fill="#d1fae5">1C</text>
+    <rect x="340" y="75" width="50" height="25" fill="#065f46" rx="4"/><text x="365" y="92" fill="#d1fae5">1C</text>
+    <rect x="420" y="75" width="50" height="25" fill="#065f46" rx="4"/><text x="445" y="92" fill="#d1fae5">1C</text>
+
+    <rect x="540" y="75" width="50" height="25" fill="#7c2d12" rx="4"/><text x="565" y="92" fill="#fed7aa">F0</text>
+    <rect x="600" y="75" width="50" height="25" fill="#065f46" rx="4"/><text x="625" y="92" fill="#d1fae5">1C</text>
+  </g>
+
+  <text x="400" y="125" text-anchor="middle" fill="#94a3b8" font-size="11">Press &amp; hold key 'A', then release. Note the many MAKE codes during hold.</text>
+</svg>
+
+<div class="callout warn">
+<strong>Lab 5 design hint #4 says:</strong> "Make sure that despite the numerous retransmissions of the make-code, you do not generate multiple pulses." That is exactly what the picture above is warning you about — your <code>keyPressed</code> pulse must fire <em>only on the first</em> 0x1C, not on every subsequent autorepeat.
+</div>
+
+<h3>Important codes to recognize</h3>
+<table>
+<tr><th>Code</th><th>Meaning</th><th>What to do</th></tr>
+<tr><td><code>0xF0</code></td><td>"Next byte is a break code"</td><td>Ignore the next byte (or use it to track release)</td></tr>
+<tr><td><code>0xE0</code></td><td>"Next byte is an extended key"</td><td>The assignment says: <strong>ignore the 0xE0 prefix</strong> and just display the byte that follows</td></tr>
+</table>
+
+<h3>A small scan-code reference (numeric keypad)</h3>
+<table>
+<tr><th>Key</th><th>Scan code</th><th>Key</th><th>Scan code</th></tr>
+<tr><td>0</td><td><code>0x70</code></td><td>5</td><td><code>0x73</code></td></tr>
+<tr><td>1</td><td><code>0x69</code></td><td>6</td><td><code>0x74</code></td></tr>
+<tr><td>2</td><td><code>0x72</code></td><td>7</td><td><code>0x6C</code></td></tr>
+<tr><td>3</td><td><code>0x7A</code></td><td>8</td><td><code>0x75</code></td></tr>
+<tr><td>4</td><td><code>0x6B</code></td><td>9</td><td><code>0x7D</code></td></tr>
+<tr><td>+</td><td><code>0x79</code></td><td>−</td><td><code>0x7B</code></td></tr>
+<tr><td>*</td><td><code>0x7C</code></td><td>Enter</td><td><code>0xE0 0x5A</code></td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section id="fpga">
+<h2>8. How This Maps to Your FPGA Design</h2>
+
+<p>
+Your top-level design from Figure 1 of the assignment has two custom modules:
+</p>
+
+<div class="grid2">
+  <div>
+    <h3>Ps2_Interface</h3>
+    <p><strong>Inputs:</strong> <code>PS2Clk</code>, <code>PS2Data</code>, <code>rstn</code><br>
+    <strong>Outputs:</strong> <code>scancode[7:0]</code>, <code>keyPressed</code></p>
+    <p>This is the module that actually speaks the PS/2 protocol. It contains the shift register and the small FSM that watches CLK falling edges.</p>
+  </div>
+  <div>
+    <h3>Ps2_Display</h3>
+    <p><strong>Inputs:</strong> <code>clk</code>, <code>rstn</code>, <code>keyPressed</code>, <code>scancode[7:0]</code><br>
+    <strong>Outputs:</strong> <code>seg[6:0]</code>, <code>an[3:0]</code>, <code>dp</code>, <code>led</code></p>
+    <p>Pure 100 MHz logic. It just displays the latest scancode in hex on the two rightmost 7-segment digits and pulses an LED whenever <code>keyPressed</code> goes high.</p>
+  </div>
+</div>
+
+<h3>Suggested skeleton for Ps2_Interface (the design hint #1)</h3>
+<pre><code>// 22-bit shift register approach
+// Why 22? Because 2 frames × 11 bits = 22, so you can keep a brief
+// history of the LAST byte and the CURRENT byte and decide what to
+// do based on prefixes (0xE0, 0xF0) before the clock dies.
+
+reg [21:0] shift_reg;
+reg [3:0]  bit_count;     // counts 0..10 within one frame
+
+// Detect falling edge of PS2Clk in the 100 MHz domain
+reg ps2clk_d1, ps2clk_d2;
+always @(posedge clk) {ps2clk_d2, ps2clk_d1} &lt;= {ps2clk_d1, PS2Clk};
+wire ps2clk_fall = ps2clk_d2 & ~ps2clk_d1;
+
+always @(posedge clk or negedge rstn) begin
+    if (!rstn) begin
+        shift_reg &lt;= 22'h3FFFFF;
+        bit_count &lt;= 0;
+    end else if (ps2clk_fall) begin
+        shift_reg &lt;= {PS2Data, shift_reg[21:1]};   // shift right, MSB-in
+        bit_count &lt;= (bit_count == 10) ? 0 : bit_count + 1;
+    end
+end</code></pre>
+
+<div class="callout tip">
+<strong>Why two flip-flops on PS2Clk?</strong> Because PS2Clk comes from an asynchronous source (the keyboard) but you are sampling it in your 100 MHz domain. The two-flop synchronizer prevents <em>metastability</em> — which is exactly the topic of the <code>Metastability.pptx</code> sitting in this lab folder. (Asynchronous reset, design hint topic #1, is the other big metastability-related concept.)
+</div>
+
+<h3>Generating the <code>keyPressed</code> one-shot pulse</h3>
+<pre><code>// You want: ONE pulse on the rising edge of the FIRST make-code only.
+// - Ignore frames where the previous byte was 0xE0 or 0xF0
+// - Suppress subsequent make-codes while the key is held
+// One common trick: latch a "waiting_for_release" flag when you see a
+// make-code, and only clear it after the matching 0xF0 release.</code></pre>
+</section>
+
+<!-- ============================================================ -->
+<section id="pitfalls">
+<h2>9. Common Pitfalls (Lab 5 Hints!)</h2>
+
+<ol>
+  <li>
+    <strong>Treating PS2Clk as a normal always-running clock.</strong>
+    It isn't. It only ticks during a transmission. Use it as a <em>signal</em> in the 100 MHz domain, not as a Verilog <code>posedge</code> clock for your whole module.
+  </li>
+  <li>
+    <strong>Waiting until bit 11 (the stop) before decoding.</strong>
+    By then the clock has stopped. Decode on bit 10 (parity) — that's still inside a live clock pulse. (This is design hint #3.)
+  </li>
+  <li>
+    <strong>Generating multiple <code>keyPressed</code> pulses while a key is held.</strong>
+    The keyboard <em>will</em> resend the make-code every ~100 ms. Use a one-shot or a "armed/disarmed" flag. (Design hint #4.)
+  </li>
+  <li>
+    <strong>Forgetting the 0xE0 prefix for extended keys.</strong>
+    The numeric-keypad <kbd>Enter</kbd>, the arrow keys, and a few others come as <code>E0 xx</code>. Ignore the E0 and display only xx (assignment 2.a).
+  </li>
+  <li>
+    <strong>Confusing D and 0, or B and 8, on the 7-segment.</strong>
+    The assignment explicitly suggests lighting the decimal point when you draw D or B, or using lowercase "d" and "b" (assignment 2.a, last paragraph).
+  </li>
+  <li>
+    <strong>Missing the metastability concept.</strong>
+    Any asynchronous signal entering the 100 MHz domain (PS2Clk, PS2Data, the active-low reset) must go through a 2-stage flip-flop synchronizer. This is also test material per the lab goals.
+  </li>
+</ol>
+
+<div class="callout tip">
+<strong>If you internalize one sentence from this whole document:</strong> The PS/2 keyboard hands you 8 useful bits inside an 11-bit frame, clocked by its own clock that only ticks during transmission — your job is to shift the frame in on every falling edge, then turn the resulting byte into a one-shot pulse and a hex display.
+</div>
+</section>
+
+<footer>
+  Created for FPGA Lab Experiment 5 · Tel Aviv University<br>
+  Open this file in any browser — no internet required, all diagrams are inline SVG.
+</footer>
+
+</main>
+</body>
+</html>
