@@ -9,14 +9,7 @@
 // Project Name:    lab5
 // Target Devices:  Xilinx BASYS3 Board, FPGA model XC7A35T-1CPG236C
 // Tool versions:   Vivado 2016.4 / Icarus Verilog (simulation)
-// Description:     Top level of Task 1 (see Figure 1 of the PDF). Instantiates
-//                  Ps2_Interface (slow PS2Clk domain) and Ps2_Display (fast
-//                  100 MHz domain) and connects them to the FPGA pins.
-//
-//                  The board push-button btnC (pin U18) is an ACTIVE-HIGH signal,
-//                  while both sub-modules use an ACTIVE-LOW reset (rstn). Figure 1
-//                  shows this inversion ("~reset"), which we do here since an XDC
-//                  cannot invert a pin.
+// Description:     
 //
 // Dependencies:    Ps2_Interface, Ps2_Display, Seg_7_Display
 //
