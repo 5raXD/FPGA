@@ -1,0 +1,475 @@
+\documentclass[11pt,a4paper]{article}
+
+% ----- Encoding & fonts (clean sans-serif) -----
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{microtype}
+
+% ----- Math + formatting -----
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{booktabs}
+
+% ----- Figures + drawing -----
+\usepackage{graphicx}
+\usepackage{float}
+
+% ----- Code listings -----
+\usepackage{listings}
+\usepackage[table]{xcolor}
+
+% ----- Layout -----
+\usepackage[margin=1in,headheight=14pt]{geometry}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+
+% ----- Theme colours -----
+\definecolor{accent}{HTML}{1F4E79}     % deep professional blue
+\definecolor{accentdk}{HTML}{2E2E2E}   % near-black for subsections
+\definecolor{accentlt}{HTML}{D9E2F0}   % light blue table tint
+\definecolor{rulegray}{HTML}{B9B9B9}
+\definecolor{codebg}{HTML}{F7F7F4}
+\definecolor{codecomment}{HTML}{6A737D}
+\definecolor{codekw}{HTML}{0B5FA5}
+\definecolor{codestr}{HTML}{B5210F}
+
+% ----- Section / subsection styling -----
+\titleformat{\section}
+  {\color{accent}\Large\bfseries}{}{0pt}{}
+  [\vspace{2pt}{\color{accent}\titlerule[1.1pt]}]
+\titlespacing*{\section}{0pt}{16pt}{8pt}
+
+\titleformat{\subsection}
+  {\color{accentdk}\large\bfseries}{}{0pt}{}
+\titlespacing*{\subsection}{0pt}{12pt}{3pt}
+
+% ----- Page header / footer -----
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{accentdk}Exp. FPGA 5 -- Keyboard}
+\fancyhead[R]{\small\color{accentdk}FPGA Lab}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% ----- Verilog listing style -----
+\lstdefinestyle{vlog}{
+    language=Verilog,
+    backgroundcolor=\color{codebg},
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{codekw}\bfseries,
+    commentstyle=\color{codecomment}\itshape,
+    stringstyle=\color{codestr},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    numbersep=8pt,
+    frame=single,
+    rulecolor=\color{rulegray},
+    breaklines=true,
+    showstringspaces=false,
+    tabsize=4,
+    xleftmargin=2.2em,
+    framexleftmargin=2.2em,
+    aboveskip=10pt,
+    belowskip=6pt,
+    captionpos=b,
+}
+\lstset{style=vlog}
+
+% ----- A placeholder box for screenshots still to be pasted in -----
+% Replace each \placeholder{...} with a real \includegraphics{...} once the
+% image is exported from Vivado / taken with a camera.
+\newcommand{\placeholder}[2][0.92\linewidth]{%
+  \begin{center}
+  \setlength{\fboxsep}{0pt}%
+  \fcolorbox{rulegray}{white}{\begin{minipage}[c][4.4cm][c]{#1}
+    \centering\itshape\color{gray}
+    [ paste screenshot here ]\\[5pt]
+    \footnotesize #2
+  \end{minipage}}
+  \end{center}%
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.6em}
+
+\begin{document}
+
+% ======================================================================
+%  TITLE BLOCK
+% ======================================================================
+\thispagestyle{fancy}
+\begin{center}
+  {\color{accent}\rule{\linewidth}{1.4pt}}\\[10pt]
+  {\fontsize{24}{28}\selectfont \textbf{\color{accent}FPGA Experiment Report}}\\[6pt]
+  {\large Experiment 5 --- PS/2 Keyboard Interface}\\[8pt]
+  {\color{accent}\rule{\linewidth}{1.4pt}}
+\end{center}
+
+\vspace{6pt}
+
+\renewcommand{\arraystretch}{1.3}
+\begin{center}
+\begin{tabular}{@{}l l l@{}}
+\textbf{Task:} & FPGA 5 --- Keyboard (PS/2 interface) & \\
+\textbf{Student 1:} & Mahmood Stitia & \textbf{ID:} 214032682 \\
+\textbf{Student 2:} & Saleh Khalil  & \textbf{ID:} 213310485 \\
+\end{tabular}
+\end{center}
+
+\vspace{6pt}
+
+% ======================================================================
+%  PART 1 - STATUS UPDATE
+% ======================================================================
+\section*{Part 1 --- Status update}
+
+The table below lists the submitted files and their status. The status is one of
+\emph{Done} (module and simulation written and passing), \emph{Partially done}
+(started but not fully working --- explained in the notes), or \emph{Not started}.
+
+\vspace{4pt}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabularx}{\textwidth}{|>{\bfseries\ttfamily}l|c|X|}
+\hline
+\rowcolor{accent}
+\textcolor{white}{\textbf{File / Step}} & \textcolor{white}{\textbf{Status}} & \textcolor{white}{\textbf{Notes / comments}} \\ \hline
+\rowcolor{accentlt}
+Ps2\_Interface.v     & Done & PS/2 receiver; testbench passes \\ \hline
+Ps2\_Interface\_tb.v & Done & Self-checking; all scenarios pass \\ \hline
+\rowcolor{accentlt}
+Ps2\_Display.v       & Done & 7-seg + LED strobe (CDC to 100\,MHz) \\ \hline
+Ps2\_Top.v           & Done & Top level, FPGA pin wiring \\ \hline
+\rowcolor{accentlt}
+task1.xdc            & Done & Pin + clock constraints \\ \hline
+\end{tabularx}
+\renewcommand{\arraystretch}{1.0}
+
+\subsection*{Issues}
+
+Any errors present at the time of submission are described here (per module /
+simulation, with what the error means).
+
+\begin{itemize}[topsep=2pt,itemsep=2pt,leftmargin=1.4em]
+  \item \texttt{Ps2\_Interface.v}:
+  \item \texttt{Ps2\_Interface\_tb.v}:
+  \item \texttt{Ps2\_Display.v}:
+  \item \texttt{Ps2\_Top.v}:
+  \item \texttt{task1.xdc}:
+\end{itemize}
+
+% ======================================================================
+%  MODULE DESCRIPTIONS
+% ======================================================================
+\section*{Module descriptions}
+
+\subsection*{Ps2\_Interface}
+
+The \texttt{Ps2\_Interface} module receives the scan-codes coming from the PS/2
+keyboard and produces two outputs: \texttt{scancode} and \texttt{keyPressed}. It
+follows the PS/2 serial protocol and detects both key presses and key releases.
+
+To capture the serial data driven by the keyboard we use a shift register that
+collects the 11-bit PS/2 frame (start bit, 8 data bits, parity, stop bit). Each
+bit is shifted in on the \emph{falling edge} of \texttt{PS2Clk}, since that is
+where the keyboard guarantees the data is stable. Because \texttt{PS2Clk} is not
+free-running and stops right after the stop bit, the whole module is clocked by
+\texttt{PS2Clk} and is reset by an \emph{active-low asynchronous} reset
+\texttt{rstn}, so it can be cleared even while the keyboard clock is idle.
+
+A 4-bit counter (\texttt{bitcount}) tracks how many bits of the current frame
+have arrived; when it reaches the stop-bit position (\texttt{frame\_done}) the
+byte is evaluated --- we never wait for an edge \emph{after} the stop bit,
+because the keyboard does not produce one. We keep a 22-bit shift register so the
+\emph{current} byte and the \emph{previous} byte are both visible at once; this
+is what lets us recognise the two-frame \texttt{0xE0} (extended key) and
+\texttt{0xF0} (release) sequences. On a complete frame we decide whether to drive
+\texttt{scancode} according to the case: a normal make-code is shown and pulses
+\texttt{keyPressed}; \texttt{0xE0}/\texttt{0xF0} prefixes are ignored (no display,
+no pulse); a make-code following \texttt{0xF0} is treated as a release. To emit
+\texttt{keyPressed} only \emph{once} on a genuine new press we keep
+\texttt{held\_code} (the code of the key currently held) and \texttt{key\_down}
+(whether a key is considered pressed), so typematic auto-repeats of the same key
+do not generate extra pulses, and a re-press after a release pulses again.
+
+\subsection*{Ps2\_Interface\_tb}
+
+The \texttt{Ps2\_Interface\_tb} module verifies \texttt{Ps2\_Interface}. Since
+PS/2 communication is much slower ($\approx$20--30\,kHz) than the FPGA system
+clock (100\,MHz), the bench manually drives \texttt{PS2Clk} and \texttt{PS2Data},
+sending the bits one by one at realistic intervals. It uses reusable tasks
+(\texttt{ps2\_bit}, \texttt{send\_byte}) to send framed bytes easily --- start, 8
+data LSB-first, odd parity, stop --- and idles the clock high between frames. The
+simulation is self-checking and prints \texttt{Test Passed - Ps2\_Interface\_tb}
+when every scenario passes; it confirms that the interface captures the serial
+data, identifies key presses, and produces the expected \texttt{scancode} and
+\texttt{keyPressed} before we move to hardware. The waveforms are shown in
+\emph{Part~2}.
+
+\subsection*{Ps2\_Display}
+
+The \texttt{Ps2\_Display} module receives the scan-code of the pressed key from
+\texttt{Ps2\_Interface} and shows it on the two right-hand 7-segment digits. It
+splits the byte into two hex nibbles and time-multiplexes them with a clock
+divider (the two left digits are blanked). The displayed value latches until the
+next key press. To tell \texttt{D} from \texttt{0} and \texttt{B} from \texttt{8}
+we use lowercase \texttt{d}/\texttt{b} glyphs in the decode table (the dot
+\texttt{dp} could be lit instead). When a key press is detected a user
+\texttt{led} is pulsed with a short, eye-visible strobe produced by an internal
+countdown timer. Because \texttt{scancode}/\texttt{keyPressed} arrive from the
+slow \texttt{PS2Clk} domain, this module first passes \texttt{keyPressed} through
+a 3-FF synchroniser, edge-detects it, and samples \texttt{scancode} on that
+settled pulse --- a safe clock-domain-crossing handshake into the 100\,MHz
+domain.
+
+\subsection*{Ps2\_Top}
+
+The \texttt{Ps2\_Top} module integrates the keyboard interface with the display.
+It connects \texttt{Ps2\_Interface}, which reads scan-codes from the keyboard, to
+\texttt{Ps2\_Display}, which shows the scan-code on the 7-segment display and
+drives the LED. It routes the signals between the two modules and handles the
+clock and reset inputs: the board push-button \texttt{btnC}/\texttt{reset} is
+active-high, so it is inverted to the active-low \texttt{rstn} used by both
+sub-modules (an XDC cannot invert a pin). This is the top-level module used to
+implement the complete design on the FPGA.
+
+% ======================================================================
+%  PART 2 - SIMULATIONS AND ANSWERS
+% ======================================================================
+\section*{Part 2 --- Simulations and answers}
+
+This part contains the simulation of \texttt{Ps2\_Interface} (annotated
+waveforms) followed by the answers to the lab's questions. \emph{(Per the PDF,
+only \texttt{Ps2\_Interface.v} is simulated.)}
+
+\subsection*{Simulation --- Ps2\_Interface}
+
+\placeholder[\linewidth]{Annotated waveform of \texttt{Ps2\_Interface\_tb}:
+PS2Clk, rstn, PS2Data, scancode[7:0], keyPressed. Draw arrows on: the reset test,
+the first make-code, the typematic repeats, the extended key, and the
+release / re-press.}
+
+\textbf{What the waveform shows} (annotate the real screenshot with arrows):
+\begin{enumerate}[noitemsep,topsep=2pt,label=\arabic*.,leftmargin=1.6em]
+  \item \textbf{Reset test} --- with \texttt{rstn=0} the outputs are cleared even while \texttt{PS2Clk} is idle (the async-reset advantage).
+  \item \textbf{First make-code \texttt{0x2E}} --- after the stop-bit edge \texttt{scancode} becomes \texttt{2E} and \texttt{keyPressed} pulses exactly once.
+  \item \textbf{Typematic repeats of \texttt{0x2E}} --- the same code is sent twice more; \texttt{scancode} stays \texttt{2E} and \texttt{keyPressed} does \emph{not} pulse again.
+  \item \textbf{Extended key \texttt{0xE0,0x5A}} --- the \texttt{0xE0} frame leaves \texttt{scancode} unchanged and produces no pulse; the trailing \texttt{0x5A} sets \texttt{scancode=5A} with one pulse.
+  \item \textbf{Release \texttt{0xF0,0x5A}} --- neither frame pulses; the displayed code is held.
+  \item \textbf{Re-press \texttt{0x5A} after release} --- pulses again (a new press after a release is a new event).
+\end{enumerate}
+
+\placeholder[0.7\linewidth]{Zoom-in showing that the data is sampled on the
+\emph{negative edge} of PS2Clk (arrow on a falling edge where scancode / keyPressed
+react).}
+
+\subsection*{Answer --- Asynchronous reset (advantages \& disadvantages)}
+
+A flip-flop can be reset \emph{synchronously} (the reset is sampled only on the
+active clock edge) or \emph{asynchronously} (the reset appears in the sensitivity
+list and acts the instant it is asserted):
+\begin{center}
+\begin{tabular}{ll}
+\texttt{always @(posedge clk)} & {\footnotesize synchronous: reset acts only on a clock edge} \\
+\texttt{always @(posedge clk or negedge rstn)} & {\footnotesize asynchronous: reset acts immediately} \\
+\end{tabular}
+\end{center}
+
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{|>{\bfseries}p{2.7cm}|X|X|}
+\hline
+\rowcolor{accent}
+ & \textcolor{white}{\textbf{Asynchronous reset}} & \textcolor{white}{\textbf{Synchronous reset}} \\ \hline
+Advantage & Resets the logic \emph{immediately}, even when \emph{no clock edge is available}. Critical in this lab because \texttt{PS2Clk} is idle most of the time. & Easy static-timing analysis; the reset is ``just another data signal'', no special routing, no recovery / removal checks. \\ \hline
+Disadvantage & Reset \emph{removal} (de-assertion) is dangerous: releasing it too close to a clock edge violates recovery / removal time and can cause \textbf{metastability}; needs a reset synchroniser and dedicated async-reset routing. & Needs a toggling clock to take effect --- useless while the clock is idle; the reset pulse must be at least one clock period wide to be captured. \\ \hline
+\end{tabularx}
+\renewcommand{\arraystretch}{1.0}
+
+\textbf{Why it matters here.} The keyboard clock \texttt{PS2Clk} toggles only
+during a transmission and is idle (high) otherwise. A synchronous reset on that
+domain would not act while the clock is idle, so \texttt{Ps2\_Interface} uses an
+\textbf{active-low asynchronous reset} \texttt{rstn} (see Figure~1 of the
+assignment: the push-button \texttt{reset} is inverted to
+\texttt{\textasciitilde reset}/\texttt{rstn}). The de-assertion hazard is handled
+on the fast side by a multi-FF synchroniser (see \texttt{Ps2\_Display}).
+
+\subsection*{Answer --- PS/2 interface (frame, non-toggling clock, key-press detection)}
+
+The PS/2 keyboard is a device-driven serial interface on two wires:
+\texttt{PS2Clk} (clock generated \emph{by the keyboard}, $\approx$10--17\,kHz) and
+\texttt{PS2Data}. One byte is sent as an \textbf{11-bit frame, LSB first}, and the
+host samples \texttt{PS2Data} \textbf{on the falling edge of} \texttt{PS2Clk}:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\rowcolor{accentlt}
+\textbf{Bit 0} & \textbf{Bits 1--8} & \textbf{Bit 9} & \textbf{Bit 10} \\ \hline
+Start (0) & Data D0..D7 (LSB first) & Parity (odd) & Stop (1) \\ \hline
+\end{tabular}
+\renewcommand{\arraystretch}{1.0}
+\end{center}
+
+Key facts used by the design:
+\begin{itemize}[noitemsep,topsep=2pt,leftmargin=1.4em]
+  \item \textbf{Make code} --- sent on key press (e.g.\ keypad \texttt{5} $\rightarrow$ \texttt{0x2E}).
+  \item \textbf{Typematic repeat} --- while a key is held, the make code is re-sent repeatedly; \texttt{keyPressed} must pulse \emph{only once} (on the first press).
+  \item \textbf{Break code} --- on release: \texttt{0xF0} followed by the make code.
+  \item \textbf{Extended keys} --- prefixed with \texttt{0xE0}; the \texttt{0xE0} must be ignored and only the trailing byte displayed.
+\end{itemize}
+
+\textbf{Non-toggling clock $\Rightarrow$ decode early.} Because \texttt{PS2Clk}
+stops after the stop bit, the module must \emph{not} wait for an edge after the
+frame. \texttt{Ps2\_Interface} decodes the byte \emph{on} the stop-bit edge (the
+last edge the keyboard actually produces), using a 22-bit shift register that
+holds the current frame and the previous one so two-frame sequences
+(\texttt{0xE0}/\texttt{0xF0}) can be recognised.
+
+\textbf{Two clock domains (CDC).} \texttt{scancode}/\texttt{keyPressed} are
+produced in the slow \texttt{PS2Clk} domain and consumed in the fast 100\,MHz
+\texttt{clk} domain of \texttt{Ps2\_Display}. \texttt{keyPressed} is passed
+through a 3-FF synchroniser and edge-detected; \texttt{scancode} is captured on
+that already-settled pulse --- a simple, safe data + valid CDC handshake. This is
+also why the logic analyser cannot debug both domains in a single ILA core.
+
+% ======================================================================
+%  ELABORATED DESIGN
+% ======================================================================
+\section*{Elaborated Design}
+
+\subsection*{Top module}
+
+\placeholder[\linewidth]{RTL-elaborated schematic of \texttt{Ps2\_Top}:
+\texttt{ps2\_interface} (PS2Clk domain) feeding \texttt{keypressed} and
+\texttt{scancode[7:0]} into \texttt{ps2\_display} (100\,MHz domain); the
+\texttt{btnC} push-button through an \texttt{RTL\_INV} into \texttt{rstn}; ports
+\texttt{clk, PS2Clk, PS2Data, btnC} on the left and \texttt{an[3:0], dp, led,
+seg[6:0]} on the right.}
+
+\subsection*{Ps2\_Interface}
+
+\placeholder[\linewidth]{RTL-elaborated schematic of \texttt{Ps2\_Interface}: the
+22-bit shift register, the \texttt{bitcount} counter, the \texttt{held\_code} /
+\texttt{key\_down} registers and the make / break / extend decode logic clocked by
+\texttt{PS2Clk}.}
+
+\subsection*{Ps2\_Display}
+
+\placeholder[\linewidth]{RTL-elaborated schematic of \texttt{Ps2\_Display}: the
+3-FF \texttt{keyPressed} synchroniser, the \texttt{scancode} capture register, the
+LED strobe down-counter, the refresh clock divider and the hex$\rightarrow$7-seg
+ROM (\texttt{Seg\_7\_Display}).}
+
+% ======================================================================
+%  IMPLEMENTATION
+% ======================================================================
+\section*{Implementation}
+
+\subsection*{Implementation schematic}
+
+\placeholder[\linewidth]{Post-implementation schematic: every external port now
+goes through an \texttt{IBUF}/\texttt{OBUF}, the two clocks (\texttt{clk} and
+\texttt{PS2Clk}) through \texttt{BUFG} global buffers, and the logic mapped onto
+LUTs and flip-flops inside \texttt{ps2\_interface} and \texttt{Ps2\_Display}.}
+
+\textbf{Elaborated vs.\ implemented.} The elaborated view shows the behavioural
+structure as written in Verilog (generic RTL primitives, abstract buses). After
+synthesis / implementation Vivado maps the design onto real FPGA primitives ---
+LUTs, flip-flops with their async reset, \texttt{IBUF}/\texttt{OBUF} I/O buffers
+and \texttt{BUFG} global clock buffers --- and applies optimisations (logic
+merging, removing unused paths). The two \texttt{create\_clock} constraints
+(100\,MHz \texttt{clk} and the slow \texttt{PS2Clk}) are declared
+\emph{asynchronous} to each other (\texttt{set\_clock\_groups}), so no real path
+is timed across the two domains.
+
+\subsection*{Timing summary}
+
+\placeholder[\linewidth]{Design Timing Summary: Setup (WNS), Hold (WHS) and
+Pulse-Width (WPWS) slacks all positive, 0 failing endpoints, ``All user specified
+timing constraints are met''.}
+
+\subsection*{Critical Path}
+
+\placeholder[\linewidth]{Intra-Clock Paths report: the worst (Path 1) path with
+its slack, number of logic levels, and total / logic / net delay against the
+10\,ns requirement (circle the Total Delay).}
+
+\subsection*{Device}
+
+\placeholder[0.55\linewidth]{Device (floorplan) view with the placed-and-routed
+design and the critical path highlighted.}
+
+% ======================================================================
+%  PROBLEMS WE FACED
+% ======================================================================
+\section*{Problems we faced}
+
+On hardware the design behaves as specified: pressing a numeric-keypad key shows
+its 8-bit make-code as two hex symbols on the two right-hand 7-segment digits
+(e.g.\ \texttt{5}\,$\rightarrow$\,\texttt{2E}); each new press blinks the LED once
+with a short strobe (holding the key does \emph{not} re-blink); the displayed code
+latches until the next press; and extended keys show only their last two hex
+symbols (the \texttt{0xE0} prefix is invisible).
+
+\emph{(Describe the problems you actually hit in the lab and how you solved them.
+For example:)}
+\begin{itemize}[noitemsep,topsep=2pt,leftmargin=1.4em]
+  \item \emph{(fill in)} where to put the \texttt{0xF0}/\texttt{0xE0} / two-key handling logic --- in the interface vs.\ the display module --- and the wrong display behaviour seen before moving it all into \texttt{Ps2\_Interface}.
+  \item \emph{(fill in)} the keyboard clock being idle most of the time (decode before the stop bit, async reset).
+  \item \emph{(fill in)} CDC glitches on \texttt{keyPressed} and debugging the two clock domains in separate ILA cores.
+\end{itemize}
+
+\placeholder[0.7\linewidth]{Board photo: keypad plugged into the USB host port, a
+key pressed and its hex code shown on the two right digits with the LED lit.}
+
+% ======================================================================
+%  APPENDIX - VERILOG SOURCE CODE
+% ======================================================================
+\section*{Appendix --- Verilog Source Code}
+
+The full source of the submitted files is listed below. Paste the code of each
+file inside its block.
+
+\subsection*{Ps2\_Interface.v}
+\begin{lstlisting}
+// --- paste Ps2_Interface.v here ---
+\end{lstlisting}
+
+\newpage
+\subsection*{Ps2\_Interface\_tb.v}
+\begin{lstlisting}
+// --- paste Ps2_Interface_tb.v here ---
+\end{lstlisting}
+
+\newpage
+\subsection*{Ps2\_Display.v}
+\begin{lstlisting}
+// --- paste Ps2_Display.v here ---
+\end{lstlisting}
+
+\newpage
+\subsection*{Seg\_7\_Display.v}
+\begin{lstlisting}
+// --- paste Seg_7_Display.v here ---
+\end{lstlisting}
+
+\newpage
+\subsection*{Ps2\_Top.v}
+\begin{lstlisting}
+// --- paste Ps2_Top.v here ---
+\end{lstlisting}
+
+\newpage
+\subsection*{task1.xdc}
+\begin{lstlisting}[language=]
+## --- paste task1.xdc here ---
+\end{lstlisting}
+
+\end{document}
