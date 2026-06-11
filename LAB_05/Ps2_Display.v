@@ -9,12 +9,15 @@
 // Project Name:    lab5
 // Target Devices:  Xilinx BASYS3 Board, FPGA model XC7A35T-1CPG236C
 // Tool versions:   Vivado 2016.4 / Icarus Verilog (simulation)
-// Description:     Visual feedback for the PS/2 interface, running on the fast
-//                  100 MHz system clock:
+// Description:     Pure 100 MHz visual feedback for the PS/2 interface:
 //                    * shows the two hex symbols of "scancode" on the two
 //                      right-hand 7-segment digits (left two blank), latching the
 //                      value until the next key press;
 //                    * blinks "led" with one short, eye-visible strobe per press.
+//
+//                  Protocol filtering (E0/F0 prefixes, autorepeat suppression) is
+//                  the responsibility of Ps2_Interface - this module simply
+//                  latches whatever scancode is presented when keyPressed pulses.
 //
 //                  Clock-Domain Crossing: scancode/keyPressed are produced in the
 //                  slow PS2Clk domain. keyPressed is passed through a 3-FF
@@ -38,11 +41,10 @@ module Ps2_Display(
     );
     reg [6:0] a_to_g;
     reg [3:0] an_reg;
-    reg       dp_reg;
-    
+
     assign seg = a_to_g;
     assign an  = an_reg;
-    assign dp  = dp_reg;
+    assign dp  = 1'b1;          // dp unused; lowercase b/d disambiguate from 8/0
     
     wire [1:0] s;    
     reg  [3:0] digit;
@@ -60,8 +62,8 @@ module Ps2_Display(
             kp_sync1 <= keyPressed;
             kp_sync2 <= kp_sync1;
             kp_prev  <= kp_sync2;
-            
-            if ((kp_sync2 & ~kp_prev) && scancode != 8'hE0) begin
+
+            if (kp_sync2 & ~kp_prev) begin
                 valid_scancode <= scancode;
             end
         end
@@ -75,7 +77,7 @@ module Ps2_Display(
         if (!rstn) begin
             led_timer <= 24'd0;
             led <= 1'b0;
-        end else if (kp_edge && scancode != 8'hE0) begin
+        end else if (kp_edge) begin
             led_timer <= 24'd10_000_000; // ~0.1 seconds at 100MHz
             led <= 1'b1;
         end else if (led_timer > 0) begin
@@ -117,7 +119,6 @@ module Ps2_Display(
     end
 
     always @(*) begin
-        dp_reg = 1'b1; // dp off by default (active-low)
         case(digit)
             //////////<---MSB-LSB<---/////
             //////////////gfedcba/////////
