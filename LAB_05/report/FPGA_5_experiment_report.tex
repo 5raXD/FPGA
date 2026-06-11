@@ -96,6 +96,15 @@
   \end{center}%
 }
 
+% ----- A real figure: framed image + italic caption underneath -----
+\newcommand{\reportfig}[3][\linewidth]{%
+  \begin{center}
+  \setlength{\fboxsep}{1.5pt}%
+  \fcolorbox{rulegray}{white}{\includegraphics[width=#1]{#2}}\\[4pt]
+  {\footnotesize\itshape #3}
+  \end{center}%
+}
+
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{0.6em}
 
@@ -346,12 +355,13 @@ also why the logic analyser cannot debug both domains in a single ILA core.
 
 \subsection*{Top module}
 
-\placeholder[\linewidth]{RTL-elaborated schematic of \texttt{Ps2\_Top}:
-\texttt{ps2\_interface} (PS2Clk domain) feeding \texttt{keypressed} and
-\texttt{scancode[7:0]} into \texttt{ps2\_display} (100\,MHz domain); the
-\texttt{btnC} push-button through an \texttt{RTL\_INV} into \texttt{rstn}; ports
-\texttt{clk, PS2Clk, PS2Data, btnC} on the left and \texttt{an[3:0], dp, led,
-seg[6:0]} on the right.}
+\reportfig[\linewidth]{linter_elaborated_design.png}{RTL-elaborated schematic of
+\texttt{Ps2\_Top}: \texttt{u\_interface} (\texttt{Ps2\_Interface}, PS2Clk domain)
+feeds \texttt{keyPressed} and \texttt{scancode[7:0]} into \texttt{u\_display}
+(\texttt{Ps2\_Display}, 100\,MHz domain); the \texttt{reset} push-button passes
+through an \texttt{RTL\_INV} (\texttt{rstn\_i}) into \texttt{rstn}. Inputs
+\texttt{clk, PS2Clk, PS2Data, reset} are on the left and outputs
+\texttt{an[3:0], dp, led, seg[6:0]} on the right.}
 
 \subsection*{Ps2\_Interface}
 
@@ -389,11 +399,19 @@ merging, removing unused paths). The two \texttt{create\_clock} constraints
 \emph{asynchronous} to each other (\texttt{set\_clock\_groups}), so no real path
 is timed across the two domains.
 
+\subsection*{Project summary}
+
+\reportfig[\linewidth]{project_summary.png}{Post-implementation project summary.
+No DRC violations; timing met (WNS\,$=5.269$\,ns, 0 failing endpoints);
+utilization is small (LUT \& FF $\approx$1\%, IO 16\%, BUFG 6\%); total on-chip
+power is $0.076$\,W with a junction temperature of $25.4^{\circ}$C.}
+
 \subsection*{Timing summary}
 
-\placeholder[\linewidth]{Design Timing Summary: Setup (WNS), Hold (WHS) and
-Pulse-Width (WPWS) slacks all positive, 0 failing endpoints, ``All user specified
-timing constraints are met''.}
+\reportfig[\linewidth]{design_timing_report.png}{Design Timing Summary after
+implementation. The Setup (WNS\,$=5.269$\,ns), Hold (WHS\,$=0.330$\,ns) and
+Pulse-Width (WPWS\,$=4.500$\,ns) slacks are all positive with 0 failing
+endpoints --- \emph{``All user specified timing constraints are met''}.}
 
 \subsection*{Critical Path}
 
@@ -403,8 +421,10 @@ its slack, number of logic levels, and total / logic / net delay against the
 
 \subsection*{Device}
 
-\placeholder[0.55\linewidth]{Device (floorplan) view with the placed-and-routed
-design and the critical path highlighted.}
+\reportfig[0.55\linewidth]{synthesized_design.png}{Device (floorplan) view of the
+placed-and-routed design on the Artix-7 (\texttt{XC7A35T}). The few used slices
+are highlighted across the clock regions (\texttt{X0Y0}--\texttt{X1Y2}); the
+design occupies only a tiny fraction of the fabric.}
 
 % ======================================================================
 %  PROBLEMS WE FACED
