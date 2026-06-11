@@ -13,9 +13,12 @@ module Ps2_Interface_tb();
 
     localparam CLK_HALF = 30_000;   // 30 us half -> 60 us period -> ~16.7 kHz PS/2 clock
 
-    reg        PS2Clk, rstn, PS2Data, correct;
+    reg PS2Clk, rstn, PS2Data, correct;
     wire [7:0] scancode;
-    wire       keyPressed;
+    wire keyPressed;
+    wire parity_ok = uut.parity_ok;
+    wire [7:0] byte_to_send;
+
 
     // Instantiate the UUT (Unit Under Test)
     Ps2_Interface uut(
@@ -43,18 +46,22 @@ module Ps2_Interface_tb();
         #(CLK_HALF);
 
         // 1- press '5' (0x73)
-        send_byte(8'h73);
+        byte_to_send = 8'h73;
+        send_byte(byte_to_send);
         correct = correct & keyPressed & (scancode == 8'h73);
 
         // 2- release '5' (F0 73) then press '0' (0x70)
-        send_byte(8'hF0);
-        send_byte(8'h73);
-        send_byte(8'h70);
-        correct = correct & keyPressed & (scancode == 8'h70);
+        byte_to_send = 8'hF0;
+        send_byte(byte_to_send);
+        byte_to_send = 8'h73;
+        send_byte(byte_to_send);
+        byte_to_send = 8'h70;
+        send_byte(byte_to_send);
+        correct = correct & keyPressed & (scancode == byte_to_send);
 
-        // 3- hold '0' (auto-repeat 0x70) -> NO extra pulse
-        send_byte(8'h70);
-        correct = correct & ~keyPressed & (scancode == 8'h70);
+        // 3- hold '0' (auto-repeat 0x70)
+        send_byte(byte_to_send);
+        correct = correct & ~keyPressed & (scancode == byte_to_send);
 
 
         if (correct)

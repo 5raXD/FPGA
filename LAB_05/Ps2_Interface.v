@@ -13,18 +13,20 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////////////
+
 module Ps2_Interface(
-    input  wire       PS2Clk,      // keyboard clock - used AS A CLOCK here
-    input  wire       rstn,        // active-low ASYNCHRONOUS reset
-    input  wire       PS2Data,     // keyboard serial data
-    output reg  [7:0] scancode,    // most recent make-code byte
-    output reg        keyPressed   // 1-cycle pulse on the first make of a new press
+    input wire PS2Clk,
+    input wire rstn,
+    input wire PS2Data,
+    output reg [7:0] scancode,
+    output reg keyPressed
     );
 
-    reg [21:0] shift_reg; 
+    reg [21:0] shift_reg;
     reg [3:0]  bit_count;
     reg is_valid;
-    wire [7:0] cur_byte  = shift_reg[20:13]; 
+    reg parity_ok;
+    wire [7:0] cur_byte  = shift_reg[20:13];
     wire [7:0] prev_byte = shift_reg[9:2];
 
     always @(negedge PS2Clk or negedge rstn) begin
@@ -34,12 +36,14 @@ module Ps2_Interface(
             scancode <= 8'b0;
             keyPressed <= 1'b0;
             is_valid <= 1'b1;
+            parity_ok = 1'b0;
         end else begin
             shift_reg <= {PS2Data, shift_reg[21:1]};
             bit_count <= (bit_count == 4'd10)? 4'd0 : bit_count + 4'd1;
             keyPressed <= 1'b0; // default
 
             if (bit_count == 4'd10) begin
+                parity_ok = (shift_reg[21] == ~(^cur_byte)); // assign FIRST, so we reuse it below and expose it to the TB
                 if (cur_byte == 8'hE0 || cur_byte == 8'hF0) begin
                     // skip
                 end
@@ -49,7 +53,7 @@ module Ps2_Interface(
                 else begin
                     scancode <= cur_byte;
                     if (is_valid) begin
-                        keyPressed <= (shift_reg[21] == ~(^cur_byte));
+                        keyPressed <= parity_ok;
                         is_valid <= 1'b0;
                     end
                 end

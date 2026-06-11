@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(iverilog -g2012 -Wall -o ps2_if_tb.out Ps2_Interface.v Ps2_Interface_tb.v)",
+      "Bash(vvp ps2_if_tb.out)"
+    ]
+  }
+}
