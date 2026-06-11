@@ -178,9 +178,8 @@ simulation, with what the error means).
 % ======================================================================
 \section*{Part 2 --- Simulations and answers}
 
-This part contains the simulation of \texttt{Ps2\_Interface} (annotated
-waveforms) followed by the answers to the lab's questions. \emph{(Per the PDF,
-only \texttt{Ps2\_Interface.v} is simulated.)}
+This part contains the simulation of \texttt{Ps2\_Interface} with annotated
+waveforms. \emph{(Per the PDF, only \texttt{Ps2\_Interface.v} is simulated.)}
 
 \subsection*{Simulation --- Ps2\_Interface}
 
@@ -202,76 +201,6 @@ release / re-press.}
 \placeholder[0.7\linewidth]{Zoom-in showing that the data is sampled on the
 \emph{negative edge} of PS2Clk (arrow on a falling edge where scancode / keyPressed
 react).}
-
-\subsection*{Answer --- Asynchronous reset (advantages \& disadvantages)}
-
-A flip-flop can be reset \emph{synchronously} (the reset is sampled only on the
-active clock edge) or \emph{asynchronously} (the reset appears in the sensitivity
-list and acts the instant it is asserted):
-\begin{center}
-\begin{tabular}{ll}
-\texttt{always @(posedge clk)} & {\footnotesize synchronous: reset acts only on a clock edge} \\
-\texttt{always @(posedge clk or negedge rstn)} & {\footnotesize asynchronous: reset acts immediately} \\
-\end{tabular}
-\end{center}
-
-\renewcommand{\arraystretch}{1.3}
-\begin{tabularx}{\textwidth}{|>{\bfseries}p{2.7cm}|X|X|}
-\hline
-\rowcolor{accent}
- & \textcolor{white}{\textbf{Asynchronous reset}} & \textcolor{white}{\textbf{Synchronous reset}} \\ \hline
-Advantage & Resets the logic \emph{immediately}, even when \emph{no clock edge is available}. Critical in this lab because \texttt{PS2Clk} is idle most of the time. & Easy static-timing analysis; the reset is ``just another data signal'', no special routing, no recovery / removal checks. \\ \hline
-Disadvantage & Reset \emph{removal} (de-assertion) is dangerous: releasing it too close to a clock edge violates recovery / removal time and can cause \textbf{metastability}; needs a reset synchroniser and dedicated async-reset routing. & Needs a toggling clock to take effect --- useless while the clock is idle; the reset pulse must be at least one clock period wide to be captured. \\ \hline
-\end{tabularx}
-\renewcommand{\arraystretch}{1.0}
-
-\textbf{Why it matters here.} The keyboard clock \texttt{PS2Clk} toggles only
-during a transmission and is idle (high) otherwise. A synchronous reset on that
-domain would not act while the clock is idle, so \texttt{Ps2\_Interface} uses an
-\textbf{active-low asynchronous reset} \texttt{rstn} (see Figure~1 of the
-assignment: the push-button \texttt{reset} is inverted to
-\texttt{\textasciitilde reset}/\texttt{rstn}). The de-assertion hazard is handled
-on the fast side by a multi-FF synchroniser (see \texttt{Ps2\_Display}).
-
-\subsection*{Answer --- PS/2 interface (frame, non-toggling clock, key-press detection)}
-
-The PS/2 keyboard is a device-driven serial interface on two wires:
-\texttt{PS2Clk} (clock generated \emph{by the keyboard}, $\approx$10--17\,kHz) and
-\texttt{PS2Data}. One byte is sent as an \textbf{11-bit frame, LSB first}, and the
-host samples \texttt{PS2Data} \textbf{on the falling edge of} \texttt{PS2Clk}:
-
-\begin{center}
-\renewcommand{\arraystretch}{1.3}
-\begin{tabular}{|c|c|c|c|}
-\hline
-\rowcolor{accentlt}
-\textbf{Bit 0} & \textbf{Bits 1--8} & \textbf{Bit 9} & \textbf{Bit 10} \\ \hline
-Start (0) & Data D0..D7 (LSB first) & Parity (odd) & Stop (1) \\ \hline
-\end{tabular}
-\renewcommand{\arraystretch}{1.0}
-\end{center}
-
-Key facts used by the design:
-\begin{itemize}[noitemsep,topsep=2pt,leftmargin=1.4em]
-  \item \textbf{Make code} --- sent on key press (e.g.\ keypad \texttt{5} $\rightarrow$ \texttt{0x2E}).
-  \item \textbf{Typematic repeat} --- while a key is held, the make code is re-sent repeatedly; \texttt{keyPressed} must pulse \emph{only once} (on the first press).
-  \item \textbf{Break code} --- on release: \texttt{0xF0} followed by the make code.
-  \item \textbf{Extended keys} --- prefixed with \texttt{0xE0}; the \texttt{0xE0} must be ignored and only the trailing byte displayed.
-\end{itemize}
-
-\textbf{Non-toggling clock $\Rightarrow$ decode early.} Because \texttt{PS2Clk}
-stops after the stop bit, the module must \emph{not} wait for an edge after the
-frame. \texttt{Ps2\_Interface} decodes the byte \emph{on} the stop-bit edge (the
-last edge the keyboard actually produces), using a 22-bit shift register that
-holds the current frame and the previous one so two-frame sequences
-(\texttt{0xE0}/\texttt{0xF0}) can be recognised.
-
-\textbf{Two clock domains (CDC).} \texttt{scancode}/\texttt{keyPressed} are
-produced in the slow \texttt{PS2Clk} domain and consumed in the fast 100\,MHz
-\texttt{clk} domain of \texttt{Ps2\_Display}. \texttt{keyPressed} is passed
-through a 3-FF synchroniser and edge-detected; \texttt{scancode} is captured on
-that already-settled pulse --- a simple, safe data + valid CDC handshake. This is
-also why the logic analyser cannot debug both domains in a single ILA core.
 
 % ======================================================================
 %  ELABORATED DESIGN
