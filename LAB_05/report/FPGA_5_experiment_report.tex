@@ -176,6 +176,7 @@ simulation, with what the error means).
 % ======================================================================
 %  PART 2 - SIMULATIONS AND ANSWERS
 % ======================================================================
+\newpage
 \section*{Part 2 --- Simulations and answers}
 
 This part contains the simulation of \texttt{Ps2\_Interface} with annotated
@@ -183,20 +184,24 @@ waveforms. \emph{(Per the PDF, only \texttt{Ps2\_Interface.v} is simulated.)}
 
 \subsection*{Simulation --- Ps2\_Interface}
 
-\placeholder[\linewidth]{Annotated waveform of \texttt{Ps2\_Interface\_tb}:
-PS2Clk, rstn, PS2Data, scancode[7:0], keyPressed. Draw arrows on: the reset test,
-the first make-code, the typematic repeats, the extended key, and the
-release / re-press.}
+\reportfig[\linewidth]{tb_waveform.png}{Full \texttt{Ps2\_Interface\_tb}
+simulation (signals \texttt{PS2Clk}, \texttt{rstn}, \texttt{correct},
+\texttt{PS2Data}, \texttt{byte\_to\_send[7:0]}, \texttt{scancode[7:0]},
+\texttt{keyPressed}, \texttt{parity\_ok}). The \texttt{correct} flag stays high
+for the whole run and the Tcl console reports \texttt{Test Passed -
+Ps2\_Interface\_tb} (\texttt{\$finish} at $3940\,\mu$s).}
 
-\textbf{What the waveform shows} (annotate the real screenshot with arrows):
-\begin{enumerate}[noitemsep,topsep=2pt,label=\arabic*.,leftmargin=1.6em]
-  \item \textbf{Reset test} --- with \texttt{rstn=0} the outputs are cleared even while \texttt{PS2Clk} is idle (the async-reset advantage).
-  \item \textbf{First make-code \texttt{0x2E}} --- after the stop-bit edge \texttt{scancode} becomes \texttt{2E} and \texttt{keyPressed} pulses exactly once.
-  \item \textbf{Typematic repeats of \texttt{0x2E}} --- the same code is sent twice more; \texttt{scancode} stays \texttt{2E} and \texttt{keyPressed} does \emph{not} pulse again.
-  \item \textbf{Extended key \texttt{0xE0,0x5A}} --- the \texttt{0xE0} frame leaves \texttt{scancode} unchanged and produces no pulse; the trailing \texttt{0x5A} sets \texttt{scancode=5A} with one pulse.
-  \item \textbf{Release \texttt{0xF0,0x5A}} --- neither frame pulses; the displayed code is held.
-  \item \textbf{Re-press \texttt{0x5A} after release} --- pulses again (a new press after a release is a new event).
-\end{enumerate}
+\textbf{Signals} (top to bottom in the waveform):
+\begin{itemize}[noitemsep,topsep=2pt,leftmargin=1.4em]
+  \item \texttt{PS2Clk} --- the keyboard clock (input). It toggles only while a byte is being sent and is idle-high otherwise; the interface shifts data in on its \emph{falling} edge.
+  \item \texttt{rstn} --- active-low \emph{asynchronous} reset (driven by the test-bench). When low it clears the interface even while \texttt{PS2Clk} is idle.
+  \item \texttt{correct} --- a test-bench-only pass/fail flag. It is AND-ed with the expected result after every step and stays high only if all checks passed (then the console prints \texttt{Test Passed}).
+  \item \texttt{PS2Data} --- the serial data line (input). Carries the 11-bit frame (start, 8 data LSB-first, parity, stop), sampled on the falling edge of \texttt{PS2Clk}.
+  \item \texttt{byte\_to\_send[7:0]} --- a test-bench register holding the byte currently being bit-banged onto \texttt{PS2Data}; it shows which key code is on the wire at each moment.
+  \item \texttt{scancode[7:0]} --- interface output: the most recent accepted make-code, latched until the next valid press.
+  \item \texttt{keyPressed} --- interface output: a one-cycle pulse on the first make-code of a new press (not on auto-repeats and not on \texttt{0xE0}/\texttt{0xF0} prefixes).
+  \item \texttt{parity\_ok} --- internal interface signal (exposed in the bench via \texttt{uut.parity\_ok}): high when the frame's odd-parity bit matches the 8 data bits; \texttt{keyPressed} is asserted only when \texttt{parity\_ok} is high.
+\end{itemize}
 
 \placeholder[0.7\linewidth]{Zoom-in showing that the data is sampled on the
 \emph{negative edge} of PS2Clk (arrow on a falling edge where scancode / keyPressed
@@ -205,6 +210,7 @@ react).}
 % ======================================================================
 %  ELABORATED DESIGN
 % ======================================================================
+\newpage
 \section*{Elaborated Design}
 
 \subsection*{Top module}
@@ -219,38 +225,27 @@ through an \texttt{RTL\_INV} (\texttt{rstn\_i}) into \texttt{rstn}. Inputs
 
 \subsection*{Ps2\_Interface}
 
-\reportfig[\linewidth]{sch_innterface.png}{RTL-elaborated schematic of
-\texttt{Ps2\_Interface}: the 22-bit shift register and the \texttt{bitcount}
-counter feed the \texttt{held\_code} / \texttt{key\_down} registers and the
-make / break / extend decode logic, all clocked by \texttt{PS2Clk}; the outputs
-\texttt{scancode[7:0]} and \texttt{keyPressed} leave on the right.}
+\reportfig[\linewidth]{sch_innterface.png}{RTL-elaborated schematic of the Interface}
 
 % ======================================================================
 %  IMPLEMENTATION
 % ======================================================================
+\newpage
 \section*{Implementation}
 
 \subsection*{Synthesis schematic}
 
 \reportfig[\linewidth]{synthesis_schematic.png}{Post-synthesis schematic. Every
-external port now passes through an \texttt{IBUF}/\texttt{OBUF}, the two clocks
-(\texttt{clk}, \texttt{PS2Clk}) go through \texttt{BUFG} global buffers, and
-\texttt{u\_interface} / \texttt{u\_display} drive the \texttt{an}, \texttt{dp},
-\texttt{led} and \texttt{seg} output buffers.}
+external port now passes through an \texttt{IBUF}/\texttt{OBUF}, the two clocks}
 
 \subsection*{Project summary}
 
-\reportfig[\linewidth]{project_summary.png}{Post-implementation project summary.
-No DRC violations; timing met (WNS\,$=5.269$\,ns, 0 failing endpoints);
-utilization is small (LUT \& FF $\approx$1\%, IO 16\%, BUFG 6\%); total on-chip
-power is $0.076$\,W with a junction temperature of $25.4^{\circ}$C.}
+\reportfig[\linewidth]{project_summary.png}{Post-implementation project summary}
 
 \subsection*{Timing summary}
 
 \reportfig[\linewidth]{design_timing_report.png}{Design Timing Summary after
-implementation. The Setup (WNS\,$=5.269$\,ns), Hold (WHS\,$=0.330$\,ns) and
-Pulse-Width (WPWS\,$=4.500$\,ns) slacks are all positive with 0 failing
-endpoints --- \emph{``All user specified timing constraints are met''}.}
+implementation}
 
 \subsection*{Critical Path}
 
@@ -258,34 +253,18 @@ endpoints --- \emph{``All user specified timing constraints are met''}.}
 paths (Path~1--4) run inside \texttt{u\_display} from
 \texttt{led\_timer\_reg[16]/C} to \texttt{led\_timer\_reg[20..23]/CE}, with slack
 $5.269$\,ns, 3 logic levels and $4.361$\,ns total delay ($1.054$\,ns logic
-$+\,3.307$\,ns net) against the $10$\,ns requirement --- comfortably met.}
+$+\,3.307$\,ns net) against the $10$\,ns requirement}
 
 \subsection*{Device}
 
 \reportfig[0.55\linewidth]{synthesized_design.png}{Device (floorplan) view of the
-placed-and-routed design on the Artix-7 (\texttt{XC7A35T}). The few used slices
-are highlighted across the clock regions (\texttt{X0Y0}--\texttt{X1Y2}); the
-design occupies only a tiny fraction of the fabric.}
+placed-and-routed design on the Artix-7 (\texttt{XC7A35T})}
 
 % ======================================================================
 %  PROBLEMS WE FACED
 % ======================================================================
 \section*{Problems we faced}
 
-On hardware the design behaves as specified: pressing a numeric-keypad key shows
-its 8-bit make-code as two hex symbols on the two right-hand 7-segment digits
-(e.g.\ \texttt{5}\,$\rightarrow$\,\texttt{2E}); each new press blinks the LED once
-with a short strobe (holding the key does \emph{not} re-blink); the displayed code
-latches until the next press; and extended keys show only their last two hex
-symbols (the \texttt{0xE0} prefix is invisible).
-
-\emph{(Describe the problems you actually hit in the lab and how you solved them.
-For example:)}
-\begin{itemize}[noitemsep,topsep=2pt,leftmargin=1.4em]
-  \item \emph{(fill in)} where to put the \texttt{0xF0}/\texttt{0xE0} / two-key handling logic --- in the interface vs.\ the display module --- and the wrong display behaviour seen before moving it all into \texttt{Ps2\_Interface}.
-  \item \emph{(fill in)} the keyboard clock being idle most of the time (decode before the stop bit, async reset).
-  \item \emph{(fill in)} CDC glitches on \texttt{keyPressed} and debugging the two clock domains in separate ILA cores.
-\end{itemize}
 
 \placeholder[0.7\linewidth]{Board photo: keypad plugged into the USB host port, a
 key pressed and its hex code shown on the two right digits with the LED lit.}
@@ -293,6 +272,7 @@ key pressed and its hex code shown on the two right digits with the LED lit.}
 % ======================================================================
 %  APPENDIX - VERILOG SOURCE CODE
 % ======================================================================
+\newpage
 \section*{Appendix --- Verilog Source Code}
 
 The full source of the submitted files is listed below. Paste the code of each
@@ -312,25 +292,214 @@ file inside its block.
 \newpage
 \subsection*{Ps2\_Display.v}
 \begin{lstlisting}
-// --- paste Ps2_Display.v here ---
-\end{lstlisting}
+module Ps2_Display(
+    input  wire       clk,         // 100 MHz system clock
+    input  wire       rstn,        // active-low reset
+    input  wire       keyPressed,  // pulse from Ps2_Interface (slow domain)
+    input  wire [7:0] scancode,    // byte from Ps2_Interface (slow domain)
+    output wire [6:0] seg,         // 7-segment cathodes (active low)
+    output wire [3:0] an,          // 4 digit anodes (active low)
+    output wire       dp,          // decimal point
+    output reg        led          // strobe LED, one visible blink per press
+    );
+    reg [6:0] a_to_g;
+    reg [3:0] an_reg;
 
-\newpage
-\subsection*{Seg\_7\_Display.v}
-\begin{lstlisting}
-// --- paste Seg_7_Display.v here ---
+    assign seg = a_to_g;
+    assign an  = an_reg;
+    assign dp  = 1'b1;
+    
+    wire [1:0] s;    
+    reg  [3:0] digit;
+
+    reg kp_sync1, kp_sync2, kp_prev;
+    reg [7:0] valid_scancode;
+    
+    always @(posedge clk or negedge rstn) begin
+        if (!rstn) begin
+            kp_sync1 <= 1'b0;
+            kp_sync2 <= 1'b0;
+            kp_prev  <= 1'b0;
+            valid_scancode <= 8'h00;
+        end else begin
+            kp_sync1 <= keyPressed;
+            kp_sync2 <= kp_sync1;
+            kp_prev  <= kp_sync2;
+
+            if (kp_sync2 & ~kp_prev) begin
+                valid_scancode <= scancode;
+            end
+        end
+    end
+    
+    wire kp_edge = kp_sync2 & ~kp_prev;
+
+    reg [23:0] led_timer;
+    
+    always @(posedge clk or negedge rstn) begin
+        if (!rstn) begin
+            led_timer <= 24'd0;
+            led <= 1'b0;
+        end else if (kp_edge) begin
+            led_timer <= 24'd10_000_000; // ~0.1 seconds at 100MHz
+            led <= 1'b1;
+        end else if (led_timer > 0) begin
+            led_timer <= led_timer - 1;
+            led <= 1'b1;
+        end else begin
+            led <= 1'b0;
+        end
+    end
+
+    reg [19:0] clkdiv = 20'b0;
+    
+    always @(posedge clk or negedge rstn) begin
+        if (!rstn)
+            clkdiv <= 0;
+        else
+            clkdiv <= clkdiv + 1;
+    end
+    
+    assign s = clkdiv[19:18];
+
+    always @(*) begin
+        an_reg = 4'b1111; 
+        
+        case(s)
+            2'b00: begin 
+                digit = valid_scancode[3:0];
+                an_reg[0] = 1'b0;
+            end
+            2'b01: begin 
+                digit = valid_scancode[7:4];
+                an_reg[1] = 1'b0;
+            end
+            default: begin 
+                digit = 4'h0; 
+                an_reg = 4'b1111;
+            end
+        endcase
+    end
+
+    always @(*) begin
+        case(digit)
+            //////////<---MSB-LSB<---/////
+            4'h0: a_to_g = 7'b1000000; // 0
+            4'h1: a_to_g = 7'b1111001; // 1
+            4'h2: a_to_g = 7'b0100100; // 2
+            4'h3: a_to_g = 7'b0110000; // 3
+            4'h4: a_to_g = 7'b0011001; // 4
+            4'h5: a_to_g = 7'b0010010; // 5
+            4'h6: a_to_g = 7'b0000010; // 6
+            4'h7: a_to_g = 7'b1111000; // 7
+            4'h8: a_to_g = 7'b0000000; // 8
+            4'h9: a_to_g = 7'b0010000; // 9
+            4'hA: a_to_g = 7'b0001000; // A
+            4'hB: a_to_g = 7'b0000011; // b
+            4'hC: a_to_g = 7'b1000110; // C
+            4'hD: a_to_g = 7'b0100001; // d
+            4'hE: a_to_g = 7'b0000110; // E
+            4'hF: a_to_g = 7'b0001110; // F
+            default: a_to_g = 7'b1111111; // blank
+        endcase
+    end
+endmodule
 \end{lstlisting}
 
 \newpage
 \subsection*{Ps2\_Top.v}
 \begin{lstlisting}
-// --- paste Ps2_Top.v here ---
+module Ps2_Top(
+    input  wire       clk,        // W5  - 100 MHz system clock
+    input  wire       reset,      // U18 - btnC, active high (pressed = 1)
+    input  wire       PS2Clk,     // C17 - keyboard clock
+    input  wire       PS2Data,    // B17 - keyboard data
+    output wire [6:0] seg,        // 7-segment cathodes
+    output wire [3:0] an,         // 7-segment anodes
+    output wire       dp,         // decimal point
+    output wire       led         // U16 - strobe LED (LD0)
+    );
+
+    wire rstn = ~reset;
+    wire keyPressed;
+    wire [7:0] scancode;
+
+    Ps2_Display u_display(
+    .clk  (clk),
+    .rstn (rstn),
+    .keyPressed (keyPressed),
+    .scancode   (scancode),
+    .seg  (seg),
+    .an   (an),
+    .dp   (dp),
+    .led  (led));
+
+    Ps2_Interface u_interface(
+    .PS2Clk   (PS2Clk),
+    .rstn     (rstn),
+    .PS2Data  (PS2Data),
+    .scancode (scancode),
+    .keyPressed (keyPressed));
+
+endmodule
 \end{lstlisting}
 
 \newpage
 \subsection*{task1.xdc}
 \begin{lstlisting}[language=]
-## --- paste task1.xdc here ---
+# Clock signal
+set_property PACKAGE_PIN W5 [get_ports clk]
+set_property IOSTANDARD LVCMOS33 [get_ports clk]
+create_clock -period 10.000 -name sys_clk_pin -waveform {0.000 5.000} -add [get_ports clk]
+# LEDs
+set_property PACKAGE_PIN U16 [get_ports led]
+set_property IOSTANDARD LVCMOS33 [get_ports led]
+#7 segment display
+set_property PACKAGE_PIN W7 [get_ports {seg[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {seg[0]}]
+set_property PACKAGE_PIN W6 [get_ports {seg[1]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {seg[1]}]
+set_property PACKAGE_PIN U8 [get_ports {seg[2]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {seg[2]}]
+set_property PACKAGE_PIN V8 [get_ports {seg[3]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {seg[3]}]
+set_property PACKAGE_PIN U5 [get_ports {seg[4]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {seg[4]}]
+set_property PACKAGE_PIN V5 [get_ports {seg[5]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {seg[5]}]
+set_property PACKAGE_PIN U7 [get_ports {seg[6]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {seg[6]}]
+
+set_property PACKAGE_PIN V7 [get_ports dp]
+set_property IOSTANDARD LVCMOS33 [get_ports dp]
+
+set_property PACKAGE_PIN U2 [get_ports {an[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {an[0]}]
+set_property PACKAGE_PIN U4 [get_ports {an[1]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {an[1]}]
+set_property PACKAGE_PIN V4 [get_ports {an[2]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {an[2]}]
+set_property PACKAGE_PIN W4 [get_ports {an[3]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {an[3]}]
+
+
+#Buttons
+set_property PACKAGE_PIN U18 [get_ports reset]
+set_property IOSTANDARD LVCMOS33 [get_ports reset]
+#USB HID (PS/2)
+set_property PACKAGE_PIN C17 [get_ports PS2Clk]
+set_property IOSTANDARD LVCMOS33 [get_ports PS2Clk]
+set_property PULLUP true [get_ports PS2Clk]
+set_property PACKAGE_PIN B17 [get_ports PS2Data]
+set_property IOSTANDARD LVCMOS33 [get_ports PS2Data]
+set_property PULLUP true [get_ports PS2Data]
+
+# Don't even think to change the following values !!!!!
+set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
+set_property BITSTREAM.CONFIG.CONFIGRATE 33 [current_design]
+set_property CONFIG_MODE SPIx4 [current_design]
+set_property CFGBVS VCCO [current_design]
+set_property CONFIG_VOLTAGE 3.3 [current_design]
 \end{lstlisting}
 
 \end{document}
