@@ -9,33 +9,9 @@
 // Project Name:    lab5
 // Target Devices:  Xilinx BASYS3 Board, FPGA model XC7A35T-1CPG236C
 // Tool versions:   Vivado 2016.4 / Icarus Verilog (simulation)
-// Description:     PS/2 keyboard receiver.
-//                  Receives the serial PS/2 frames coming from the numeric
-//                  keypad, extracts the 8-bit make-code (scancode) of the most
-//                  recently pressed key and raises a one-(PS2Clk)-cycle pulse
-//                  "keyPressed" at the moment the FIRST make-code packet of a new
-//                  press is received.
+// Description:     PS/2 keyboard interface
 //
-//                  PS/2 frame (11 bits, sent LSB first, sampled on the falling
-//                  edge of PS2Clk):
-//                      bit 0      : start  (always 0)
-//                      bit 1..8   : data D0..D7 (LSB first)
-//                      bit 9      : parity (odd)  - ignored here
-//                      bit 10     : stop   (always 1)
 //
-//                  The keyboard clock (PS2Clk) is NOT free running: it toggles
-//                  only while a byte is being transmitted and is idle (high) the
-//                  rest of the time. Therefore:
-//                    * the whole logic of this module is clocked by PS2Clk;
-//                    * the reset is ASYNCHRONOUS and active low (rstn), so the
-//                      design can be reset even while PS2Clk is idle;
-//                    * the packet is decoded ON the stop-bit edge (the last edge
-//                      that the keyboard actually produces) - we never wait for an
-//                      edge that comes AFTER the stop bit, because none does.
-//
-// Dependencies:    None
-//
-// Revision:        1.0
 //////////////////////////////////////////////////////////////////////////////////
 module Ps2_Interface(
     input  wire       PS2Clk,      // keyboard clock - used AS A CLOCK here
@@ -49,7 +25,7 @@ module Ps2_Interface(
     reg [3:0]  bit_count;
     reg is_valid;
     wire [7:0] cur_byte  = shift_reg[20:13]; 
-    wire [7:0] prev_byte = shift_reg[9:2]; 
+    wire [7:0] prev_byte = shift_reg[9:2];
 
     always @(negedge PS2Clk or negedge rstn) begin
         if (!rstn) begin
@@ -57,7 +33,7 @@ module Ps2_Interface(
             shift_reg <= 22'b0;
             scancode <= 8'b0;
             keyPressed <= 1'b0;
-            is_valid <= 1'b0;
+            is_valid <= 1'b1;
         end else begin
             shift_reg <= {PS2Data, shift_reg[21:1]};
             bit_count <= (bit_count == 4'd10)? 4'd0 : bit_count + 4'd1;
@@ -73,8 +49,8 @@ module Ps2_Interface(
                 else begin
                     scancode <= cur_byte;
                     if (is_valid) begin
-                        keyPressed <= 1'b1;
-                        is_valid   <= 1'b0; 
+                        keyPressed <= (shift_reg[21] == ~(^cur_byte));
+                        is_valid <= 1'b0;
                     end
                 end
             end 

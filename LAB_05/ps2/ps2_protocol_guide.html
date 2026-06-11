@@ -491,16 +491,22 @@ The 8-bit byte the keyboard sends you is not ASCII. It is a <strong>scan code</s
 <tr><td><code>0xE0</code></td><td>"Next byte is an extended key"</td><td>The assignment says: <strong>ignore the 0xE0 prefix</strong> and just display the byte that follows</td></tr>
 </table>
 
-<h3>A small scan-code reference (numeric keypad)</h3>
+<h3>Scan-code reference (your numeric keypad)</h3>
+<p>Make-codes for every key on the keypad. Two of them — <code>/</code> and the
+keypad <strong>Enter</strong> — are <span class="pill ext">EXTENDED</span>: they arrive
+as <code>0xE0</code> followed by the byte shown (remember the assignment: ignore the
+<code>0xE0</code> and display only the byte after it).</p>
 <table>
 <tr><th>Key</th><th>Scan code</th><th>Key</th><th>Scan code</th></tr>
-<tr><td>0</td><td><code>0x70</code></td><td>5</td><td><code>0x73</code></td></tr>
-<tr><td>1</td><td><code>0x69</code></td><td>6</td><td><code>0x74</code></td></tr>
-<tr><td>2</td><td><code>0x72</code></td><td>7</td><td><code>0x6C</code></td></tr>
-<tr><td>3</td><td><code>0x7A</code></td><td>8</td><td><code>0x75</code></td></tr>
-<tr><td>4</td><td><code>0x6B</code></td><td>9</td><td><code>0x7D</code></td></tr>
-<tr><td>+</td><td><code>0x79</code></td><td>−</td><td><code>0x7B</code></td></tr>
-<tr><td>*</td><td><code>0x7C</code></td><td>Enter</td><td><code>0xE0 0x5A</code></td></tr>
+<tr><td>0</td><td><code>0x70</code></td><td>1</td><td><code>0x69</code></td></tr>
+<tr><td>2</td><td><code>0x72</code></td><td>3</td><td><code>0x7A</code></td></tr>
+<tr><td>4</td><td><code>0x6B</code></td><td>5</td><td><code>0x73</code></td></tr>
+<tr><td>6</td><td><code>0x74</code></td><td>7</td><td><code>0x6C</code></td></tr>
+<tr><td>8</td><td><code>0x75</code></td><td>9</td><td><code>0x7D</code></td></tr>
+<tr><td>. (Del)</td><td><code>0x71</code></td><td>+</td><td><code>0x79</code></td></tr>
+<tr><td>−</td><td><code>0x7B</code></td><td>*</td><td><code>0x7C</code></td></tr>
+<tr><td>/</td><td><code>0xE0 0x4A</code></td><td>Tab</td><td><code>0x0D</code></td></tr>
+<tr><td>Enter</td><td><code>0xE0 0x5A</code></td><td>Back (Bksp)</td><td><code>0x66</code></td></tr>
 </table>
 </section>
 

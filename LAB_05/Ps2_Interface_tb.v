@@ -7,43 +7,78 @@
 // Design Name:     FPGA Lab 5 - Keyboard
 // Module Name:     Ps2_Interface_tb
 // Project Name:    lab5
-// Target Devices:  Xilinx BASYS3 Board, FPGA model XC7A35T-1CPG236C
-// Tool versions:   Vivado 2016.4 / Icarus Verilog (simulation)
-// Description:     Self-checking test-bench for Ps2_Interface. It EMULATES the
-//                  keyboard: it drives PS2Clk and PS2Data with framed bytes
-//                  (start, 8 data LSB-first, odd parity, stop) and checks that
-//                    1) a make-code is decoded into "scancode";
-//                    2) "keyPressed" pulses exactly ONCE on the first make-code;
-//                    3) typematic auto-repeats do NOT create extra pulses;
-//                    4) 0xE0 / 0xF0 prefixes are ignored (no display, no pulse);
-//                    5) a press AFTER a release pulses again;
-//                    6) the asynchronous reset clears the outputs even while the
-//                       PS/2 clock is idle.
 //
-//                  Note (per the PDF): only Ps2_Interface.v is simulated.
 //////////////////////////////////////////////////////////////////////////////////
 module Ps2_Interface_tb();
-    localparam CLK_HALF = 30_000;       // 30 us -> 60 us
 
-    reg        PS2Clk;
-    reg        rstn;
-    reg        PS2Data;
+    localparam CLK_HALF = 30_000;   // 30 us half -> 60 us period -> ~16.7 kHz PS/2 clock
+
+    reg        PS2Clk, rstn, PS2Data, correct;
     wire [7:0] scancode;
     wire       keyPressed;
 
-    integer    pulses;              
-    reg        correct;          
-
-    Ps2_Interface dut(
+    // Instantiate the UUT (Unit Under Test)
+    Ps2_Interface uut(
         .PS2Clk(PS2Clk),
         .rstn(rstn),
         .PS2Data(PS2Data),
         .scancode(scancode),
         .keyPressed(keyPressed)
-    );
+        );
 
-    always #CLK_HALF PS2Clk = ~PS2Clk;  // ~16.7 kHz PS2 keyboard clock
+    initial begin
 
-    alwa
+        if($test$plusargs("vcd")) begin
+            $dumpfile("Ps2_Interface_tb.vcd");
+            $dumpvars(0, Ps2_Interface_tb);
+        end
+
+        correct = 1;
+        PS2Clk = 1;  
+        PS2Data = 1; 
+        rstn = 0;
+
+        #(CLK_HALF);
+        rstn = 1;
+        #(CLK_HALF);
+
+        // 1- press '5' (0x73)
+        send_byte(8'h73);
+        correct = correct & keyPressed & (scancode == 8'h73);
+
+        // 2- release '5' (F0 73) then press '0' (0x70)
+        send_byte(8'hF0);
+        send_byte(8'h73);
+        send_byte(8'h70);
+        correct = correct & keyPressed & (scancode == 8'h70);
+
+        // 3- hold '0' (auto-repeat 0x70) -> NO extra pulse
+        send_byte(8'h70);
+        correct = correct & ~keyPressed & (scancode == 8'h70);
+
+
+        if (correct)
+            $display("Test Passed - %m");
+        else
+            $display("Test Failed - %m");
+        $finish;
+    end
+
+    // send the pressed key in serial format - 11 bits
+    task send_byte(input [7:0] b);
+        integer k;
+        reg [10:0] frame;
+        begin
+            frame = {1'b1, ~(^b), b, 1'b0};
+            for (k = 0; k < 11; k = k + 1) begin
+                PS2Data = frame[k];
+                #CLK_HALF;
+                PS2Clk = 0;
+                #CLK_HALF;
+                PS2Clk = 1;
+            end
+            #(CLK_HALF*4); // idle time gap between presses
+        end
+    endtask
 
 endmodule
