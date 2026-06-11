@@ -17,7 +17,7 @@ module Ps2_Interface_tb();
     wire [7:0] scancode;
     wire keyPressed;
     wire parity_ok = uut.parity_ok;
-    wire [7:0] byte_to_send;
+    reg [7:0] byte_to_send;
 
 
     // Instantiate the UUT (Unit Under Test)

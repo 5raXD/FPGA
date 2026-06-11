@@ -25,7 +25,7 @@ module Ps2_Interface(
     reg [21:0] shift_reg;
     reg [3:0]  bit_count;
     reg is_valid;
-    reg parity_ok;
+    wire parity_ok;
     wire [7:0] cur_byte  = shift_reg[20:13];
     wire [7:0] prev_byte = shift_reg[9:2];
 
@@ -36,14 +36,12 @@ module Ps2_Interface(
             scancode <= 8'b0;
             keyPressed <= 1'b0;
             is_valid <= 1'b1;
-            parity_ok = 1'b0;
         end else begin
             shift_reg <= {PS2Data, shift_reg[21:1]};
             bit_count <= (bit_count == 4'd10)? 4'd0 : bit_count + 4'd1;
             keyPressed <= 1'b0; // default
 
             if (bit_count == 4'd10) begin
-                parity_ok = (shift_reg[21] == ~(^cur_byte)); // assign FIRST, so we reuse it below and expose it to the TB
                 if (cur_byte == 8'hE0 || cur_byte == 8'hF0) begin
                     // skip
                 end
@@ -62,5 +60,7 @@ module Ps2_Interface(
         end
 
     end
+
+    assign parity_ok = (shift_reg[21] == ~(^cur_byte));
 
 endmodule
