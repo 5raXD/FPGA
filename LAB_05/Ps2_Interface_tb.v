@@ -23,9 +23,7 @@
 //                  Note (per the PDF): only Ps2_Interface.v is simulated.
 //////////////////////////////////////////////////////////////////////////////////
 module Ps2_Interface_tb();
-
-    // a deliberately "slow, not-free-running" keyboard clock (half period)
-    localparam CLK_HALF = 5000;     // 5 us  -> 10 us period (~100 kHz, scaled)
+    localparam CLK_HALF = 30_000;       // 30 us -> 60 us
 
     reg        PS2Clk;
     reg        rstn;
@@ -33,7 +31,19 @@ module Ps2_Interface_tb();
     wire [7:0] scancode;
     wire       keyPressed;
 
-    integer    pulses;              // counts keyPressed events
-    reg        correct;            // overall pass/fail flag
+    integer    pulses;              
+    reg        correct;          
+
+    Ps2_Interface dut(
+        .PS2Clk(PS2Clk),
+        .rstn(rstn),
+        .PS2Data(PS2Data),
+        .scancode(scancode),
+        .keyPressed(keyPressed)
+    );
+
+    always #CLK_HALF PS2Clk = ~PS2Clk;  // ~16.7 kHz PS2 keyboard clock
+
+    alwa
 
 endmodule

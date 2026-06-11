@@ -83,7 +83,4 @@ module Ps2_Interface(
 
     end
 
-
-
-
 endmodule
