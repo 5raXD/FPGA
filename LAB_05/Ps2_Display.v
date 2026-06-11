@@ -44,7 +44,7 @@ module Ps2_Display(
 
     assign seg = a_to_g;
     assign an  = an_reg;
-    assign dp  = 1'b1;          // dp unused; lowercase b/d disambiguate from 8/0
+    assign dp  = 1'b1;
     
     wire [1:0] s;    
     reg  [3:0] digit;
@@ -105,11 +105,11 @@ module Ps2_Display(
         case(s)
             2'b00: begin 
                 digit = valid_scancode[3:0];
-                an_reg[0] = 1'b0;  // Turn on rightmost
+                an_reg[0] = 1'b0;
             end
             2'b01: begin 
                 digit = valid_scancode[7:4];
-                an_reg[1] = 1'b0;  // Turn on 2nd right
+                an_reg[1] = 1'b0;
             end
             default: begin 
                 digit = 4'h0; 
@@ -121,7 +121,6 @@ module Ps2_Display(
     always @(*) begin
         case(digit)
             //////////<---MSB-LSB<---/////
-            //////////////gfedcba/////////
             4'h0: a_to_g = 7'b1000000; // 0
             4'h1: a_to_g = 7'b1111001; // 1
             4'h2: a_to_g = 7'b0100100; // 2
@@ -133,9 +132,9 @@ module Ps2_Display(
             4'h8: a_to_g = 7'b0000000; // 8
             4'h9: a_to_g = 7'b0010000; // 9
             4'hA: a_to_g = 7'b0001000; // A
-            4'hB: a_to_g = 7'b0000011; // lowercase b
+            4'hB: a_to_g = 7'b0000011; // b
             4'hC: a_to_g = 7'b1000110; // C
-            4'hD: a_to_g = 7'b0100001; // lowercase d
+            4'hD: a_to_g = 7'b0100001; // d
             4'hE: a_to_g = 7'b0000110; // E
             4'hF: a_to_g = 7'b0001110; // F
             default: a_to_g = 7'b1111111; // blank

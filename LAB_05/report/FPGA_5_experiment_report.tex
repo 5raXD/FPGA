@@ -179,33 +179,26 @@ simulation, with what the error means).
 \newpage
 \section*{Part 2 --- Simulations and answers}
 
-This part contains the simulation of \texttt{Ps2\_Interface} with annotated
-waveforms. \emph{(Per the PDF, only \texttt{Ps2\_Interface.v} is simulated.)}
-
 \subsection*{Simulation --- Ps2\_Interface}
 
-\reportfig[\linewidth]{tb_waveform.png}{Full \texttt{Ps2\_Interface\_tb}
-simulation (signals \texttt{PS2Clk}, \texttt{rstn}, \texttt{correct},
-\texttt{PS2Data}, \texttt{byte\_to\_send[7:0]}, \texttt{scancode[7:0]},
-\texttt{keyPressed}, \texttt{parity\_ok}). The \texttt{correct} flag stays high
-for the whole run and the Tcl console reports \texttt{Test Passed -
-Ps2\_Interface\_tb} (\texttt{\$finish} at $3940\,\mu$s).}
+\reportfig[\linewidth]{tb_waveform.png}{Full Ps2\_Interface\_tb
+simulation}
 
 \textbf{Signals} (top to bottom in the waveform):
 \begin{itemize}[noitemsep,topsep=2pt,leftmargin=1.4em]
-  \item \texttt{PS2Clk} --- the keyboard clock (input). It toggles only while a byte is being sent and is idle-high otherwise; the interface shifts data in on its \emph{falling} edge.
-  \item \texttt{rstn} --- active-low \emph{asynchronous} reset (driven by the test-bench). When low it clears the interface even while \texttt{PS2Clk} is idle.
-  \item \texttt{correct} --- a test-bench-only pass/fail flag. It is AND-ed with the expected result after every step and stays high only if all checks passed (then the console prints \texttt{Test Passed}).
-  \item \texttt{PS2Data} --- the serial data line (input). Carries the 11-bit frame (start, 8 data LSB-first, parity, stop), sampled on the falling edge of \texttt{PS2Clk}.
-  \item \texttt{byte\_to\_send[7:0]} --- a test-bench register holding the byte currently being bit-banged onto \texttt{PS2Data}; it shows which key code is on the wire at each moment.
-  \item \texttt{scancode[7:0]} --- interface output: the most recent accepted make-code, latched until the next valid press.
-  \item \texttt{keyPressed} --- interface output: a one-cycle pulse on the first make-code of a new press (not on auto-repeats and not on \texttt{0xE0}/\texttt{0xF0} prefixes).
-  \item \texttt{parity\_ok} --- internal interface signal (exposed in the bench via \texttt{uut.parity\_ok}): high when the frame's odd-parity bit matches the 8 data bits; \texttt{keyPressed} is asserted only when \texttt{parity\_ok} is high.
+  \item \texttt{PS2Clk} - the keyboard clock (input). It toggles only while a byte is being sent and is idle-high.
+  \item \texttt{rstn} - active-low \emph{asynchronous} reset (driven by the test-bench).
+  \item \texttt{correct} - a test-bench-only pass/fail flag.
+  \item \texttt{PS2Data} - the serial data line. Carries 11-bit frame, sampled on the falling edge of \texttt{PS2Clk}.
+  \item \texttt{byte\_to\_send[7:0]} - a test-bench register holding the byte currently being bit-banged onto \texttt{PS2Data}.
+  \item \texttt{scancode[7:0]} - interface output: the most recent accepted make-code.
+  \item \texttt{keyPressed} - interface output: a one-cycle pulse on the first make-code of a new press.
+  \item \texttt{parity\_ok} - internal interface signal : high when the frame's odd-parity bit matches the 8 data bits.
 \end{itemize}
 
-\placeholder[0.7\linewidth]{Zoom-in showing that the data is sampled on the
-\emph{negative edge} of PS2Clk (arrow on a falling edge where scancode / keyPressed
-react).}
+\reportfig[\linewidth]{tb_waveform_.pdf}{Annotated close-up of the same
+simulation. The red notes mark the first key edge and that the first bit is sent
+on the \emph{negative} clock edge.}
 
 % ======================================================================
 %  ELABORATED DESIGN
