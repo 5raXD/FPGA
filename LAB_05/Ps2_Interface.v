@@ -45,5 +45,45 @@ module Ps2_Interface(
     output reg        keyPressed   // 1-cycle pulse on the first make of a new press
     );
 
+    reg [21:0] shift_reg; 
+    reg [3:0]  bit_count;
+    reg is_valid;
+    wire [7:0] cur_byte  = shift_reg[20:13]; 
+    wire [7:0] prev_byte = shift_reg[9:2]; 
+
+    always @(negedge PS2Clk or negedge rstn) begin
+        if (!rstn) begin
+            bit_count <= 4'b0;
+            shift_reg <= 22'b0;
+            scancode <= 8'b0;
+            keyPressed <= 1'b0;
+            is_valid <= 1'b0;
+        end else begin
+            shift_reg <= {PS2Data, shift_reg[21:1]};
+            bit_count <= (bit_count == 4'd10)? 4'd0 : bit_count + 4'd1;
+            keyPressed <= 1'b0; // default
+
+            if (bit_count == 4'd10) begin
+                if (cur_byte == 8'hE0 || cur_byte == 8'hF0) begin
+                    // skip
+                end
+                else if (prev_byte == 8'hF0) begin
+                    is_valid <= 1'b1;
+                end
+                else begin
+                    scancode <= cur_byte;
+                    if (is_valid) begin
+                        keyPressed <= 1'b1;
+                        is_valid   <= 1'b0; 
+                    end
+                end
+            end 
+               
+        end
+
+    end
+
+
+
 
 endmodule
