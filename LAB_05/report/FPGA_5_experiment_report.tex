@@ -174,81 +174,6 @@ simulation, with what the error means).
 \end{itemize}
 
 % ======================================================================
-%  MODULE DESCRIPTIONS
-% ======================================================================
-\section*{Module descriptions}
-
-\subsection*{Ps2\_Interface}
-
-The \texttt{Ps2\_Interface} module receives the scan-codes coming from the PS/2
-keyboard and produces two outputs: \texttt{scancode} and \texttt{keyPressed}. It
-follows the PS/2 serial protocol and detects both key presses and key releases.
-
-To capture the serial data driven by the keyboard we use a shift register that
-collects the 11-bit PS/2 frame (start bit, 8 data bits, parity, stop bit). Each
-bit is shifted in on the \emph{falling edge} of \texttt{PS2Clk}, since that is
-where the keyboard guarantees the data is stable. Because \texttt{PS2Clk} is not
-free-running and stops right after the stop bit, the whole module is clocked by
-\texttt{PS2Clk} and is reset by an \emph{active-low asynchronous} reset
-\texttt{rstn}, so it can be cleared even while the keyboard clock is idle.
-
-A 4-bit counter (\texttt{bitcount}) tracks how many bits of the current frame
-have arrived; when it reaches the stop-bit position (\texttt{frame\_done}) the
-byte is evaluated --- we never wait for an edge \emph{after} the stop bit,
-because the keyboard does not produce one. We keep a 22-bit shift register so the
-\emph{current} byte and the \emph{previous} byte are both visible at once; this
-is what lets us recognise the two-frame \texttt{0xE0} (extended key) and
-\texttt{0xF0} (release) sequences. On a complete frame we decide whether to drive
-\texttt{scancode} according to the case: a normal make-code is shown and pulses
-\texttt{keyPressed}; \texttt{0xE0}/\texttt{0xF0} prefixes are ignored (no display,
-no pulse); a make-code following \texttt{0xF0} is treated as a release. To emit
-\texttt{keyPressed} only \emph{once} on a genuine new press we keep
-\texttt{held\_code} (the code of the key currently held) and \texttt{key\_down}
-(whether a key is considered pressed), so typematic auto-repeats of the same key
-do not generate extra pulses, and a re-press after a release pulses again.
-
-\subsection*{Ps2\_Interface\_tb}
-
-The \texttt{Ps2\_Interface\_tb} module verifies \texttt{Ps2\_Interface}. Since
-PS/2 communication is much slower ($\approx$20--30\,kHz) than the FPGA system
-clock (100\,MHz), the bench manually drives \texttt{PS2Clk} and \texttt{PS2Data},
-sending the bits one by one at realistic intervals. It uses reusable tasks
-(\texttt{ps2\_bit}, \texttt{send\_byte}) to send framed bytes easily --- start, 8
-data LSB-first, odd parity, stop --- and idles the clock high between frames. The
-simulation is self-checking and prints \texttt{Test Passed - Ps2\_Interface\_tb}
-when every scenario passes; it confirms that the interface captures the serial
-data, identifies key presses, and produces the expected \texttt{scancode} and
-\texttt{keyPressed} before we move to hardware. The waveforms are shown in
-\emph{Part~2}.
-
-\subsection*{Ps2\_Display}
-
-The \texttt{Ps2\_Display} module receives the scan-code of the pressed key from
-\texttt{Ps2\_Interface} and shows it on the two right-hand 7-segment digits. It
-splits the byte into two hex nibbles and time-multiplexes them with a clock
-divider (the two left digits are blanked). The displayed value latches until the
-next key press. To tell \texttt{D} from \texttt{0} and \texttt{B} from \texttt{8}
-we use lowercase \texttt{d}/\texttt{b} glyphs in the decode table (the dot
-\texttt{dp} could be lit instead). When a key press is detected a user
-\texttt{led} is pulsed with a short, eye-visible strobe produced by an internal
-countdown timer. Because \texttt{scancode}/\texttt{keyPressed} arrive from the
-slow \texttt{PS2Clk} domain, this module first passes \texttt{keyPressed} through
-a 3-FF synchroniser, edge-detects it, and samples \texttt{scancode} on that
-settled pulse --- a safe clock-domain-crossing handshake into the 100\,MHz
-domain.
-
-\subsection*{Ps2\_Top}
-
-The \texttt{Ps2\_Top} module integrates the keyboard interface with the display.
-It connects \texttt{Ps2\_Interface}, which reads scan-codes from the keyboard, to
-\texttt{Ps2\_Display}, which shows the scan-code on the 7-segment display and
-drives the LED. It routes the signals between the two modules and handles the
-clock and reset inputs: the board push-button \texttt{btnC}/\texttt{reset} is
-active-high, so it is inverted to the active-low \texttt{rstn} used by both
-sub-modules (an XDC cannot invert a pin). This is the top-level module used to
-implement the complete design on the FPGA.
-
-% ======================================================================
 %  PART 2 - SIMULATIONS AND ANSWERS
 % ======================================================================
 \section*{Part 2 --- Simulations and answers}
@@ -365,39 +290,24 @@ through an \texttt{RTL\_INV} (\texttt{rstn\_i}) into \texttt{rstn}. Inputs
 
 \subsection*{Ps2\_Interface}
 
-\placeholder[\linewidth]{RTL-elaborated schematic of \texttt{Ps2\_Interface}: the
-22-bit shift register, the \texttt{bitcount} counter, the \texttt{held\_code} /
-\texttt{key\_down} registers and the make / break / extend decode logic clocked by
-\texttt{PS2Clk}.}
-
-\subsection*{Ps2\_Display}
-
-\placeholder[\linewidth]{RTL-elaborated schematic of \texttt{Ps2\_Display}: the
-3-FF \texttt{keyPressed} synchroniser, the \texttt{scancode} capture register, the
-LED strobe down-counter, the refresh clock divider and the hex$\rightarrow$7-seg
-ROM (\texttt{Seg\_7\_Display}).}
+\reportfig[\linewidth]{sch_innterface.png}{RTL-elaborated schematic of
+\texttt{Ps2\_Interface}: the 22-bit shift register and the \texttt{bitcount}
+counter feed the \texttt{held\_code} / \texttt{key\_down} registers and the
+make / break / extend decode logic, all clocked by \texttt{PS2Clk}; the outputs
+\texttt{scancode[7:0]} and \texttt{keyPressed} leave on the right.}
 
 % ======================================================================
 %  IMPLEMENTATION
 % ======================================================================
 \section*{Implementation}
 
-\subsection*{Implementation schematic}
+\subsection*{Synthesis schematic}
 
-\placeholder[\linewidth]{Post-implementation schematic: every external port now
-goes through an \texttt{IBUF}/\texttt{OBUF}, the two clocks (\texttt{clk} and
-\texttt{PS2Clk}) through \texttt{BUFG} global buffers, and the logic mapped onto
-LUTs and flip-flops inside \texttt{ps2\_interface} and \texttt{Ps2\_Display}.}
-
-\textbf{Elaborated vs.\ implemented.} The elaborated view shows the behavioural
-structure as written in Verilog (generic RTL primitives, abstract buses). After
-synthesis / implementation Vivado maps the design onto real FPGA primitives ---
-LUTs, flip-flops with their async reset, \texttt{IBUF}/\texttt{OBUF} I/O buffers
-and \texttt{BUFG} global clock buffers --- and applies optimisations (logic
-merging, removing unused paths). The two \texttt{create\_clock} constraints
-(100\,MHz \texttt{clk} and the slow \texttt{PS2Clk}) are declared
-\emph{asynchronous} to each other (\texttt{set\_clock\_groups}), so no real path
-is timed across the two domains.
+\reportfig[\linewidth]{synthesis_schematic.png}{Post-synthesis schematic. Every
+external port now passes through an \texttt{IBUF}/\texttt{OBUF}, the two clocks
+(\texttt{clk}, \texttt{PS2Clk}) go through \texttt{BUFG} global buffers, and
+\texttt{u\_interface} / \texttt{u\_display} drive the \texttt{an}, \texttt{dp},
+\texttt{led} and \texttt{seg} output buffers.}
 
 \subsection*{Project summary}
 
@@ -415,9 +325,11 @@ endpoints --- \emph{``All user specified timing constraints are met''}.}
 
 \subsection*{Critical Path}
 
-\placeholder[\linewidth]{Intra-Clock Paths report: the worst (Path 1) path with
-its slack, number of logic levels, and total / logic / net delay against the
-10\,ns requirement (circle the Total Delay).}
+\reportfig[\linewidth]{critical_path.png}{Intra-Clock Paths report. The worst
+paths (Path~1--4) run inside \texttt{u\_display} from
+\texttt{led\_timer\_reg[16]/C} to \texttt{led\_timer\_reg[20..23]/CE}, with slack
+$5.269$\,ns, 3 logic levels and $4.361$\,ns total delay ($1.054$\,ns logic
+$+\,3.307$\,ns net) against the $10$\,ns requirement --- comfortably met.}
 
 \subsection*{Device}
 
