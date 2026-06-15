@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FPGA Lab 5 – Oral Exam Guide (PS/2 Keyboard)</title>
+<style>
+  :root{
+    --bg:#0f172a; --panel:#1e293b; --panel2:#172033; --ink:#e2e8f0; --muted:#94a3b8;
+    --accent:#38bdf8; --accent2:#fbbf24; --good:#34d399; --bad:#f87171;
+    --code:#0b1220;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--ink);line-height:1.65;
+  }
+  header{
+    background:linear-gradient(135deg,#1e3a8a,#0ea5e9);padding:36px 20px;text-align:center;
+    box-shadow:0 4px 20px rgba(0,0,0,.4);
+  }
+  header h1{margin:0;font-size:2.1rem}
+  header p{margin:8px 0 0;color:#dbeafe;font-size:1.05rem}
+  main{max-width:1150px;margin:0 auto;padding:24px 18px}
+  nav.toc{background:var(--panel);border-radius:12px;padding:18px 22px;margin-bottom:24px;border:1px solid #334155}
+  nav.toc h2{margin:0 0 8px;color:var(--accent);font-size:1.1rem}
+  nav.toc ol{margin:0;padding-left:20px;column-count:2;column-gap:30px}
+  @media (max-width:780px){nav.toc ol{column-count:1}}
+  nav.toc a{color:var(--ink);text-decoration:none}
+  nav.toc a:hover{color:var(--accent2)}
+  section{background:var(--panel);border-radius:12px;padding:24px;margin-bottom:22px;border:1px solid #334155;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+  section h2{color:var(--accent);border-bottom:2px solid #334155;padding-bottom:8px;margin-top:0;font-size:1.45rem}
+  section h3{color:var(--accent2);margin-top:22px;font-size:1.15rem}
+  section h4{color:#a5b4fc;margin-top:18px;font-size:1.02rem}
+  code,pre{font-family:"JetBrains Mono",Menlo,Consolas,monospace;font-size:.88rem}
+  pre{background:var(--code);padding:14px;border-radius:8px;overflow-x:auto;border-left:4px solid var(--accent);margin:12px 0}
+  code{background:#0b1220;padding:2px 6px;border-radius:4px;color:#fde68a}
+  pre code{background:none;padding:0;color:var(--ink)}
+  .kw{color:#7dd3fc;font-weight:bold}
+  .cm{color:#64748b;font-style:italic}
+  .nm{color:#facc15}
+  .st{color:#fb923c}
+  .callout{background:rgba(56,189,248,.1);border-left:4px solid var(--accent);padding:12px 16px;border-radius:6px;margin:14px 0}
+  .callout.warn{background:rgba(248,113,113,.1);border-left-color:var(--bad)}
+  .callout.tip{background:rgba(52,211,153,.1);border-left-color:var(--good)}
+  .callout.q{background:rgba(251,191,36,.1);border-left-color:var(--accent2)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:780px){.grid2{grid-template-columns:1fr}}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.92rem}
+  th,td{border:1px solid #334155;padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:#1e293b;color:var(--accent2)}
+  tr:nth-child(even){background:rgba(255,255,255,.02)}
+  .pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:.78rem;font-weight:700;background:#334155}
+  .pill.make{background:#065f46;color:#d1fae5}
+  .pill.break{background:#7c2d12;color:#fed7aa}
+  .pill.ext{background:#4c1d95;color:#ddd6fe}
+  .pill.async{background:#1e40af;color:#dbeafe}
+  .qa{margin:10px 0;padding:10px 14px;background:rgba(251,191,36,.06);border-left:3px solid var(--accent2);border-radius:6px}
+  .qa b{color:var(--accent2)}
+  .imgwrap{text-align:center;margin:14px 0}
+  .imgwrap img{max-width:100%;border:1px solid #334155;border-radius:6px}
+  .imgwrap div{color:var(--muted);font-size:.85rem;font-style:italic;margin-top:6px}
+  .sig{display:inline-block;padding:0 8px;border:1px solid #334155;border-radius:4px;background:#0b1220;color:#7dd3fc;font-family:monospace;font-size:.85rem;margin:0 2px}
+  hr{border:none;border-top:1px dashed #334155;margin:18px 0}
+  footer{text-align:center;color:var(--muted);padding:30px;font-size:.9rem}
+  .file-head{display:flex;align-items:center;gap:10px;background:#0b1220;padding:6px 10px;border-radius:6px;border:1px solid #334155;margin-top:8px;font-family:monospace;font-size:.88rem;color:#7dd3fc}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media (max-width:900px){.grid3{grid-template-columns:1fr 1fr}}
+  @media (max-width:600px){.grid3{grid-template-columns:1fr}}
+  .card{background:var(--panel2);padding:12px 14px;border-radius:8px;border:1px solid #334155}
+  .card b{color:var(--accent2)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>FPGA Lab 5 – Oral Exam Guide</h1>
+  <p>PS/2 Keyboard Interface · Mahmood Stitia (214032682) & Saleh Khalil (213310485)</p>
+  <p>Tel Aviv University · Iby and Aladar Fleischman Faculty of Engineering</p>
+</header>
+
+<main>
+
+<nav class="toc">
+  <h2>Table of Contents</h2>
+  <ol>
+    <li><a href="#big">The Big Picture (What this lab does)</a></li>
+    <li><a href="#lab-goals">The Lab Goals (from the PDF — the test material)</a></li>
+    <li><a href="#keyboard">The Keyboard — what it is &amp; how every key works</a></li>
+    <li><a href="#clock">How the PS/2 Clock Works</a></li>
+    <li><a href="#frame">The 11-bit Frame &amp; Sampling Rule</a></li>
+    <li><a href="#e0f0">What is E0? What is F0? When are they toggled and why?</a></li>
+    <li><a href="#async">Asynchronous Reset — why we MUST use it here</a></li>
+    <li><a href="#cdc">Two Clock Domains — Clock Domain Crossing (CDC)</a></li>
+    <li><a href="#topfile">File: <code>Ps2_Top.v</code> — the top-level</a></li>
+    <li><a href="#iface">File: <code>Ps2_Interface.v</code> — the PS/2 receiver</a></li>
+    <li><a href="#display">File: <code>Ps2_Display.v</code> — display &amp; LED strobe</a></li>
+    <li><a href="#seg7">File: <code>Seg_7_Display.v</code> — the Lab-4 module</a></li>
+    <li><a href="#tb">File: <code>Ps2_Interface_tb.v</code> — testbench</a></li>
+    <li><a href="#xdc">File: <code>task1.xdc</code> — the constraints (every line)</a></li>
+    <li><a href="#waveform">The Simulation Waveform — what it proves</a></li>
+    <li><a href="#design-choices">Why we did everything this way</a></li>
+    <li><a href="#qa">Likely oral-exam Q&amp;A</a></li>
+  </ol>
+</nav>
+
+<!-- ============================================================ -->
+<section id="big">
+<h2>1. The Big Picture</h2>
+
+<p>
+This lab makes the FPGA <strong>read an external numeric keypad</strong> over PS/2 and show, on the two right-hand 7-segment digits, the <strong>8-bit "scan code"</strong> of the key you just pressed (as 2 hex symbols). Every press also produces <strong>one short visible blink</strong> on LED LD0.
+</p>
+
+<pre><code>[Numeric keypad]
+       │ PS2Clk, PS2Data  (≈ 10–17 kHz, idle most of the time)
+       ▼
+┌──────────────────────┐   scancode[7:0]   ┌──────────────────────┐
+│   Ps2_Interface      │ ────────────────▶ │    Ps2_Display        │
+│  (slow PS2Clk domain)│   keyPressed       │   (fast 100 MHz)      │
+└──────────────────────┘ ────────────────▶ └──────────┬──────────┬─┘
+                                                      │seg[6:0]  │ led
+                                                      │an[3:0]   │
+                                                      │dp        │
+                                                      ▼          ▼
+                                            4-digit 7-seg display, LD0 LED
+</code></pre>
+
+<div class="callout tip">
+<b>One-line summary:</b> press numpad <code>5</code> → display shows <code>73</code>, LED blinks once. Press <code>0</code> → display shows <code>70</code>, LED blinks. Hold a key → display stays, LED does <em>not</em> blink again.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="lab-goals">
+<h2>2. The Lab Goals (the test material)</h2>
+
+<p>The PDF explicitly says <em>"This is also the material for the test"</em>. There are exactly two topics:</p>
+
+<div class="grid2">
+  <div class="card">
+    <b>① Asynchronous reset</b>
+    <p>Its advantages and disadvantages, when to use it, and the metastability/recovery–removal danger when it is de-asserted. See <a href="#async">§7</a>.</p>
+  </div>
+  <div class="card">
+    <b>② PS/2 interface</b>
+    <p>Serial data transfer, the transmission-frame structure, the fact that the clock is <em>not</em> constantly toggling, and how to identify a key-press event. See <a href="#keyboard">§3</a>, <a href="#clock">§4</a>, <a href="#frame">§5</a>, <a href="#e0f0">§6</a>.</p>
+  </div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="keyboard">
+<h2>3. The Keyboard – what it is &amp; how every key works</h2>
+
+<p>The lab uses a small <strong>numeric (USB-HID) keypad</strong>. Even though it has a USB plug, the Basys3 wires the two host-side lines on its USB connector to <strong>FPGA pins C17 (clock) and B17 (data)</strong>, so the keypad communicates with the FPGA using the <strong>PS/2 protocol</strong> — not real USB. (The PDF explicitly tells us to <em>disregard what the Basys3 board manual says</em>.)</p>
+
+<h3>3.1 What happens when you press a key</h3>
+<ol>
+  <li>You press a physical key — say numpad <code>5</code>.</li>
+  <li>The keyboard's internal microcontroller looks up the key's <strong>"make code"</strong> in its table — for numpad <code>5</code> this is the byte <code>0x73</code>.</li>
+  <li>It packs that byte into an 11-bit frame (start, 8 data, parity, stop) and shifts it out on <code>PS2Data</code> while toggling <code>PS2Clk</code> 11 times.</li>
+  <li>If you keep holding the key, the keyboard <strong>auto-repeats</strong> the same make code (this is called <strong>typematic repeat</strong>) — typically after ~500 ms delay, then every ~100 ms.</li>
+  <li>When you release the key, the keyboard sends a <strong>break code</strong>: the byte <code>0xF0</code>, followed by the same make code (e.g. <code>0xF0 0x73</code> for releasing numpad <code>5</code>).</li>
+</ol>
+
+<h3>3.2 The numeric keypad scan-code table (PS/2 Set 2 — the standard set)</h3>
+
+<table>
+<tr><th>Key</th><th>Make code</th><th>Break code</th><th>Type</th></tr>
+<tr><td>0</td><td><code>0x70</code></td><td><code>0xF0 0x70</code></td><td><span class="pill make">normal</span></td></tr>
+<tr><td>1</td><td><code>0x69</code></td><td><code>0xF0 0x69</code></td><td><span class="pill make">normal</span></td></tr>
+<tr><td>2</td><td><code>0x72</code></td><td><code>0xF0 0x72</code></td><td><span class="pill make">normal</span></td></tr>
+<tr><td>3</td><td><code>0x7A</code></td><td><code>0xF0 0x7A</code></td><td><span class="pill make">normal</span></td></tr>
+<tr><td>4</td><td><code>0x6B</code></td><td><code>0xF0 0x6B</code></td><td><span class="pill make">normal</span></td></tr>
+<tr><td>5</td><td><code>0x73</code></td><td><code>0xF0 0x73</code></td><td><span class="pill make">normal</span></td></tr>
+<tr><td>6</td><td><code>0x74</code></td><td><code>0xF0 0x74</code></td><td><span class="pill make">normal</span></td></tr>
+<tr><td>7</td><td><code>0x6C</code></td><td><code>0xF0 0x6C</code></td><td><span class="pill make">normal</span></td></tr>
+<tr><td>8</td><td><code>0x75</code></td><td><code>0xF0 0x75</code></td><td><span class="pill make">normal</span></td></tr>
+<tr><td>9</td><td><code>0x7D</code></td><td><code>0xF0 0x7D</code></td><td><span class="pill make">normal</span></td></tr>
+<tr><td>. (decimal)</td><td><code>0x71</code></td><td><code>0xF0 0x71</code></td><td><span class="pill make">normal</span></td></tr>
+<tr><td>+</td><td><code>0x79</code></td><td><code>0xF0 0x79</code></td><td><span class="pill make">normal</span></td></tr>
+<tr><td>−</td><td><code>0x7B</code></td><td><code>0xF0 0x7B</code></td><td><span class="pill make">normal</span></td></tr>
+<tr><td>*</td><td><code>0x7C</code></td><td><code>0xF0 0x7C</code></td><td><span class="pill make">normal</span></td></tr>
+<tr><td>NumLock</td><td><code>0x77</code></td><td><code>0xF0 0x77</code></td><td><span class="pill make">normal</span></td></tr>
+<tr><td>/ (numpad slash)</td><td><code>0xE0 0x4A</code></td><td><code>0xE0 0xF0 0x4A</code></td><td><span class="pill ext">extended</span></td></tr>
+<tr><td>Enter (numpad)</td><td><code>0xE0 0x5A</code></td><td><code>0xE0 0xF0 0x5A</code></td><td><span class="pill ext">extended</span></td></tr>
+</table>
+
+<div class="callout">
+<b>So on the board you will see:</b> press <code>5</code> → display <code>73</code>; press <code>0</code> → <code>70</code>; press <code>/</code> → <code>4A</code> (the <code>E0</code> is invisible — that's why we filter it). The two left digits stay blank.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="clock">
+<h2>4. How the PS/2 Clock Works</h2>
+
+<h3>4.1 The keyboard <em>is</em> the clock master</h3>
+<p>Unlike most synchronous interfaces, the FPGA does <strong>not</strong> generate <code>PS2Clk</code>. The <strong>keyboard</strong> drives the clock line. This is why the PDF calls PS/2 a <strong>device-driven</strong> protocol.</p>
+
+<h3>4.2 The clock is <em>not</em> free-running — this is the key point</h3>
+<p>
+The PS/2 clock <strong>does not toggle all the time</strong>. It is held <strong>idle-HIGH</strong> when no transmission is happening, and only toggles for exactly <strong>11 pulses</strong> while a single byte is being sent. Frequency during transmission is roughly <strong>10–17 kHz</strong> (period ≈ 60–100 µs).
+</p>
+<p>This single fact drives several of our design choices:</p>
+<ul>
+  <li><strong>We cannot use a synchronous reset on the PS2Clk domain</strong> — when the keyboard isn't sending, the clock is dead and a sync reset would never take effect. That's why <code>rstn</code> in <code>Ps2_Interface</code> is asynchronous (<code>negedge rstn</code> is in the sensitivity list).</li>
+  <li><strong>We must decode the byte before the stop bit</strong> — if we waited for the stop bit and a <em>following</em> clock edge to act on it, that edge might never come (idle clock). The PDF hint says: <em>"evaluate the received bits every 11 clock cycles"</em>, <em>"analyze the packet before the last cycle"</em>.</li>
+  <li><strong>The 100 MHz system clock is a separate domain</strong> — that's why we have <code>clk</code> (100 MHz, always running) for the display and <code>PS2Clk</code> (slow, intermittent) for the receiver. Crossing data between them is a CDC problem (<a href="#cdc">§8</a>).</li>
+</ul>
+
+<h3>4.3 Sampling rule</h3>
+<p>By PS/2 convention, the host (us) reads <code>PS2Data</code> on the <strong>falling edge of <code>PS2Clk</code></strong> — that's the moment the keyboard guarantees the data line is stable. That's why our receiver always-block is triggered on <code>negedge PS2Clk</code>.</p>
+
+<pre><code><span class="kw">always</span> @(<span class="kw">negedge</span> PS2Clk <span class="kw">or negedge</span> rstn) <span class="kw">begin</span> ...</code></pre>
+</section>
+
+<!-- ============================================================ -->
+<section id="frame">
+<h2>5. The 11-bit Frame &amp; Sampling Rule</h2>
+
+<p>Every byte sent by the keyboard is wrapped in an 11-bit envelope, transmitted <strong>LSB first</strong>:</p>
+
+<table>
+<tr><th>Bit #</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th></tr>
+<tr><th>Name</th><td><b>Start</b></td><td>D0</td><td>D1</td><td>D2</td><td>D3</td><td>D4</td><td>D5</td><td>D6</td><td>D7</td><td><b>Parity</b></td><td><b>Stop</b></td></tr>
+<tr><th>Value</th><td>always 0</td><td colspan="8" style="text-align:center">data byte LSB → MSB</td><td>odd</td><td>always 1</td></tr>
+</table>
+
+<ul>
+  <li><strong>Start bit (always 0)</strong> — pulls the line low to mark the beginning of a frame. <code>PS2Data</code> is idle-high so the falling edge is the start of transmission.</li>
+  <li><strong>8 data bits, LSB first</strong> — so the byte <code>0x73 = 0111&nbsp;0011</code> goes out as <code>1, 1, 0, 0, 1, 1, 1, 0</code>.</li>
+  <li><strong>Odd parity</strong> — the parity bit is chosen so the total number of 1s among the 8 data bits + the parity bit is odd. This lets the receiver detect a single-bit error. In the design: <br>
+    <code>parity_ok = (shift_reg[21] == ~(^cur_byte))</code> — i.e. parity bit equals the inverse of the XOR-reduction of the data.</li>
+  <li><strong>Stop bit (always 1)</strong> — returns the line to idle.</li>
+</ul>
+
+<h3>Worked example — byte <code>0x73</code> (numpad <code>5</code>):</h3>
+<table>
+<tr><th>Pos</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th></tr>
+<tr><th>Bit</th><td>start</td><td>D0</td><td>D1</td><td>D2</td><td>D3</td><td>D4</td><td>D5</td><td>D6</td><td>D7</td><td>par</td><td>stop</td></tr>
+<tr><th>Value</th><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+</table>
+<p>5 ones in the data → already odd → parity bit = 0. Check the testbench: <code>frame = {1'b1, ~(^b), b, 1'b0}</code> — that's stop, parity, byte (MSB-down), start — exactly this frame.</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="e0f0">
+<h2>6. What is E0? What is F0? When are they toggled and why?</h2>
+
+<p>These are the <strong>two special "prefix" bytes</strong> that the PS/2 protocol uses to extend its 1-byte scan-code system. They are the source of almost every bug in this lab.</p>
+
+<h3>6.1 <code>0xE0</code> — the <em>extended</em> prefix <span class="pill ext">extended</span></h3>
+<ul>
+  <li>The original PS/2 set has only 256 possible byte codes, but PCs grew to have far more than 256 distinguishable keys (numpad keys vs. main-keyboard keys, arrow keys, multimedia keys, etc.).</li>
+  <li>To fit them all, IBM marked the "new" keys with a leading <code>0xE0</code> byte. So a key like <strong>numpad <code>/</code></strong> sends <code>E0 4A</code> on press, instead of a single byte.</li>
+  <li><strong>When is it toggled?</strong> Only for those <em>extended</em> keys — and <strong>only as the first byte of the transmission</strong>. So:
+    <ul>
+      <li>Press numpad <code>5</code> → <code>73</code> &nbsp;<span style="color:#94a3b8">(no E0 — it's not extended)</span></li>
+      <li>Press numpad <code>/</code> → <code>E0 4A</code> &nbsp;<span style="color:#94a3b8">(E0 first, then 4A)</span></li>
+      <li>Release numpad <code>/</code> → <code>E0 F0 4A</code> &nbsp;<span style="color:#94a3b8">(extended-release: E0, then F0, then 4A)</span></li>
+    </ul>
+  </li>
+  <li><strong>Why must we ignore it?</strong> The PDF tells us to display only the 2 hex digits of the <em>last</em> byte and to ignore the <code>0xE0</code>. If we displayed <code>E0</code>, the display would briefly show <code>E0</code> then jump to <code>4A</code> — flicker, looks wrong. We also must <strong>not</strong> generate a <code>keyPressed</code> pulse on <code>E0</code>, otherwise the LED would blink twice for one press.</li>
+</ul>
+
+<h3>6.2 <code>0xF0</code> — the <em>break/release</em> prefix <span class="pill break">break</span></h3>
+<ul>
+  <li>When a key is <strong>released</strong>, the keyboard sends <code>F0</code> followed by that key's make code. So releasing <code>5</code> → <code>F0 73</code>.</li>
+  <li><strong>When is it toggled?</strong> Every time a key goes <em>up</em>, never on a press, never on a typematic repeat.</li>
+  <li><strong>Why must we ignore it for the display?</strong> Because the user only cares about <em>press</em> events. If we let <code>F0</code> reach the display, the display would briefly say <code>F0</code> on every release. We also must <strong>not</strong> pulse <code>keyPressed</code> on a release.</li>
+  <li><strong>But we still use it!</strong> Seeing an <code>F0</code> is how the receiver knows the next make code is a <strong>new press</strong>, not a typematic repeat. That's exactly what the <code>is_valid</code> flag in <code>Ps2_Interface</code> does: it gets re-armed (set to <code>1</code>) whenever we've just seen an <code>F0</code> followed by the make code of the released key.</li>
+</ul>
+
+<h3>6.3 How our design handles them — in one block of Verilog</h3>
+<pre><code><span class="kw">if</span> (bit_count == <span class="nm">4'd10</span>) <span class="kw">begin</span>
+    <span class="kw">if</span> (cur_byte == <span class="nm">8'hE0</span> || cur_byte == <span class="nm">8'hF0</span>) <span class="kw">begin</span>
+        <span class="cm">// skip — these are prefix bytes, do nothing</span>
+    <span class="kw">end</span>
+    <span class="kw">else if</span> (prev_byte == <span class="nm">8'hF0</span>) <span class="kw">begin</span>
+        is_valid <= <span class="nm">1'b1</span>;          <span class="cm">// we just saw a release → re-arm</span>
+    <span class="kw">end</span>
+    <span class="kw">else begin</span>
+        scancode <= cur_byte;          <span class="cm">// normal make code → present it</span>
+        <span class="kw">if</span> (is_valid) <span class="kw">begin</span>
+            keyPressed <= parity_ok;   <span class="cm">// pulse only if not a typematic repeat</span>
+            is_valid   <= <span class="nm">1'b0</span>;      <span class="cm">// disarm until next release</span>
+        <span class="kw">end</span>
+    <span class="kw">end</span>
+<span class="kw">end</span></code></pre>
+
+<h3>6.4 Why this works — walk through a full press / hold / release</h3>
+<ol>
+  <li><strong>Press <code>5</code></strong> → keyboard sends <code>73</code>. <code>cur=73</code>, <code>prev=00</code>. Falls into <em>else</em>: <code>scancode=73</code>; <code>is_valid=1</code> initially, so <code>keyPressed</code> pulses; then <code>is_valid</code>→0.</li>
+  <li><strong>Hold <code>5</code></strong> → keyboard sends <code>73</code> again (and again…). Each time: <code>cur=73</code>, <code>prev=73</code>, falls into <em>else</em>: <code>scancode=73</code> (already 73), but <code>is_valid=0</code>, so <strong>no pulse</strong>. ✅</li>
+  <li><strong>Release <code>5</code></strong> → keyboard sends <code>F0 73</code>.
+    <ul>
+      <li>Byte <code>F0</code>: <code>cur=F0</code> → first <em>if</em> branch hits, skip.</li>
+      <li>Byte <code>73</code>: <code>cur=73</code>, <code>prev=F0</code> → second <em>if</em> branch hits, <code>is_valid=1</code>. <code>scancode</code> not updated, no pulse. ✅</li>
+    </ul>
+  </li>
+  <li><strong>Press <code>0</code></strong> → keyboard sends <code>70</code>. <code>cur=70</code>, <code>prev=73</code> (the release byte we ignored). Falls into <em>else</em>: <code>scancode=70</code>; <code>is_valid=1</code> (we re-armed it in step 3), so <code>keyPressed</code> pulses. ✅</li>
+</ol>
+</section>
+
+<!-- ============================================================ -->
+<section id="async">
+<h2>7. Asynchronous Reset — why we MUST use it here</h2>
+
+<h3>7.1 The two flavours of reset, side by side</h3>
+<pre><code><span class="cm">// SYNCHRONOUS reset — reset only acts on a clock edge</span>
+<span class="kw">always</span> @(<span class="kw">posedge</span> clk)
+    <span class="kw">if</span> (rst) q <= <span class="nm">0</span>; <span class="kw">else</span> q <= d;
+
+<span class="cm">// ASYNCHRONOUS reset — reset acts the instant it is asserted</span>
+<span class="kw">always</span> @(<span class="kw">posedge</span> clk <span class="kw">or posedge</span> rst)   <span class="cm">// &lt;-- rst in sensitivity list</span>
+    <span class="kw">if</span> (rst) q <= <span class="nm">0</span>; <span class="kw">else</span> q <= d;</code></pre>
+
+<h3>7.2 Side-by-side table (this <em>is</em> on the test)</h3>
+<table>
+<tr><th></th><th>Asynchronous reset</th><th>Synchronous reset</th></tr>
+<tr><th>Advantage</th>
+  <td>Works <strong>even when the clock is idle</strong> — critical for the PS/2 clock domain which is dead most of the time. Doesn't depend on the clock; reset happens immediately.</td>
+  <td>Easy static-timing analysis (reset is just data). Predictable: only takes effect on the next clock edge.</td>
+</tr>
+<tr><th>Disadvantage</th>
+  <td><strong>Reset removal is dangerous</strong>: if reset is released too close to a clock edge it violates <em>recovery / removal</em> time → <strong>metastability</strong>. Needs a reset synchroniser (see <code>Metastability.pptx</code>).</td>
+  <td>Useless if the clock is not toggling. The reset pulse has to be wider than one clock period to be captured at all.</td>
+</tr>
+</table>
+
+<h3>7.3 Why we picked async for this lab</h3>
+<ul>
+  <li><code>Ps2_Interface</code> is clocked by <code>PS2Clk</code>, which is <strong>idle most of the time</strong>. If reset were sync, pressing the reset button while the keyboard is silent would do nothing — the registers would never clear. We need them to clear <em>immediately</em>.</li>
+  <li><code>Ps2_Display</code> is clocked by the 100 MHz <code>clk</code>, which is always running. Sync reset would technically work — but for code symmetry and because of the same-shape interface (active-low <code>rstn</code>) we use async there too. (Look at the always-blocks: <code>posedge clk or negedge rstn</code>.)</li>
+  <li><code>rstn</code> is <strong>active-low</strong>. The board button (btnC, pin U18) is active-high when pressed, so <code>Ps2_Top</code> inverts it: <code>wire rstn = ~reset;</code></li>
+</ul>
+</section>
+
+<!-- ============================================================ -->
+<section id="cdc">
+<h2>8. Two Clock Domains — Clock Domain Crossing</h2>
+
+<p>Two signals (<code>scancode</code>, <code>keyPressed</code>) are <em>produced</em> in the slow <code>PS2Clk</code> domain and <em>consumed</em> in the fast <code>clk</code> (100 MHz) domain inside <code>Ps2_Display</code>. Without careful design that crossing is unsafe: when the 100 MHz clock samples <code>keyPressed</code>, it might catch it right while it's changing, which can drive a flip-flop into <strong>metastability</strong>.</p>
+
+<h3>8.1 Our solution — a 3-flop synchroniser + edge detector</h3>
+<pre><code><span class="kw">always</span> @(<span class="kw">posedge</span> clk <span class="kw">or negedge</span> rstn) <span class="kw">begin</span>
+    <span class="kw">if</span> (!rstn) <span class="kw">begin</span>
+        kp_sync1 <= <span class="nm">0</span>; kp_sync2 <= <span class="nm">0</span>; kp_prev <= <span class="nm">0</span>;
+        valid_scancode <= <span class="nm">8'h00</span>;
+    <span class="kw">end else begin</span>
+        kp_sync1 <= keyPressed;     <span class="cm">// 1st FF — may be metastable</span>
+        kp_sync2 <= kp_sync1;       <span class="cm">// 2nd FF — almost always settled</span>
+        kp_prev  <= kp_sync2;       <span class="cm">// 3rd FF — used for edge detection</span>
+        <span class="kw">if</span> (kp_sync2 & ~kp_prev)    <span class="cm">// rising edge detect</span>
+            valid_scancode <= scancode;
+    <span class="kw">end</span>
+<span class="kw">end</span></code></pre>
+
+<h3>8.2 Why it works</h3>
+<ul>
+  <li><strong>Two flip-flops in series</strong> reduce the probability of metastability to vanishing levels — the first FF absorbs the rare bad sample, the second one almost certainly sees a clean value.</li>
+  <li><strong>The third FF + AND</strong> turns the (now-stretched-and-synced) <code>keyPressed</code> level into a <strong>single 100 MHz cycle pulse</strong> — exactly when <code>kp_sync2</code> goes <code>0→1</code>. That single-cycle pulse is what latches the scancode and kicks off the LED timer.</li>
+  <li><strong>scancode</strong> doesn't need its own synchroniser bus because we sample it on that already-clean pulse (a classic "data + valid" CDC pattern). By the time the pulse fires, <code>scancode</code> has been stable for hundreds of µs in the slow domain.</li>
+</ul>
+
+<div class="callout warn">
+<b>The PDF's "Logic Analyzer Tip"</b> warns you can't debug nets from different clock domains in a single ILA core. That's because the ILA samples on one clock and would see the other domain's nets as randomly metastable. You'd use two cores or two debugging sessions.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="topfile">
+<h2>9. <code>Ps2_Top.v</code> — the top-level wiring</h2>
+
+<div class="file-head">LAB_05/Ps2_Top.v</div>
+<p>This file is a <em>thin</em> top — it just instantiates the two real workers and connects them to the FPGA pins. It is the equivalent of Lab 4's <code>Stopwatch.v</code>.</p>
+
+<h3>9.1 Ports</h3>
+<table>
+<tr><th>Port</th><th>Dir</th><th>Pin</th><th>Meaning</th></tr>
+<tr><td><code>clk</code></td><td>in</td><td>W5</td><td>100 MHz Basys3 system clock</td></tr>
+<tr><td><code>reset</code></td><td>in</td><td>U18 (btnC)</td><td>Active-high push-button. We invert it inside to get <code>rstn</code>.</td></tr>
+<tr><td><code>PS2Clk</code></td><td>in</td><td>C17</td><td>PS/2 clock from keyboard (with PULLUP)</td></tr>
+<tr><td><code>PS2Data</code></td><td>in</td><td>B17</td><td>PS/2 data from keyboard (with PULLUP)</td></tr>
+<tr><td><code>seg[6:0]</code></td><td>out</td><td>U7,V5,U5,V8,U8,W6,W7</td><td>7-seg cathodes a..g (active low)</td></tr>
+<tr><td><code>an[3:0]</code></td><td>out</td><td>W4,V4,U4,U2</td><td>4 digit anodes (active low)</td></tr>
+<tr><td><code>dp</code></td><td>out</td><td>V7</td><td>Decimal point (here always off → tied to <code>1'b1</code>)</td></tr>
+<tr><td><code>led</code></td><td>out</td><td>U16 (LD0)</td><td>Strobe LED</td></tr>
+</table>
+
+<h3>9.2 Body</h3>
+<pre><code><span class="kw">wire</span> rstn = ~reset;            <span class="cm">// btnC is active-high → invert</span>
+<span class="kw">wire</span> keyPressed;
+<span class="kw">wire</span> [<span class="nm">7</span>:<span class="nm">0</span>] scancode;
+
+Ps2_Display u_display(
+    .clk(clk), .rstn(rstn),
+    .keyPressed(keyPressed), .scancode(scancode),
+    .seg(seg), .an(an), .dp(dp), .led(led));
+
+Ps2_Interface u_interface(
+    .PS2Clk(PS2Clk), .rstn(rstn), .PS2Data(PS2Data),
+    .scancode(scancode), .keyPressed(keyPressed));</code></pre>
+
+<div class="callout tip"><b>Why is it so short?</b> Because all the real logic is delegated. A top-level module's only job is to connect pins to sub-modules — the cleaner it is, the easier to read.</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="iface">
+<h2>10. <code>Ps2_Interface.v</code> — the PS/2 receiver (the heart of the lab)</h2>
+
+<div class="file-head">LAB_05/Ps2_Interface.v</div>
+
+<h3>10.1 Ports</h3>
+<table>
+<tr><th>Port</th><th>Dir</th><th>Width</th><th>Meaning</th></tr>
+<tr><td><code>PS2Clk</code></td><td>in</td><td>1</td><td>Keyboard clock — used as the <em>actual clock</em> of this module's flip-flops</td></tr>
+<tr><td><code>rstn</code></td><td>in</td><td>1</td><td>Active-low <strong>asynchronous</strong> reset</td></tr>
+<tr><td><code>PS2Data</code></td><td>in</td><td>1</td><td>Serial data — sampled on negedge of PS2Clk</td></tr>
+<tr><td><code>scancode</code></td><td>out</td><td>8</td><td>Most recent accepted make code</td></tr>
+<tr><td><code>keyPressed</code></td><td>out</td><td>1</td><td>One-cycle pulse (in PS2Clk domain) at the first make code of a new press</td></tr>
+</table>
+
+<h3>10.2 Internal state</h3>
+<pre><code><span class="kw">reg</span> [<span class="nm">21</span>:<span class="nm">0</span>] shift_reg;   <span class="cm">// holds 2 consecutive frames (= 22 bits)</span>
+<span class="kw">reg</span> [<span class="nm">3</span>:<span class="nm">0</span>]  bit_count;   <span class="cm">// counts 0..10 inside one frame</span>
+<span class="kw">reg</span>        is_valid;    <span class="cm">// = 1 → next make code may pulse keyPressed</span>
+<span class="kw">wire</span>       parity_ok;
+<span class="kw">wire</span> [<span class="nm">7</span>:<span class="nm">0</span>] cur_byte  = shift_reg[<span class="nm">20</span>:<span class="nm">13</span>];   <span class="cm">// current frame's data</span>
+<span class="kw">wire</span> [<span class="nm">7</span>:<span class="nm">0</span>] prev_byte = shift_reg[<span class="nm">9</span>:<span class="nm">2</span>];     <span class="cm">// previous frame's data</span></code></pre>
+
+<h3>10.3 Why a 22-bit shift register?</h3>
+<p>
+The PDF's <em>"easy way"</em> hint is to use a 22-bit shift register. <strong>22 = 2 × 11</strong>, so it holds <strong>two complete PS/2 frames back-to-back</strong>. We need to look at <em>both</em> simultaneously because:
+</p>
+<ul>
+  <li><strong>cur_byte</strong> tells us what the keyboard just sent.</li>
+  <li><strong>prev_byte</strong> tells us what came right before, so we know if the previous byte was an <code>F0</code> (release prefix). Without the previous byte we couldn't distinguish "fresh press" from "make code after release".</li>
+</ul>
+
+<h3>10.4 Why those specific slice indices [20:13] and [9:2]?</h3>
+<p>The shift register shifts <strong>right</strong>: new <code>PS2Data</code> bit goes into <code>shift_reg[21]</code>, and the previous content shifts down by one (<code>shift_reg &lt;= {PS2Data, shift_reg[21:1]}</code>). After 11 shifts of a single frame, the bits land at:</p>
+<table>
+<tr><th>shift_reg index</th><td>21</td><td>20</td><td>19</td><td>18</td><td>17</td><td>16</td><td>15</td><td>14</td><td>13</td><td>12</td><td>11</td></tr>
+<tr><th>Meaning</th><td>parity</td><td>D7</td><td>D6</td><td>D5</td><td>D4</td><td>D3</td><td>D2</td><td>D1</td><td>D0</td><td>start (=0)</td><td>—</td></tr>
+</table>
+<p>So <code>cur_byte = shift_reg[20:13]</code> is exactly <code>{D7..D0}</code>, the byte in normal MSB-first form. And <code>parity_ok</code> compares the parity bit at <code>shift_reg[21]</code> against odd parity of <code>cur_byte</code>:</p>
+<pre><code><span class="kw">assign</span> parity_ok = (shift_reg[<span class="nm">21</span>] == ~(^cur_byte));</code></pre>
+<p>After another full frame has shifted in (22 total bits), that earlier "frame 1" has moved down by 11 positions, so <code>prev_byte = shift_reg[9:2]</code>.</p>
+
+<h3>10.5 Why <code>bit_count == 10</code> and not 11?</h3>
+<p>
+The counter increments at the same clock edge it shifts on. At <code>bit_count==10</code>, the <em>old</em> <code>shift_reg</code> we read in the if-statement already contains 10 bits of the current frame (start through parity). That is enough to know the data byte and check parity. <strong>We deliberately decide before the stop bit arrives</strong> — exactly the PDF hint:
+</p>
+<div class="callout">
+<em>"The keyboard-clock is not toggling all the time… Try analyzing the packet before the last cycle (before receiving the stop bit)."</em>
+</div>
+<p>If we waited for bit 11 (the stop), and the next press never came, that next clock edge to "act" on the data would never come either — the receiver would be stuck.</p>
+
+<h3>10.6 The full sampling block — annotated</h3>
+<pre><code><span class="kw">always</span> @(<span class="kw">negedge</span> PS2Clk <span class="kw">or negedge</span> rstn) <span class="kw">begin</span>
+    <span class="kw">if</span> (!rstn) <span class="kw">begin</span>
+        bit_count  <= <span class="nm">4'b0</span>;
+        shift_reg  <= <span class="nm">22'b0</span>;
+        scancode   <= <span class="nm">8'b0</span>;
+        keyPressed <= <span class="nm">1'b0</span>;
+        is_valid   <= <span class="nm">1'b1</span>;   <span class="cm">// armed on reset → first key will fire</span>
+    <span class="kw">end else begin</span>
+        shift_reg  <= {PS2Data, shift_reg[<span class="nm">21</span>:<span class="nm">1</span>]};
+        bit_count  <= (bit_count == <span class="nm">4'd10</span>) ? <span class="nm">4'd0</span> : bit_count + <span class="nm">4'd1</span>;
+        keyPressed <= <span class="nm">1'b0</span>;        <span class="cm">// default — only one cycle of '1'</span>
+
+        <span class="kw">if</span> (bit_count == <span class="nm">4'd10</span>) <span class="kw">begin</span>
+            <span class="cm">// (See §6.3 — three cases: prefix / after-release / normal)</span>
+        <span class="kw">end</span>
+    <span class="kw">end</span>
+<span class="kw">end</span></code></pre>
+
+<div class="callout tip"><b>Default-then-override trick:</b> we write <code>keyPressed <= 0</code> at the top, then only set it to <code>1</code> in the narrow case where a brand-new press is detected. That guarantees a <strong>single-cycle pulse</strong> without needing a separate "clear" branch.</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="display">
+<h2>11. <code>Ps2_Display.v</code> — visual feedback &amp; CDC</h2>
+
+<div class="file-head">LAB_05/Ps2_Display.v</div>
+
+<p>This module turns the slow-domain (<code>scancode</code>, <code>keyPressed</code>) into board-visible output: the right-hand 2 digits of the 4-digit 7-seg, and one short LED blink per press.</p>
+
+<h3>11.1 What it does, end-to-end</h3>
+<ol>
+  <li>Synchronises <code>keyPressed</code> from the PS2Clk domain into the 100 MHz domain (3-FF synchroniser, <a href="#cdc">§8</a>).</li>
+  <li>Detects the rising edge of the synced pulse → <code>kp_edge</code> (1 cycle wide @ 100 MHz).</li>
+  <li>On <code>kp_edge</code>, latches the current <code>scancode</code> into <code>valid_scancode</code>. (Now <code>scancode</code> can change in the slow domain without disturbing the display.)</li>
+  <li>On <code>kp_edge</code>, loads a 24-bit timer with <code>10_000_000</code>. The timer counts down at 100 MHz → ≈ 100 ms. <code>led</code> stays <code>1</code> while the timer is non-zero, then drops. That's the <strong>strobe</strong>.</li>
+  <li>Multiplexes the two right-hand 7-seg digits between the low and high nibble of <code>valid_scancode</code>, with the segment-pattern lookup table.</li>
+</ol>
+
+<h3>11.2 Why ~0.1 s for the LED strobe?</h3>
+<p>The PDF says <em>"a short pulse on one of the board LEDs, yet long enough to be noticed by the naked eye"</em>. Below ~50 ms the eye misses the flash; above ~150 ms it starts to feel like a sluggish blink instead of a strobe. ~100 ms is a sweet spot. <code>24'd10_000_000</code> cycles × 10 ns = 100 ms. We picked a 24-bit timer because <code>2^24 = 16 777 216 ≥ 10 000 000</code>.</p>
+
+<h3>11.3 The 7-seg multiplexing</h3>
+<pre><code><span class="kw">reg</span> [<span class="nm">19</span>:<span class="nm">0</span>] clkdiv;
+<span class="kw">always</span> @(<span class="kw">posedge</span> clk <span class="kw">or negedge</span> rstn) <span class="kw">begin</span>
+    <span class="kw">if</span> (!rstn) clkdiv <= <span class="nm">0</span>;
+    <span class="kw">else</span>      clkdiv <= clkdiv + <span class="nm">1</span>;
+<span class="kw">end</span>
+<span class="kw">assign</span> s = clkdiv[<span class="nm">19</span>:<span class="nm">18</span>];   <span class="cm">// changes every 2^18 / 100MHz ≈ 2.62 ms</span></code></pre>
+<p>So each digit is lit for ~2.62 ms; a complete sweep of all 4 digits takes ~10.5 ms (~95 Hz refresh) — well above the eye's flicker fusion threshold. We use only digits 0 (rightmost) and 1; digits 2 and 3 stay blank (<code>an = 4'b1111</code>, no anode active).</p>
+
+<h3>11.4 Segment encoding</h3>
+<p>The 7-seg is <strong>common-anode active-low</strong> on Basys3 → segment OFF=1, ON=0. The encoding for <code>0</code> is <code>7'b1000000</code> meaning segments <code>g</code> off, others on (the classic "0" shape). All 16 hex digits 0–F are encoded; <code>D</code> is lowercase <code>d</code> and <code>B</code> is lowercase <code>b</code> to distinguish them from <code>0</code> and <code>8</code> on the segment grid (PDF requirement).</p>
+
+<h3>11.5 dp is fixed off</h3>
+<p>We chose the "lowercase d/b" route, so we don't need the decimal point to disambiguate. So <code>assign dp = 1'b1;</code> (off).</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="seg7">
+<h2>12. <code>Seg_7_Display.v</code> — Lab-4 legacy module</h2>
+
+<div class="file-head">LAB_05/Seg_7_Display.v</div>
+<p>
+This file is the unmodified Lab-4 multiplexed 7-seg module. The Lab-5 guide originally said to "adapt" it. In our final design we ended up <strong>writing the multiplexer directly inside <code>Ps2_Display</code></strong> (so the latched <code>valid_scancode</code> wiring is cleaner). The file is still in the project for two reasons: (1) it shows where the multiplexing idea came from; (2) keeping it doesn't cost anything because it isn't instantiated in <code>Ps2_Top</code>, so synthesis silently drops it.
+</p>
+<div class="callout warn">
+<b>If the examiner asks "why is this file here if it isn't used?":</b> say honestly that the multiplexing logic was integrated directly into <code>Ps2_Display</code> so we wouldn't have to plumb <code>valid_scancode</code> back out as 16 bits; the file is kept as a reference because the 7-seg refresh strategy is the same.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="tb">
+<h2>13. <code>Ps2_Interface_tb.v</code> — testbench</h2>
+
+<div class="file-head">LAB_05/Ps2_Interface_tb.v</div>
+<p>The PDF says we simulate <strong>only</strong> <code>Ps2_Interface</code>. The bench emulates the keyboard.</p>
+
+<h3>13.1 Timing parameter</h3>
+<pre><code><span class="kw">localparam</span> CLK_HALF = <span class="nm">30_000</span>;  <span class="cm">// 30 µs half period → 60 µs period ≈ 16.7 kHz</span></code></pre>
+<p>This matches the PS/2 spec (10–17 kHz). The bench drives <code>PS2Clk</code> directly (no skew, no jitter), with each half-bit-period 30 µs long.</p>
+
+<h3>13.2 The <code>send_byte</code> task — the real meat</h3>
+<pre><code><span class="kw">task</span> send_byte(<span class="kw">input</span> [<span class="nm">7</span>:<span class="nm">0</span>] b);
+    <span class="kw">integer</span> k;
+    <span class="kw">reg</span> [<span class="nm">10</span>:<span class="nm">0</span>] frame;
+    <span class="kw">begin</span>
+        frame = {<span class="nm">1'b1</span>, ~(^b), b, <span class="nm">1'b0</span>};   <span class="cm">// stop, parity(odd), data, start</span>
+        <span class="kw">for</span> (k = <span class="nm">0</span>; k &lt; <span class="nm">11</span>; k = k + <span class="nm">1</span>) <span class="kw">begin</span>
+            PS2Data = frame[k];           <span class="cm">// LSB of 'frame' (= start) goes out first</span>
+            #CLK_HALF; PS2Clk = <span class="nm">0</span>;
+            #CLK_HALF; PS2Clk = <span class="nm">1</span>;
+        <span class="kw">end</span>
+        #(CLK_HALF*<span class="nm">4</span>);                    <span class="cm">// idle gap so design has time to react</span>
+    <span class="kw">end</span>
+<span class="kw">endtask</span></code></pre>
+<p>The frame is bit-banged exactly as the keyboard would do it: <strong>set data → wait → drop clock → wait → raise clock</strong>. The DUT's <code>always @(negedge PS2Clk)</code> samples on that falling edge.</p>
+
+<h3>13.3 The three scenarios we test (from the PDF requirements)</h3>
+<ol>
+  <li><strong>Press <code>5</code> (<code>0x73</code>)</strong> — check <code>scancode == 0x73</code> and <code>keyPressed</code> pulsed.</li>
+  <li><strong>Release <code>5</code> (<code>F0 73</code>) then press <code>0</code> (<code>0x70</code>)</strong> — check <code>scancode == 0x70</code> and <code>keyPressed</code> pulsed (the F0 sequence must <em>not</em> have killed our pulse logic).</li>
+  <li><strong>Hold <code>0</code> (auto-repeat sends <code>0x70</code> again)</strong> — check <code>scancode</code> still <code>0x70</code> and <code>keyPressed</code> did <strong>NOT</strong> pulse this time.</li>
+</ol>
+
+<p>The bench ANDs a <code>correct</code> flag with the expected condition after each scenario, and prints <em>Test Passed</em> / <em>Test Failed</em>. The waveform screenshot in the report shows all three scenarios in order.</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="xdc">
+<h2>14. <code>task1.xdc</code> — the constraints (every line explained)</h2>
+
+<div class="file-head">LAB_05/task1.xdc</div>
+
+<h3>14.1 What is an XDC file?</h3>
+<p>The Xilinx Design Constraints file tells Vivado:</p>
+<ul>
+  <li><strong>Where</strong> each top-level port is wired on the physical FPGA chip (pin location).</li>
+  <li><strong>What kind of I/O standard</strong> each pin uses (voltage level, signaling family).</li>
+  <li><strong>Timing characteristics</strong> of clock inputs, so the synthesis tool can do timing analysis.</li>
+  <li>Various bitstream/config settings.</li>
+</ul>
+<p>Without an XDC, Vivado wouldn't know that "<code>clk</code>" in our Verilog corresponds to the Basys3's W5 pin, so nothing would work.</p>
+
+<h3>14.2 Clock (W5)</h3>
+<pre><code>set_property PACKAGE_PIN W5 [get_ports clk]
+set_property IOSTANDARD LVCMOS33 [get_ports clk]
+create_clock -period 10.000 -name sys_clk_pin -waveform {0.000 5.000} -add [get_ports clk]</code></pre>
+<ul>
+  <li><strong>W5</strong> is the Basys3 pin connected to the on-board 100 MHz crystal oscillator.</li>
+  <li><strong>LVCMOS33</strong> = Low-Voltage CMOS 3.3 V — the I/O voltage of the Basys3.</li>
+  <li><strong>create_clock -period 10.000</strong> says one period = 10 ns → 100 MHz. <strong>-waveform {0 5}</strong> means rising edge at 0 ns, falling at 5 ns (50% duty cycle). This is what enables Vivado's static timing analysis (the timing report shows "10 ns requirement").</li>
+</ul>
+
+<h3>14.3 Reset (U18, btnC)</h3>
+<pre><code>set_property PACKAGE_PIN U18 [get_ports reset]
+set_property IOSTANDARD LVCMOS33 [get_ports reset]</code></pre>
+<p>btnC (centre button). Active-HIGH on Basys3 (pressed = 1). We invert it inside <code>Ps2_Top</code> to make active-low <code>rstn</code> for the rest of the design.</p>
+
+<h3>14.4 LED (U16, LD0)</h3>
+<pre><code>set_property PACKAGE_PIN U16 [get_ports led]
+set_property IOSTANDARD LVCMOS33 [get_ports led]</code></pre>
+<p>LD0 — the leftmost user LED on the board. Active-HIGH (so <code>1</code> = lit).</p>
+
+<h3>14.5 7-Segment display (seg, an, dp)</h3>
+<p>The Basys3 has 4 multiplexed 7-segment digits. Each digit shares the same 7 cathode lines and has its own anode:</p>
+<table>
+<tr><th>Signal</th><th>Pin</th><th>Meaning</th></tr>
+<tr><td><code>seg[0]</code> (a)</td><td>W7</td><td>top segment</td></tr>
+<tr><td><code>seg[1]</code> (b)</td><td>W6</td><td>top-right</td></tr>
+<tr><td><code>seg[2]</code> (c)</td><td>U8</td><td>bottom-right</td></tr>
+<tr><td><code>seg[3]</code> (d)</td><td>V8</td><td>bottom</td></tr>
+<tr><td><code>seg[4]</code> (e)</td><td>U5</td><td>bottom-left</td></tr>
+<tr><td><code>seg[5]</code> (f)</td><td>V5</td><td>top-left</td></tr>
+<tr><td><code>seg[6]</code> (g)</td><td>U7</td><td>middle</td></tr>
+<tr><td><code>dp</code></td><td>V7</td><td>decimal point</td></tr>
+<tr><td><code>an[0]</code></td><td>U2</td><td>rightmost digit anode</td></tr>
+<tr><td><code>an[1]</code></td><td>U4</td><td>2nd from right</td></tr>
+<tr><td><code>an[2]</code></td><td>V4</td><td>3rd from right</td></tr>
+<tr><td><code>an[3]</code></td><td>W4</td><td>leftmost digit anode</td></tr>
+</table>
+<p>All segments and anodes are <strong>active-low</strong> on Basys3. Drive a 0 to turn a segment ON or a digit ON.</p>
+
+<h3>14.6 PS/2 interface (C17, B17) — the most important block</h3>
+<pre><code>set_property PACKAGE_PIN C17 [get_ports PS2Clk]
+set_property IOSTANDARD LVCMOS33 [get_ports PS2Clk]
+set_property PULLUP true [get_ports PS2Clk]
+set_property PACKAGE_PIN B17 [get_ports PS2Data]
+set_property IOSTANDARD LVCMOS33 [get_ports PS2Data]
+set_property PULLUP true [get_ports PS2Data]</code></pre>
+<ul>
+  <li><strong>C17 and B17</strong> are the Basys3's USB-host-side PS/2 lines. (The board has a USB-to-PS/2 bridge chip that translates the USB keypad into PS/2 signals on these pins. That's the meaning of the PDF's "disregard what the Basys3 board manual says" — the board calls it "USB HID" but for our design these two pins behave exactly like a classic PS/2 keyboard.)</li>
+  <li><strong>PULLUP true</strong> — the PS/2 lines are <strong>open-collector / open-drain</strong>: the device pulls them low when sending a 0 and lets them float high (the pull-up restores them) for a 1. Without a pull-up the line would be undefined when idle. The Basys3 doesn't have external pull-ups on these lines, so we enable the FPGA's internal pull-up resistors.</li>
+</ul>
+
+<h3>14.7 Bitstream/config settings (do not touch)</h3>
+<pre><code>set_property BITSTREAM.GENERAL.COMPRESS TRUE  [current_design]
+set_property BITSTREAM.CONFIG.CONFIGRATE 33   [current_design]
+set_property CONFIG_MODE SPIx4                [current_design]
+set_property CFGBVS VCCO                      [current_design]
+set_property CONFIG_VOLTAGE 3.3               [current_design]</code></pre>
+<ul>
+  <li><strong>COMPRESS TRUE</strong> — shrinks the bitstream so it programs faster.</li>
+  <li><strong>CONFIGRATE 33</strong> — 33 MHz programming speed.</li>
+  <li><strong>CONFIG_MODE SPIx4</strong> — load the bitstream from the on-board SPI flash 4 bits at a time.</li>
+  <li><strong>CFGBVS / CONFIG_VOLTAGE 3.3</strong> — config bank voltage 3.3 V (matches the rest of the board).</li>
+</ul>
+<p>The XDC file even has a stern comment: <em>"Don't even think to change the following values!!!"</em> — they are board-specific defaults.</p>
+
+<h3>14.8 The commented-out lines</h3>
+<p>The original Basys3 master XDC has lines for every switch, button, LED, VGA pin, Pmod, etc. We've left them commented out because we don't use them. This is the recommended way to use a master XDC: enable only what you need.</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="waveform">
+<h2>15. The Simulation Waveform — what it proves</h2>
+
+<div class="imgwrap">
+  <img src="report/tb_waveform.png" alt="Testbench waveform">
+  <div>Full <code>Ps2_Interface_tb</code> waveform — three scenarios in sequence.</div>
+</div>
+
+<p>Reading the signals top-to-bottom:</p>
+<ul>
+  <li><span class="sig">PS2Clk</span> — the bench-driven 16.7 kHz clock; you can see it toggle in bursts (one burst per byte) and stay high between bytes.</li>
+  <li><span class="sig">rstn</span> — held high after the initial reset pulse.</li>
+  <li><span class="sig">correct</span> — bench's pass/fail accumulator; stays 1 the whole time.</li>
+  <li><span class="sig">PS2Data</span> — the serial line carrying each 11-bit frame.</li>
+  <li><span class="sig">byte_to_send</span> — what the bench is shifting out (<code>73</code>, <code>F0</code>, <code>73</code>, <code>70</code>, <code>70</code>).</li>
+  <li><span class="sig">scancode</span> — DUT output. Goes to <code>73</code> after the first press, stays <code>73</code> through the release (because we don't overwrite scancode on release), goes to <code>70</code> on the next press.</li>
+  <li><span class="sig">keyPressed</span> — pulses once on the first <code>73</code>, pulses once on the <code>70</code> press, does <strong>NOT</strong> pulse on the typematic repeat of <code>70</code>. This is the entire point of the design.</li>
+  <li><span class="sig">parity_ok</span> — the internal parity check; high while a valid byte is in flight.</li>
+</ul>
+
+<p>The TCL console at the bottom shows <code>Test Passed - Ps2_Interface_tb</code> at 3940 µs — all three assertions held.</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="design-choices">
+<h2>16. Why we did everything this way — decision log</h2>
+
+<div class="grid3">
+  <div class="card"><b>22-bit shift register</b><p>So we can see both <code>cur_byte</code> and <code>prev_byte</code> at the same time → spot the <code>F0 xx</code> release pattern in one comparison.</p></div>
+  <div class="card"><b>Sampling on negedge PS2Clk</b><p>PS/2 spec — device places data on PS2Data and the host samples on the falling edge, when data is guaranteed stable.</p></div>
+  <div class="card"><b>Async active-low rstn</b><p>PS2Clk is idle most of the time; sync reset wouldn't be captured. Active-low matches typical conventions and the PDF figure.</p></div>
+  <div class="card"><b>Decode at bit_count==10</b><p>Decode <em>before</em> the stop bit. PDF hint: don't wait for the whole 22-bit window — the clock might never tick again.</p></div>
+  <div class="card"><b><code>is_valid</code> flag</b><p>Single bit of state that says "next make code is a fresh press". Set on reset and after an F0+byte release; cleared after a successful pulse. This is what suppresses typematic repeats.</p></div>
+  <div class="card"><b>3-FF synchroniser</b><p>For safely crossing <code>keyPressed</code> from PS2Clk domain into 100 MHz domain. Two FFs absorb metastability; the third gives us an edge-detector.</p></div>
+  <div class="card"><b>~100 ms LED strobe</b><p>Long enough to be visible (eye threshold ~50 ms), short enough to read like a "blink" not a steady glow. 24-bit counter @ 100 MHz fits this with room to spare.</p></div>
+  <div class="card"><b>2 right-most digits, others blank</b><p>The scancode is 8 bits → 2 hex digits. PDF asks for the value on the two right-hand 7-seg digits. Driving all 4 with junk would distract.</p></div>
+  <div class="card"><b>Lowercase d/b glyphs</b><p>Lab requirement to disambiguate <code>D</code> from <code>0</code> and <code>B</code> from <code>8</code>. Choosing lowercase glyphs lets us keep <code>dp</code> tied off.</p></div>
+  <div class="card"><b>Parity gate on keyPressed</b><p><code>keyPressed &lt;= parity_ok</code> — if a frame fails parity we suppress the pulse, so a glitch on the bus can't fool the display.</p></div>
+  <div class="card"><b>PULLUP on PS2 lines</b><p>The protocol uses open-collector signalling; without pull-ups the lines float when idle. The board doesn't add external pull-ups so the FPGA's internal ones must be enabled.</p></div>
+  <div class="card"><b>create_clock 10 ns</b><p>Declares the 100 MHz constraint so Vivado does static timing analysis. The implementation timing report (5.269 ns slack) confirms it closes timing comfortably.</p></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="qa">
+<h2>17. Likely oral-exam Q&amp;A</h2>
+
+<div class="qa"><b>Q.</b> Why is the PS/2 clock not free-running? <br>
+<b>A.</b> Because PS/2 is a device-driven protocol — the keyboard only generates clock pulses while it has a byte to send. Between bytes the clock is held high (idle). This saves power and matches the original IBM design.</div>
+
+<div class="qa"><b>Q.</b> If the clock is idle most of the time, why do we even call it a clock? <br>
+<b>A.</b> Because while data is flowing, it provides the bit-rate timing reference. The host doesn't need to recover a clock from the data line — it gets one for free, which makes the protocol much simpler than UART or USB.</div>
+
+<div class="qa"><b>Q.</b> Why <em>asynchronous</em> reset, specifically? <br>
+<b>A.</b> Because the PS/2 receiver is clocked by the keyboard, which is silent unless you're typing. A synchronous reset waits for the next clock edge — that edge would never come, so the registers would never clear. Asynchronous reset acts immediately, regardless of clock state.</div>
+
+<div class="qa"><b>Q.</b> What's the danger of asynchronous reset? <br>
+<b>A.</b> The reset is fine while it's <em>asserted</em>, but <strong>de-asserting</strong> it close to a clock edge can violate recovery/removal timing and cause a flop to go metastable. In a serious design you'd use an asynchronous-assert, synchronous-de-assert reset synchroniser. Here the reset is a slow human button push, so the risk is academic but you must <em>know</em> it.</div>
+
+<div class="qa"><b>Q.</b> What is metastability? <br>
+<b>A.</b> A flip-flop sampled while its input is changing can stay in an indeterminate (~Vdd/2) state for an unbounded time before resolving to 0 or 1. Downstream logic may interpret the unresolved value differently and end up in inconsistent states. A 2-FF synchroniser reduces this probability to vanishing levels.</div>
+
+<div class="qa"><b>Q.</b> What does <code>E0</code> mean and when does it appear? <br>
+<b>A.</b> <code>E0</code> is the <em>extended-key prefix</em>. The keyboard puts it in front of the make code of keys that wouldn't fit in the original 256-code map — like numpad <code>/</code>, numpad <code>Enter</code>, arrow keys, etc. So pressing numpad <code>/</code> produces <code>E0 4A</code>, releasing it produces <code>E0 F0 4A</code>. We must skip <code>E0</code> in both the display and the <code>keyPressed</code> logic — only the trailing make code is meaningful to the user.</div>
+
+<div class="qa"><b>Q.</b> What does <code>F0</code> mean and when does it appear? <br>
+<b>A.</b> <code>F0</code> is the <em>break prefix</em>. The keyboard sends it right before the make code of any key being released. Releasing <code>5</code> → <code>F0 73</code>. We skip <code>F0</code> itself (don't pulse, don't display), but we <em>do</em> use it as a marker: when our next byte arrives and we see <code>prev_byte == F0</code>, we know that byte is the released key, so we re-arm <code>is_valid</code> so the next genuine press can produce a pulse.</div>
+
+<div class="qa"><b>Q.</b> Why does holding a key not blink the LED again? <br>
+<b>A.</b> Because of <code>is_valid</code>. On the first press it's <code>1</code>, we pulse <code>keyPressed</code> and clear it to <code>0</code>. While the key is held, the keyboard auto-repeats the same make code, but <code>is_valid</code> stays <code>0</code> so we don't pulse. Only after seeing an <code>F0 ⟨byte⟩</code> release sequence does <code>is_valid</code> get re-armed.</div>
+
+<div class="qa"><b>Q.</b> Why a 22-bit shift register and not 11 or 8? <br>
+<b>A.</b> 22 = 2 × 11. We need to look at the <em>current</em> frame (cur_byte) and the <em>previous</em> frame (prev_byte) at the same time, so we can distinguish "press" (prev = anything but F0) from "release confirmation" (prev = F0). One frame's worth (11 bits) wouldn't be enough.</div>
+
+<div class="qa"><b>Q.</b> Why do we decode at <code>bit_count == 10</code> and not 11? <br>
+<b>A.</b> Because at the moment <code>bit_count</code> reads 10 inside the always-block, the shift register already contains 10 shifted-in bits (start through parity). We have everything we need to identify the byte and check its parity — we don't need the stop bit value because we already know it's <code>1</code> by spec. If we waited for bit 11 we'd be sampling on a clock edge that might be the very last one of the burst, and our follow-up actions would have to wait for an edge that may never come.</div>
+
+<div class="qa"><b>Q.</b> Why <code>~(^cur_byte)</code> for parity? <br>
+<b>A.</b> <code>^cur_byte</code> XOR-reduces the 8 data bits — it's <code>1</code> if there are an odd number of <code>1</code>s in the byte. PS/2 uses <em>odd</em> parity meaning <code>(data ones) + parity_bit</code> must be odd, so <code>parity_bit = ~(odd ones in data)</code>. Equality with the actual parity bit means the byte is valid.</div>
+
+<div class="qa"><b>Q.</b> Why do we re-instantiate the 7-seg multiplex logic inside <code>Ps2_Display</code> instead of using Lab 4's <code>Seg_7_Display</code>? <br>
+<b>A.</b> Because we only need 2 of the 4 digits, and we want to latch on a specific synced edge. Inlining lets us share the <code>clkdiv</code> and the <code>valid_scancode</code> register cleanly, without exporting them through a separate module's ports.</div>
+
+<div class="qa"><b>Q.</b> Why two clock domains? <br>
+<b>A.</b> The receiver must be clocked by the PS/2 clock to sample data correctly. The display must be clocked fast enough to multiplex 4 digits without flicker and to debounce/strobe the LED — 100 MHz from the on-board oscillator is the natural choice. There is no way to use one of them for both jobs.</div>
+
+<div class="qa"><b>Q.</b> What does the 3-FF synchroniser actually do? <br>
+<b>A.</b> The first 2 FFs in series accept the slow-domain pulse into the 100 MHz domain. If the first one goes metastable due to bad sampling, it has a full 10 ns to settle before being captured by the second FF — virtually zero probability of propagating a bad value. The third FF + an AND produces a single 100 MHz cycle pulse on the rising edge, which is what we want to latch the new scancode.</div>
+
+<div class="qa"><b>Q.</b> What is the worst-case timing path in this design? <br>
+<b>A.</b> From the implementation report, the worst slack is +5.269 ns inside <code>u_display</code>, going from <code>led_timer_reg[16]/C</code> to <code>led_timer_reg[20..23]/CE</code>. That's the carry chain of the 24-bit countdown counter, which makes sense — long counters are usually the worst path. 4.361 ns total delay vs. the 10 ns budget, so we're safe.</div>
+
+<div class="qa"><b>Q.</b> Why <code>PULLUP true</code> on PS2Clk and PS2Data? <br>
+<b>A.</b> PS/2 uses <em>open-collector/open-drain</em> drivers: the device can pull the line low, but to make it <code>1</code> it just lets it float and relies on an external pull-up resistor. Without a pull-up, an idle line would be at an undefined voltage and the receiver would see garbage. We enable the FPGA's internal pull-ups because the Basys3 doesn't have external ones on those pins.</div>
+
+<div class="qa"><b>Q.</b> The Basys3 docs say there's a USB host on the board — how is it talking PS/2? <br>
+<b>A.</b> The board has a small microcontroller (an Atmel chip) that bridges USB-HID keyboards/mice to the PS/2 protocol on FPGA pins C17 (clock) and B17 (data). So from our FPGA's point of view the keypad is just a PS/2 device. The PDF tells us to disregard what the board manual says about USB and treat these pins as PS/2.</div>
+</section>
+
+<footer>
+  <p>Generated as a study reference for the Lab 5 oral exam — Mahmood &amp; Saleh, Tel Aviv University FPGA Lab.</p>
+</footer>
+
+</main>
+</body>
+</html>
