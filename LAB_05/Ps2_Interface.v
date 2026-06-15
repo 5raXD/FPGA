@@ -44,11 +44,9 @@ module Ps2_Interface(
             if (bit_count == 4'd10) begin
                 if (cur_byte == 8'hE0 || cur_byte == 8'hF0) begin
                     // skip
-                end
-                else if (prev_byte == 8'hF0) begin
+                end else if (prev_byte == 8'hF0) begin
                     is_valid <= 1'b1;
-                end
-                else begin
+                end else begin
                     scancode <= cur_byte;
                     if (is_valid) begin
                         keyPressed <= parity_ok;
