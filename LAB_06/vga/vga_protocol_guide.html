@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>VGA Protocol — A Beginner's Visual Guide (Lab 6)</title>
+<style>
+  :root{
+    --bg:#0f172a; --panel:#1e293b; --ink:#e2e8f0; --muted:#94a3b8;
+    --accent:#38bdf8; --accent2:#fbbf24; --good:#34d399; --bad:#f87171;
+    --red:#f87171; --green:#34d399; --blue:#60a5fa; --hsync:#fbbf24; --vsync:#a78bfa;
+    --visible:#34d399; --porch:#475569; --sync:#f472b6;
+    --code:#0b1220;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--ink);line-height:1.65;
+  }
+  header{
+    background:linear-gradient(135deg,#581c87,#0ea5e9);padding:40px 20px;text-align:center;
+    box-shadow:0 4px 20px rgba(0,0,0,.4);
+  }
+  header h1{margin:0;font-size:2.2rem}
+  header p{margin:8px 0 0;color:#dbeafe}
+  main{max-width:1100px;margin:0 auto;padding:30px 20px}
+  nav.toc{
+    background:var(--panel);border-radius:12px;padding:20px 24px;margin-bottom:30px;
+    border:1px solid #334155;
+  }
+  nav.toc h2{margin:0 0 10px;color:var(--accent)}
+  nav.toc ol{margin:0;padding-left:20px}
+  nav.toc a{color:var(--ink);text-decoration:none}
+  nav.toc a:hover{color:var(--accent)}
+  section{
+    background:var(--panel);border-radius:12px;padding:28px;margin-bottom:24px;
+    border:1px solid #334155;box-shadow:0 2px 10px rgba(0,0,0,.25);
+  }
+  section h2{color:var(--accent);border-bottom:2px solid #334155;padding-bottom:8px;margin-top:0}
+  section h3{color:var(--accent2);margin-top:24px}
+  code,pre{font-family:"JetBrains Mono",Menlo,Consolas,monospace;font-size:.9rem}
+  pre{
+    background:var(--code);padding:16px;border-radius:8px;overflow-x:auto;
+    border-left:4px solid var(--accent);
+  }
+  code{background:#0b1220;padding:2px 6px;border-radius:4px;color:#fde68a}
+  pre code{background:none;padding:0;color:var(--ink)}
+  .callout{
+    background:rgba(56,189,248,.1);border-left:4px solid var(--accent);
+    padding:14px 18px;border-radius:6px;margin:16px 0;
+  }
+  .callout.warn{background:rgba(248,113,113,.1);border-left-color:var(--bad)}
+  .callout.tip{background:rgba(52,211,153,.1);border-left-color:var(--good)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media (max-width:760px){.grid2{grid-template-columns:1fr}}
+  table{width:100%;border-collapse:collapse;margin:14px 0}
+  th,td{border:1px solid #334155;padding:8px 12px;text-align:left}
+  th{background:#1e293b;color:var(--accent2)}
+  tr:nth-child(even){background:rgba(255,255,255,.02)}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:10px 0}
+  .legend span{display:inline-flex;align-items:center;gap:6px;font-size:.9rem}
+  .legend i{display:inline-block;width:14px;height:14px;border-radius:3px}
+  svg{display:block;margin:18px auto;max-width:100%;height:auto}
+  .pill{
+    display:inline-block;padding:2px 10px;border-radius:999px;
+    font-size:.8rem;font-weight:700;background:#334155;color:var(--ink);
+  }
+  .pill.vis{background:#065f46;color:#d1fae5}
+  .pill.blank{background:#1f2937;color:#cbd5e1}
+  .pill.sync{background:#831843;color:#fbcfe8}
+  footer{text-align:center;color:var(--muted);padding:30px;font-size:.9rem}
+  .step{
+    counter-increment:step;
+    background:rgba(255,255,255,.03);padding:14px 16px;border-radius:8px;margin:10px 0;
+    border-left:3px solid var(--accent2);
+  }
+  .step::before{
+    content:"Step " counter(step);
+    display:inline-block;background:var(--accent2);color:#0f172a;
+    padding:2px 10px;border-radius:6px;font-weight:700;margin-right:10px;font-size:.85rem;
+  }
+  .steps{counter-reset:step}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>VGA Protocol — A Beginner's Visual Guide</h1>
+  <p>Tel Aviv University · FPGA Lab · Experiment 6 — VGA Screen Output</p>
+</header>
+
+<main>
+
+<nav class="toc">
+  <h2>Table of Contents</h2>
+  <ol>
+    <li><a href="#what">What is VGA? (Background you don't have yet)</a></li>
+    <li><a href="#connector">The Physical Connector &amp; Pins</a></li>
+    <li><a href="#raster">How a Screen is Drawn: Raster Scanning</a></li>
+    <li><a href="#porches">Why "Porches"? The Blanking Intervals</a></li>
+    <li><a href="#htiming">Horizontal Timing (one line)</a></li>
+    <li><a href="#vtiming">Vertical Timing (one frame)</a></li>
+    <li><a href="#regions">The Regions Diagram (visible vs. blanking)</a></li>
+    <li><a href="#color">Color Encoding: 12-bit RGB-444</a></li>
+    <li><a href="#fpga">How This Maps to Your FPGA Design</a></li>
+    <li><a href="#pitfalls">Common Pitfalls (Lab 6 Hints!)</a></li>
+  </ol>
+</nav>
+
+<!-- ============================================================ -->
+<section id="what">
+<h2>1. What is VGA? (Background you don't have yet)</h2>
+
+<p>
+VGA (<strong>Video Graphics Array</strong>) is an <strong>analog video display standard</strong> introduced by IBM in 1987 — the same era as the PS/2 keyboard from the last lab. It is the blue, D-shaped 15-pin plug you have seen on the back of older monitors and projectors.
+</p>
+
+<p>
+The crucial idea is that VGA was designed to drive a <strong>CRT (cathode-ray tube)</strong> monitor — an old, heavy glass screen in which an electron beam is physically swept across the glass to light up phosphor dots. Even though you will be driving a modern flat panel, <strong>the monitor still pretends to be a CRT</strong> and expects exactly the same timing. So to talk to it, you must reproduce the rhythm of an electron beam sweeping the screen.
+</p>
+
+<p>VGA is a great teaching protocol because:</p>
+<ul>
+  <li>There is <strong>no handshake and no acknowledge</strong> — the FPGA just keeps shouting pixels and sync pulses, forever, on a fixed schedule. It is a pure "open-loop" timing exercise.</li>
+  <li>The color is just <strong>three analog voltages</strong> (Red, Green, Blue) plus <strong>two digital sync signals</strong> (Hsync, Vsync). Five wires carry everything.</li>
+  <li>Everything is driven by <strong>counting cycles of a single pixel clock</strong>. If you can build two counters, you can build VGA.</li>
+</ul>
+
+<div class="callout tip">
+<strong>In one sentence:</strong> VGA is an analog video link where your FPGA continuously paints the screen one pixel at a time, left-to-right and top-to-bottom, and inserts precisely-timed "sync" pulses to tell the monitor when to jump back to the start of the next line and the next frame.
+</div>
+
+<div class="callout">
+<strong>The big contrast with PS/2:</strong> PS/2 was an <em>input</em> protocol where the <em>device</em> supplied the clock and you reacted to its falling edges. VGA is an <em>output</em> protocol where <strong>you</strong> are the master of time — you generate the pixel clock and every signal is just a function of where you are in your counters.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="connector">
+<h2>2. The Physical Connector &amp; Pins</h2>
+
+<p>
+The VGA connector is a <strong>15-pin D-SUB (DE-15)</strong>, arranged in three rows of five. Of the 15 pins, only five really matter for this lab: the three color channels and the two sync signals.
+</p>
+
+<svg viewBox="0 0 520 240" width="520">
+  <!-- D-shape shell -->
+  <path d="M60,60 L470,60 L455,160 L75,160 Z" fill="#1e293b" stroke="#94a3b8" stroke-width="3"/>
+  <!-- Row 1: pins 1-5 -->
+  <g font-size="10" text-anchor="middle">
+    <circle cx="110" cy="85" r="9" fill="#f87171"/><text x="110" y="88" fill="#0f172a" font-weight="bold">1</text>
+    <circle cx="180" cy="85" r="9" fill="#34d399"/><text x="180" y="88" fill="#0f172a" font-weight="bold">2</text>
+    <circle cx="250" cy="85" r="9" fill="#60a5fa"/><text x="250" y="88" fill="#0f172a" font-weight="bold">3</text>
+    <circle cx="320" cy="85" r="9" fill="#475569"/><text x="320" y="88" fill="#e2e8f0" font-weight="bold">4</text>
+    <circle cx="390" cy="85" r="9" fill="#1f2937"/><text x="390" y="88" fill="#e2e8f0" font-weight="bold">5</text>
+  </g>
+  <!-- Row 2: pins 6-10 -->
+  <g font-size="10" text-anchor="middle">
+    <circle cx="145" cy="115" r="9" fill="#1f2937"/><text x="145" y="118" fill="#e2e8f0" font-weight="bold">6</text>
+    <circle cx="215" cy="115" r="9" fill="#1f2937"/><text x="215" y="118" fill="#e2e8f0" font-weight="bold">7</text>
+    <circle cx="285" cy="115" r="9" fill="#1f2937"/><text x="285" y="118" fill="#e2e8f0" font-weight="bold">8</text>
+    <circle cx="355" cy="115" r="9" fill="#475569"/><text x="355" y="118" fill="#e2e8f0" font-weight="bold">9</text>
+    <circle cx="425" cy="115" r="9" fill="#1f2937"/><text x="425" y="118" fill="#e2e8f0" font-weight="bold">10</text>
+  </g>
+  <!-- Row 3: pins 11-15 -->
+  <g font-size="10" text-anchor="middle">
+    <circle cx="110" cy="145" r="9" fill="#475569"/><text x="110" y="148" fill="#e2e8f0" font-weight="bold">11</text>
+    <circle cx="180" cy="145" r="9" fill="#475569"/><text x="180" y="148" fill="#e2e8f0" font-weight="bold">12</text>
+    <circle cx="250" cy="145" r="9" fill="#fbbf24"/><text x="250" y="148" fill="#0f172a" font-weight="bold">13</text>
+    <circle cx="320" cy="145" r="9" fill="#a78bfa"/><text x="320" y="148" fill="#0f172a" font-weight="bold">14</text>
+    <circle cx="390" cy="145" r="9" fill="#475569"/><text x="390" y="148" fill="#e2e8f0" font-weight="bold">15</text>
+  </g>
+  <text x="265" y="200" text-anchor="middle" fill="#94a3b8" font-size="12">Front view of female VGA (DE-15) connector</text>
+</svg>
+
+<div class="legend">
+  <span><i style="background:var(--red)"></i> Red (pin 1)</span>
+  <span><i style="background:var(--green)"></i> Green (pin 2)</span>
+  <span><i style="background:var(--blue)"></i> Blue (pin 3)</span>
+  <span><i style="background:var(--hsync)"></i> Hsync (pin 13)</span>
+  <span><i style="background:var(--vsync)"></i> Vsync (pin 14)</span>
+</div>
+
+<table>
+<tr><th>Pin</th><th>Name</th><th>Purpose</th></tr>
+<tr><td>1</td><td><strong>RED</strong></td><td>Analog red intensity (0–0.7 V)</td></tr>
+<tr><td>2</td><td><strong>GREEN</strong></td><td>Analog green intensity (0–0.7 V)</td></tr>
+<tr><td>3</td><td><strong>BLUE</strong></td><td>Analog blue intensity (0–0.7 V)</td></tr>
+<tr><td>13</td><td><strong>HSYNC</strong></td><td>Horizontal sync — "end of line, go back to the left"</td></tr>
+<tr><td>14</td><td><strong>VSYNC</strong></td><td>Vertical sync — "end of frame, go back to the top"</td></tr>
+<tr><td>5,6,7,8,10</td><td>GND</td><td>Grounds / color returns</td></tr>
+<tr><td>4,9,11,12,15</td><td>—</td><td>Not needed here (ID / DDC / unused)</td></tr>
+</table>
+
+<h3>Where do the analog voltages come from?</h3>
+<p>
+The FPGA only outputs digital <strong>1s and 0s</strong>, so how do you make an analog 0–0.7 V color? The <strong>Basys3 board has a tiny resistor-ladder DAC</strong> wired to the FPGA pins. Each color channel is driven by <strong>4 FPGA pins</strong> through weighted resistors, so 4 bits become 16 analog voltage levels per channel. That is why <code>vgaRed</code>, <code>vgaGreen</code>, and <code>vgaBlue</code> are each <strong>4 bits wide</strong> in your design.
+</p>
+
+<div class="callout">
+4 bits × 3 channels = <strong>12 bits of color</strong> = the <code>pixel_color[11:0]</code> signal in your top-level diagram. That gives 2<sup>12</sup> = <strong>4096 possible colors</strong>.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="raster">
+<h2>3. How a Screen is Drawn: Raster Scanning</h2>
+
+<p>
+The screen is painted exactly the way you read a page of English text: <strong>left-to-right, then top-to-bottom</strong>. This zig-zag path is called a <strong>raster scan</strong>. There is no concept of "draw a rectangle here" — the monitor only understands "here is the color of the next pixel, now the next, now the next…".
+</p>
+
+<svg viewBox="0 0 600 300" width="600">
+  <!-- Screen frame -->
+  <rect x="60" y="30" width="420" height="220" fill="#0b1220" stroke="#94a3b8" stroke-width="2"/>
+  <!-- scan lines -->
+  <g stroke="#34d399" stroke-width="2" fill="none">
+    <line x1="70" y1="55" x2="470" y2="55"/>
+    <line x1="70" y1="95" x2="470" y2="95"/>
+    <line x1="70" y1="135" x2="470" y2="135"/>
+    <line x1="70" y1="175" x2="470" y2="175"/>
+    <line x1="70" y1="215" x2="470" y2="215"/>
+  </g>
+  <!-- horizontal retrace (dashed, beam off) -->
+  <g stroke="#f87171" stroke-width="1.5" stroke-dasharray="4 3" fill="none">
+    <line x1="470" y1="55" x2="70" y2="95"/>
+    <line x1="470" y1="95" x2="70" y2="135"/>
+    <line x1="470" y1="135" x2="70" y2="175"/>
+    <line x1="470" y1="175" x2="70" y2="215"/>
+  </g>
+  <!-- vertical retrace -->
+  <line x1="470" y1="215" x2="70" y2="55" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="2 3"/>
+  <!-- arrowheads on visible lines -->
+  <g fill="#34d399">
+    <polygon points="470,50 470,60 480,55"/>
+  </g>
+  <!-- beam dot -->
+  <circle cx="260" cy="135" r="6" fill="#fbbf24"/>
+  <!-- labels -->
+  <text x="270" y="20" text-anchor="middle" fill="#34d399" font-size="12">visible scan line (beam ON, paints color) →</text>
+  <text x="510" y="80" fill="#f87171" font-size="11">horizontal</text>
+  <text x="510" y="95" fill="#f87171" font-size="11">retrace</text>
+  <text x="510" y="110" fill="#f87171" font-size="11">(beam OFF)</text>
+  <text x="270" y="280" text-anchor="middle" fill="#a78bfa" font-size="11">vertical retrace: jump from bottom-right back to top-left (beam OFF)</text>
+</svg>
+
+<div class="steps">
+  <div class="step">The beam starts at the <strong>top-left</strong> pixel and sweeps right, painting one row of pixels.</div>
+  <div class="step">When it reaches the right edge, the beam is switched off and flies back to the left — this is the <strong>horizontal retrace</strong>. The <code>Hsync</code> pulse happens during this trip.</div>
+  <div class="step">It drops down one line and paints the next row. Repeat for all 600 visible rows.</div>
+  <div class="step">After the last row, the beam flies all the way back to the top-left — the <strong>vertical retrace</strong>. The <code>Vsync</code> pulse happens during this trip.</div>
+  <div class="step">One full sweep of the whole screen is a <strong>frame</strong>. At 72 Hz this whole picture is redrawn 72 times every second.</div>
+</div>
+
+<div class="callout tip">
+<strong>Key mental model:</strong> your FPGA is not "putting an image on the screen." It is a metronome that, on every single pixel-clock tick, answers the question <em>"what color is the dot the beam is touching right now?"</em> — and occasionally raises a sync flag to send the beam home.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="porches">
+<h2>4. Why "Porches"? The Blanking Intervals</h2>
+
+<p>
+On an old CRT, the electron beam could not teleport instantly from the right edge back to the left — the deflection magnets needed a little time to swing back. During that flyback the beam had to be <strong>blanked</strong> (turned black) so it didn't smear a bright line across the screen.
+</p>
+
+<p>
+So around each <code>sync</code> pulse the standard reserves small slices of <em>black</em> time:
+</p>
+
+<ul>
+  <li><strong>Front porch</strong> — a short black gap <em>after</em> the visible pixels but <em>before</em> the sync pulse.</li>
+  <li><strong>Sync pulse</strong> — the actual "go home" command to the monitor.</li>
+  <li><strong>Back porch</strong> — a short black gap <em>after</em> the sync pulse, giving the beam time to settle before real pixels start again.</li>
+</ul>
+
+<p>
+The visible pixels + front porch + sync + back porch together are <strong>more</strong> than the visible resolution. That is why an 800-pixel-wide screen actually needs <strong>1040 pixel-clocks per line</strong>, and a 600-line screen needs <strong>666 lines per frame</strong>.
+</p>
+
+<div class="callout warn">
+The names "porch" come from the shape of the analog video waveform — the flat black shelves sitting on either side of the sync pulse looked like the front and back porches of a house.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="htiming">
+<h2>5. Horizontal Timing (one line)</h2>
+
+<p>
+This lab uses the <strong>800×600 @ 72 Hz</strong> VGA mode with a <strong>50 MHz pixel clock</strong>. One full horizontal line is <strong>1040 pixel-clocks</strong> long, which matches the assignment's <code>XCoord</code> range of 0–1039.
+</p>
+
+<table>
+<tr><th>Region</th><th>Width (pixel-clocks)</th><th><code>hcount</code> range</th></tr>
+<tr><td><span class="pill vis">Visible / active video</span></td><td>800</td><td>0 – 799</td></tr>
+<tr><td><span class="pill blank">Front porch</span></td><td>56</td><td>800 – 855</td></tr>
+<tr><td><span class="pill sync">Sync pulse</span></td><td>120</td><td>856 – 975</td></tr>
+<tr><td><span class="pill blank">Back porch</span></td><td>64</td><td>976 – 1039</td></tr>
+<tr><td><strong>Total line</strong></td><td><strong>1040</strong></td><td>0 – 1039</td></tr>
+</table>
+
+<svg viewBox="0 0 820 220" width="820">
+  <!-- color/visible band -->
+  <rect x="60" y="40" width="380" height="40" fill="#065f46"/>
+  <rect x="440" y="40" width="40" height="40" fill="#1f2937"/>
+  <rect x="480" y="40" width="120" height="40" fill="#831843"/>
+  <rect x="600" y="40" width="60" height="40" fill="#1f2937"/>
+  <rect x="660" y="40" width="100" height="40" fill="#065f46"/>
+  <text x="250" y="65" text-anchor="middle" fill="#d1fae5" font-size="11">VISIBLE (800)</text>
+  <text x="710" y="65" text-anchor="middle" fill="#d1fae5" font-size="11">VISIBLE (next line)</text>
+
+  <!-- Hsync waveform below -->
+  <text x="10" y="130" fill="#fbbf24" font-size="13" font-weight="bold">Hsync</text>
+  <polyline fill="none" stroke="#fbbf24" stroke-width="2"
+    points="60,150 480,150 480,110 600,110 600,150 760,150"/>
+
+  <!-- region brackets -->
+  <g font-size="10" fill="#94a3b8" text-anchor="middle">
+    <text x="460" y="175">front<tspan x="460" dy="12">porch (56)</tspan></text>
+    <text x="540" y="175">sync<tspan x="540" dy="12">pulse (120)</tspan></text>
+    <text x="630" y="175">back<tspan x="630" dy="12">porch (64)</tspan></text>
+  </g>
+
+  <!-- markers -->
+  <g stroke="#475569" stroke-dasharray="2 3">
+    <line x1="440" y1="40" x2="440" y2="195"/>
+    <line x1="480" y1="40" x2="480" y2="195"/>
+    <line x1="600" y1="40" x2="600" y2="195"/>
+    <line x1="660" y1="40" x2="660" y2="195"/>
+  </g>
+
+  <text x="410" y="215" text-anchor="middle" fill="#94a3b8" font-size="11">One line = 1040 pixel-clocks = 20.8 µs (line rate ≈ 48.08 kHz). Sync shown with positive polarity.</text>
+</svg>
+
+<p>
+Generating <code>Hsync</code> is then a single comparison on your horizontal counter:
+</p>
+<pre><code>// 800x600@72 horizontal sync (positive polarity)
+// pulse is active while hcount is inside the sync window
+wire Hsync = (hcount >= 856 && hcount <= 975);</code></pre>
+
+<div class="callout warn">
+<strong>Polarity matters.</strong> The 800×600@72 standard uses <em>positive</em> sync (the pulse is a logic-high). If your monitor shows "no signal" or an off-center image even though counters look right, an inverted sync polarity is a prime suspect.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="vtiming">
+<h2>6. Vertical Timing (one frame)</h2>
+
+<p>
+The vertical axis works exactly the same way, but its unit is <strong>whole lines</strong> instead of pixels. The <code>vcount</code> counter advances by one <em>every time <code>hcount</code> wraps around</em> (i.e. once per line). A full frame is <strong>666 lines</strong>, matching the assignment's <code>YCoord</code> range of 0–665.
+</p>
+
+<table>
+<tr><th>Region</th><th>Height (lines)</th><th><code>vcount</code> range</th></tr>
+<tr><td><span class="pill vis">Visible / active video</span></td><td>600</td><td>0 – 599</td></tr>
+<tr><td><span class="pill blank">Front porch</span></td><td>37</td><td>600 – 636</td></tr>
+<tr><td><span class="pill sync">Sync pulse</span></td><td>6</td><td>637 – 642</td></tr>
+<tr><td><span class="pill blank">Back porch</span></td><td>23</td><td>643 – 665</td></tr>
+<tr><td><strong>Total frame</strong></td><td><strong>666</strong></td><td>0 – 665</td></tr>
+</table>
+
+<svg viewBox="0 0 820 200" width="820">
+  <text x="10" y="60" fill="#a78bfa" font-size="13" font-weight="bold">Vsync</text>
+  <!-- band -->
+  <rect x="60" y="40" width="450" height="30" fill="#065f46"/>
+  <rect x="510" y="40" width="120" height="30" fill="#1f2937"/>
+  <rect x="630" y="40" width="40" height="30" fill="#831843"/>
+  <rect x="670" y="40" width="90" height="30" fill="#1f2937"/>
+  <text x="285" y="60" text-anchor="middle" fill="#d1fae5" font-size="11">VISIBLE (600 lines)</text>
+
+  <!-- waveform -->
+  <polyline fill="none" stroke="#a78bfa" stroke-width="2"
+    points="60,120 630,120 630,95 670,95 670,120 760,120"/>
+
+  <g font-size="10" fill="#94a3b8" text-anchor="middle">
+    <text x="570" y="150">front porch<tspan x="570" dy="12">(37 lines)</tspan></text>
+    <text x="650" y="150">sync<tspan x="650" dy="12">(6 lines)</tspan></text>
+    <text x="715" y="150">back porch<tspan x="715" dy="12">(23 lines)</tspan></text>
+  </g>
+  <text x="410" y="190" text-anchor="middle" fill="#94a3b8" font-size="11">One frame = 666 lines × 20.8 µs ≈ 13.85 ms → refresh rate ≈ 72.2 Hz</text>
+</svg>
+
+<pre><code>// 800x600@72 vertical sync (positive polarity)
+wire Vsync = (vcount >= 637 && vcount <= 642);</code></pre>
+
+<div class="callout tip">
+<strong>Sanity check the refresh rate:</strong> 50 MHz ÷ (1040 × 666) = 50 000 000 ÷ 692 640 ≈ <strong>72.2 Hz</strong>. The assignment's warning that "72 Hz may not be supported by some monitors" is exactly this number.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="regions">
+<h2>7. The Regions Diagram (visible vs. blanking)</h2>
+
+<p>
+Combining horizontal and vertical timing splits every frame into a 2-D map. Only the green box is <strong>visible</strong>; everything outside it is <strong>blanking</strong> and the FPGA must output black (<code>{R,G,B} = 0</code>) there.
+</p>
+
+<svg viewBox="0 0 640 420" width="640">
+  <!-- whole frame -->
+  <rect x="40" y="30" width="560" height="340" fill="#1f2937" stroke="#475569"/>
+  <!-- back porch shading already part of frame; draw sync bands -->
+  <!-- vertical sync band (rows) -->
+  <rect x="40" y="300" width="560" height="20" fill="#831843" opacity="0.6"/>
+  <!-- horizontal sync band (cols) -->
+  <rect x="470" y="30" width="60" height="340" fill="#831843" opacity="0.6"/>
+  <!-- visible region -->
+  <rect x="60" y="50" width="360" height="220" fill="#065f46" stroke="#34d399" stroke-width="2"/>
+  <text x="240" y="165" text-anchor="middle" fill="#d1fae5" font-size="15" font-weight="bold">VISIBLE</text>
+  <text x="240" y="188" text-anchor="middle" fill="#d1fae5" font-size="12">800 × 600 — output real color here</text>
+
+  <!-- coordinate labels -->
+  <text x="60" y="44" fill="#94a3b8" font-size="10">(0,0)</text>
+  <text x="420" y="44" fill="#94a3b8" font-size="10" text-anchor="end">hcount=799</text>
+  <text x="48" y="275" fill="#94a3b8" font-size="10">vcount=599</text>
+
+  <!-- region annotations -->
+  <text x="445" y="160" fill="#cbd5e1" font-size="10" text-anchor="middle" transform="rotate(-90 445 160)">H front porch</text>
+  <text x="500" y="160" fill="#fbcfe8" font-size="10" text-anchor="middle" transform="rotate(-90 500 160)">H sync</text>
+  <text x="565" y="160" fill="#cbd5e1" font-size="10" text-anchor="middle" transform="rotate(-90 565 160)">H back porch</text>
+
+  <text x="240" y="290" fill="#cbd5e1" font-size="10" text-anchor="middle">V front porch</text>
+  <text x="240" y="314" fill="#fbcfe8" font-size="10" text-anchor="middle">V sync</text>
+  <text x="240" y="350" fill="#cbd5e1" font-size="10" text-anchor="middle">V back porch</text>
+
+  <text x="320" y="400" text-anchor="middle" fill="#94a3b8" font-size="11">Whole frame = 1040 × 666. Anything outside the green box must be black.</text>
+</svg>
+
+<pre><code>wire visible = (hcount < 800) && (vcount < 600);
+
+// the color the interface actually drives out:
+assign {vgaRed, vgaGreen, vgaBlue} =
+       visible ? pixel_color : 12'h000;   // black in blanking</code></pre>
+
+<div class="callout warn">
+<strong>The #1 beginner bug:</strong> driving real color during blanking. If you let any R/G/B value escape while the beam is in a porch or sync region, the monitor mis-locks and you get rolling, tearing, or "out of range." <strong>Force black outside the visible box — no exceptions.</strong>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="color">
+<h2>8. Color Encoding: 12-bit RGB-444</h2>
+
+<p>
+The <code>pixel_color[11:0]</code> bus packs three 4-bit channels. The switches drive it directly: <code>(sw[11:8], sw[7:4], sw[3:0])</code> = <code>(R, G, B)</code>.
+</p>
+
+<svg viewBox="0 0 760 150" width="760">
+  <g font-family="monospace" font-size="12" text-anchor="middle">
+    <!-- Red nibble -->
+    <rect x="40" y="40" width="220" height="50" fill="#7f1d1d" rx="6"/>
+    <text x="150" y="70" fill="#fecaca" font-weight="bold">RED = pixel_color[11:8]</text>
+    <text x="150" y="110" fill="#f87171" font-size="11">4 bits → 16 levels</text>
+    <!-- Green nibble -->
+    <rect x="270" y="40" width="220" height="50" fill="#14532d" rx="6"/>
+    <text x="380" y="70" fill="#bbf7d0" font-weight="bold">GREEN = pixel_color[7:4]</text>
+    <text x="380" y="110" fill="#34d399" font-size="11">4 bits → 16 levels</text>
+    <!-- Blue nibble -->
+    <rect x="500" y="40" width="220" height="50" fill="#1e3a8a" rx="6"/>
+    <text x="610" y="70" fill="#bfdbfe" font-weight="bold">BLUE = pixel_color[3:0]</text>
+    <text x="610" y="110" fill="#60a5fa" font-size="11">4 bits → 16 levels</text>
+  </g>
+  <text x="380" y="25" text-anchor="middle" fill="#94a3b8" font-size="12">12-bit color word — 16 × 16 × 16 = 4096 colors</text>
+</svg>
+
+<table>
+<tr><th>Color</th><th>R[3:0]</th><th>G[3:0]</th><th>B[3:0]</th><th>12-bit hex</th></tr>
+<tr><td>Black</td><td>0000</td><td>0000</td><td>0000</td><td><code>0x000</code></td></tr>
+<tr><td>White</td><td>1111</td><td>1111</td><td>1111</td><td><code>0xFFF</code></td></tr>
+<tr><td>Red</td><td>1111</td><td>0000</td><td>0000</td><td><code>0xF00</code></td></tr>
+<tr><td>Green</td><td>0000</td><td>1111</td><td>0000</td><td><code>0x0F0</code></td></tr>
+<tr><td>Blue</td><td>0000</td><td>0000</td><td>1111</td><td><code>0x00F</code></td></tr>
+<tr><td>Yellow</td><td>1111</td><td>1111</td><td>0000</td><td><code>0xFF0</code></td></tr>
+</table>
+
+<div class="callout">
+Remember the hardware: each nibble feeds a <strong>4-bit resistor-ladder DAC</strong> on the Basys3, turning <code>0000…1111</code> into 16 analog voltage steps from 0 V (off) to ~0.7 V (full brightness) on that color pin.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="fpga">
+<h2>9. How This Maps to Your FPGA Design</h2>
+
+<p>
+The top-level (Figure 1 in the assignment) has three modules: the timing engine, the painter, and the wrapper.
+</p>
+
+<div class="grid2">
+  <div>
+    <h3>VGA_Interface</h3>
+    <p><strong>Inputs:</strong> <code>clk</code>, <code>rstn</code>, <code>pixel_color[11:0]</code><br>
+    <strong>Outputs:</strong> <code>vgaRed[3:0]</code>, <code>vgaGreen[3:0]</code>, <code>vgaBlue[3:0]</code>, <code>Hsync</code>, <code>Vsync</code>, <code>XCoord[10:0]</code>, <code>YCoord[10:0]</code></p>
+    <p>The timing engine. Generates the 50 MHz pixel clock, runs <code>hcount</code>/<code>vcount</code>, derives sync + visible, gates the color, and reports the current coordinate back out.</p>
+  </div>
+  <div>
+    <h3>Drawer</h3>
+    <p><strong>Inputs:</strong> <code>clk</code>, <code>reset</code>, <code>sw[11:0]</code>, <code>btnu</code>, <code>btnd</code>, <code>btnl</code>, <code>btnr</code>, <code>XCoord</code>, <code>YCoord</code><br>
+    <strong>Output:</strong> <code>pixel_color[11:0]</code></p>
+    <p>The painter. For the pixel currently being scanned, it decides: am I inside the rectangle? If yes → output <code>sw</code> color; if no → output background. Buttons grow the rectangle in each direction.</p>
+  </div>
+</div>
+
+<h3>VGA_Top</h3>
+<p>The wrapper that wires <code>Drawer.pixel_color</code> → <code>VGA_Interface.pixel_color</code> and feeds <code>VGA_Interface</code>'s <code>XCoord</code>/<code>YCoord</code> back into the <code>Drawer</code>. This is a feedback loop, but a harmless one: the interface says "I'm drawing pixel (x,y)" and the drawer instantly answers "then here's its color."</p>
+
+<h3>Skeleton for the counters &amp; pixel clock</h3>
+<pre><code>// --- 50 MHz pixel clock from 100 MHz system clock ---
+reg pclk = 0;
+always @(posedge clk) pclk &lt;= ~pclk;     // divide by 2 -> 50 MHz
+
+// --- horizontal & vertical counters ---
+localparam H_TOTAL = 1040, V_TOTAL = 666;
+reg [10:0] hcount = 0, vcount = 0;
+
+always @(posedge pclk or negedge rstn) begin
+    if (!rstn) begin
+        hcount &lt;= 0; vcount &lt;= 0;
+    end else begin
+        if (hcount == H_TOTAL-1) begin
+            hcount &lt;= 0;
+            vcount &lt;= (vcount == V_TOTAL-1) ? 0 : vcount + 1;
+        end else begin
+            hcount &lt;= hcount + 1;
+        end
+    end
+end
+
+// --- registered outputs (assignment note #7: use flip-flops!) ---
+always @(posedge pclk) begin
+    Hsync &lt;= (hcount &gt;= 856 &amp;&amp; hcount &lt;= 975);
+    Vsync &lt;= (vcount &gt;= 637 &amp;&amp; vcount &lt;= 642);
+    if (hcount &lt; 800 &amp;&amp; vcount &lt; 600)
+        {vgaRed, vgaGreen, vgaBlue} &lt;= pixel_color;
+    else
+        {vgaRed, vgaGreen, vgaBlue} &lt;= 12'h000;
+end</code></pre>
+
+<div class="callout tip">
+<strong>Why register the outputs?</strong> Assignment note #7: defining <code>{Hsync, Vsync, vgaRed, vgaGreen, vgaBlue}</code> as flip-flops means they all change cleanly on the same clock edge, with no combinational glitches racing to the connector. Glitches on a VGA line show up as visible speckle.
+</div>
+
+<h3>The 8× downsample trick (assignment hint #8)</h3>
+<pre><code>// 800x600 is a lot of pixels to reason about. Drop the low 3 bits
+// to work on a coarse 100x75 grid -> the rectangle math stays simple.
+wire [10:0] x_ds = XCoord &gt;&gt; 3;   // 0..99
+wire [10:0] y_ds = YCoord &gt;&gt; 3;   // 0..74</code></pre>
+</section>
+
+<!-- ============================================================ -->
+<section id="pitfalls">
+<h2>10. Common Pitfalls (Lab 6 Hints!)</h2>
+
+<ol>
+  <li>
+    <strong>Leaking color into the blanking region.</strong>
+    Always force <code>{R,G,B}=0</code> unless <code>hcount&lt;800 &amp;&amp; vcount&lt;600</code>. This is the most common cause of a black or rolling screen.
+  </li>
+  <li>
+    <strong>Wrong sync polarity.</strong>
+    800×600@72 expects <em>positive</em> Hsync/Vsync. Inverting them gives a shifted, torn, or "out of range" picture. (Lab note #3: simulation must match the timing diagram exactly.)
+  </li>
+  <li>
+    <strong>Driving logic on the 50 MHz clock incorrectly.</strong>
+    Generate the pixel clock by dividing the 100 MHz clock (note #1). Don't try to use it as a true clock domain without care — many designs instead keep one 100 MHz domain and use a clock-enable that pulses every other cycle.
+  </li>
+  <li>
+    <strong>Forgetting to register the outputs.</strong>
+    Note #7 is explicit: sync and color must be flip-flops, not raw combinational comparisons, or you get visible glitches.
+  </li>
+  <li>
+    <strong>Bouncing buttons.</strong>
+    Note #9: a mechanical press bounces for milliseconds, so a single press would grow the rectangle dozens of times. Run <code>btnu/d/l/r</code> through a debouncer + one-shot.
+  </li>
+  <li>
+    <strong>Lighting LEDs from the switches.</strong>
+    Note #2 forbids it — the switches are color data only.
+  </li>
+  <li>
+    <strong>Off-by-one counters.</strong>
+    Total counts are 1040 and 666, so the counters run 0…1039 and 0…665. Using 1039/665 as the wrap point (not 1040/666) is the classic mistake that drifts your refresh rate.
+  </li>
+</ol>
+
+<div class="callout tip">
+<strong>If you internalize one sentence from this whole document:</strong> VGA is just two free-running counters (1040 wide, 666 tall) clocked at 50 MHz — every output signal (Hsync, Vsync, and whether to send real color or black) is a simple range-comparison on those two counters.
+</div>
+</section>
+
+<footer>
+  Created for FPGA Lab Experiment 6 · Tel Aviv University<br>
+  Open this file in any browser — no internet required, all diagrams are inline SVG.
+</footer>
+
+</main>
+</body>
+</html>
