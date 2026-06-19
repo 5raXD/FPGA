@@ -6,3 +6,5 @@ Ctl_tb
 .DS_Store
 *.exe
 sim
+.tmp.drivedownload/
+.tmp.driveupload/
