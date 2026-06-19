@@ -1,0 +1,11 @@
+`timescale 1ns/10ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company:         Tel Aviv University
+// Engineer:        Saleh Khalil (213310485), Mahmood Stitia (214032682)
+//
+// Create Date:     06/19/2026
+// Design Name:     FPGA Lab 6 - VGA
+// Module Name:     VGA_Interface_tb
+// Project Name:    lab6
+//
+//////////////////////////////////////////////////////////////////////////////////
