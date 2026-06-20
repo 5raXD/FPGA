@@ -51,10 +51,10 @@ module Drawer(
             left   <= CX;
             right  <= CX;
         end else begin
-            if (btnu_pulse && top    >  0           ) top    <= top    - 1'b1;
-            if (btnd_pulse && bottom <  GRID_H - 1  ) bottom <= bottom + 1'b1;
-            if (btnl_pulse && left   >  0           ) left   <= left   - 1'b1;
-            if (btnr_pulse && right  <  GRID_W - 1  ) right  <= right  + 1'b1;
+            if (btnu_pulse && top > 0 ) top <= top - 1'b1;
+            if (btnd_pulse && bottom < GRID_H - 1 ) bottom <= bottom + 1'b1;
+            if (btnl_pulse && left > 0 ) left <= left - 1'b1;
+            if (btnr_pulse && right < GRID_W - 1 ) right <= right + 1'b1;
         end
     end
 
