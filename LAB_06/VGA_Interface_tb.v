@@ -45,11 +45,23 @@ module VGA_Interface_tb;
     localparam H_VISIBLE = 799, H_FRONT_PORCH = 855, H_SYNC_END = 975, H_TOTAL = 1039;
     localparam V_VISIBLE = 599, V_FRONT_PORCH = 636, V_SYNC_END = 642, V_TOTAL = 665;
 
+    reg [11:0] expected_pixel_color;
+    reg [10:0] x_d, y_d;
+
+
+
     always @(posedge clk) begin
-        pixel_color <= (XCoord <= H_VISIBLE && YCoord <= V_VISIBLE)? $random : 12'h000;
-        correct <= ({vgaRed, vgaGreen, vgaBlue} == pixel_color) &&
-                   (Hsync == ((XCoord > H_FRONT_PORCH) && (XCoord <= H_SYNC_END))) &&
-                   (Vsync == ((YCoord > V_FRONT_PORCH) && (YCoord <= V_SYNC_END)));
+        expected_pixel_color <= pixel_color;
+        x_d <= XCoord;
+        y_d <= YCoord;
+
+        if(vga_if.pix_en == 1) begin
+            pixel_color <= (XCoord <= H_VISIBLE && YCoord <= V_VISIBLE)? $random : 12'h000;
+            correct <= ({vgaRed, vgaGreen, vgaBlue} === ((x_d <= H_VISIBLE && y_d <= V_VISIBLE) ? expected_pixel_color : 12'h000)) &&
+                    (Hsync === ((x_d > H_FRONT_PORCH) && (x_d <= H_SYNC_END))) &&
+                    (Vsync === ((y_d > V_FRONT_PORCH) && (y_d <= V_SYNC_END))) &&
+                    correct;
+        end
     end
 
     initial begin
@@ -58,17 +70,29 @@ module VGA_Interface_tb;
             $dumpvars(0, VGA_Interface_tb);
         end
 
-        clk         = 0;
-        rstn        = 1;
+        clk = 0;
+        correct = 1;
+        rstn = 1;
         pixel_color = 12'h000;
+        expected_pixel_color = 12'h000;
+        x_d = 0;
+        y_d = 0;
 
         // reset
-        #10; 
+        @(posedge clk); 
         rstn = 0;
+        correct = 1;
         #10;
         rstn = 1;
+        correct = 1;
 
-        repeat (H_TOTAL * V_TOTAL) #10; // run for 1 frames
+        repeat ((H_TOTAL+1) * (V_TOTAL+1) * 2) #10; // run for 1 frames
+
+        if (correct) begin
+            $display("Test passed!");
+        end else begin
+            $display("Test failed!");
+        end
         $finish;
     end
 
