@@ -42,12 +42,15 @@ module VGA_Interface_tb;
       .YCoord(YCoord)
     );
 
+    localparam H_VISIBLE = 799, H_FRONT_PORCH = 855, H_SYNC_END = 975, H_TOTAL = 1039;
+    localparam V_VISIBLE = 599, V_FRONT_PORCH = 636, V_SYNC_END = 642, V_TOTAL = 665;
+
     always @(posedge clk) begin
-        pixel_color <= ()? $random : 12'h000;
-        // correct <= {
-        //     (XCoord <= 799) && (YCoord <= 599) ? pixel_color : 12'h000,
-        //     (XCoord <= 799) && (YCoord <= 599) ? 1'b1 : 1'b0
-        // };
+        pixel_color <= (XCoord <= H_VISIBLE && YCoord <= V_VISIBLE)? $random : 12'h000;
+        // correct <= 
+        
+        // ((XCoord <= 799) && (YCoord <= 599) ? pixel_color : 12'h000
+        //          && (XCoord <= 799) && (YCoord <= 599) ? 1'b1 : 1'b0);
     end
 
     initial begin
