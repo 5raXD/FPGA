@@ -326,6 +326,10 @@ Those extra rows and columns are <strong>never displayed</strong>. They are pure
 <strong>So "is there a bigger virtual display?"</strong> Yes — but in <em>time</em>, not in pixels. A larger <em>timing</em> rectangle (1040×666) is wrapped around the smaller <em>visible</em> rectangle (800×600). The gap between them is the blanking region, and it exists entirely to give the beam room to fly back and to carry the sync pulses.
 </div>
 
+<div class="callout tip">
+<strong>The one-sentence summary:</strong> a frame is a <strong>1040 × 666 grid of time slots</strong> where horizontally each slot is <strong>one pixel clock</strong> (1040 per line, 800 visible) and vertically each slot is <strong>one whole line</strong> (666 per frame, 600 visible) — the beam visits every slot on a fixed schedule but paints real color only inside the 800 × 600 visible box and black everywhere else.
+</div>
+
 <h3>4.3 — Front porch, sync, back porch</h3>
 <p>
 That invisible black time isn't one lump — on each axis it's split into three named slices arranged <em>around</em> the sync pulse:
