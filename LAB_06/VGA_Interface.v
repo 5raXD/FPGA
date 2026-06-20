@@ -38,22 +38,22 @@ module VGA_Interface(
     localparam H_VISIBLE = 799, H_FRONT_PORCH = 855, H_SYNC_END = 975, H_TOTAL = 1039;
     localparam V_VISIBLE = 599, V_FRONT_PORCH = 636, V_SYNC_END = 642, V_TOTAL = 665;
 
-    // 50 MHz pixel-clock
-    reg pclk = 0;
-    always @(posedge clk) pclk <= ~pclk; // divide by 2 -> 50 MHz
+    // 50 MHz pixel-clock ENABLE (a tick every other 100 MHz cycle)
+    reg pix_en = 0;
+    always @(posedge clk) pix_en <= ~pix_en;
 
     // wire visible = (h_count <= H_VISIBLE) && (v_count <= V_VISIBLE);
 
 
     // Display logic
-    always @(posedge pclk) begin
+    always @(posedge clk) begin
         if (!rstn) begin
             Hsync    <= 1'b0;
             Vsync    <= 1'b0;
             vgaRed   <= 4'h0;
             vgaGreen <= 4'h0;
             vgaBlue  <= 4'h0;
-        end else begin
+        end else if (pix_en) begin
             Hsync <= (h_count > H_FRONT_PORCH) && (h_count <= H_SYNC_END);
             Vsync <= (v_count > V_FRONT_PORCH) && (v_count <= V_SYNC_END);
             if ((h_count <= H_VISIBLE) && (v_count <= V_VISIBLE)) begin // is visible?
@@ -70,11 +70,11 @@ module VGA_Interface(
 
 
     // Coordinate counters
-    always @(posedge pclk) begin
+    always @(posedge clk) begin
         if (!rstn) begin
             h_count <= 0;
             v_count <= 0;
-        end else begin
+        end else if (pix_en) begin
             h_count <= `INC(h_count, H_TOTAL+1);
             if (h_count == H_TOTAL) begin
                 v_count <= `INC(v_count, V_TOTAL+1);
