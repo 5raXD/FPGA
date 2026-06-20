@@ -26,7 +26,5 @@ module Drawer(
     input  wire [10:0] YCoord,
     output reg  [11:0] pixel_color
     );
-
     
-
 endmodule
