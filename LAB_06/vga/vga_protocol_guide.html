@@ -96,7 +96,7 @@
     <li><a href="#what">What is VGA? (Background you don't have yet)</a></li>
     <li><a href="#connector">The Physical Connector &amp; Pins</a></li>
     <li><a href="#raster">How a Screen is Drawn: Raster Scanning</a></li>
-    <li><a href="#porches">Why "Porches"? The Blanking Intervals</a></li>
+    <li><a href="#porches">Sync, Porches &amp; the "Bigger Virtual Screen"</a></li>
     <li><a href="#htiming">Horizontal Timing (one line)</a></li>
     <li><a href="#vtiming">Vertical Timing (one frame)</a></li>
     <li><a href="#regions">The Regions Diagram (visible vs. blanking)</a></li>
@@ -258,28 +258,89 @@ The screen is painted exactly the way you read a page of English text: <strong>l
 
 <!-- ============================================================ -->
 <section id="porches">
-<h2>4. Why "Porches"? The Blanking Intervals</h2>
+<h2>4. Sync, Porches &amp; the "Bigger Virtual Screen"</h2>
 
 <p>
-On an old CRT, the electron beam could not teleport instantly from the right edge back to the left — the deflection magnets needed a little time to swing back. During that flyback the beam had to be <strong>blanked</strong> (turned black) so it didn't smear a bright line across the screen.
+These are the three things everyone trips on, and they are really <strong>one</strong> idea seen from three angles: <em>what is a sync pulse, why do my counters run past 800×600, and why are the black slices called "porches"?</em> Let's take them in that order.
 </p>
 
+<h3>4.1 — What a "sync" pulse actually is</h3>
 <p>
-So around each <code>sync</code> pulse the standard reserves small slices of <em>black</em> time:
+The thing nobody tells you up front: <strong>the monitor is blind.</strong> The only wires it receives are three analog color voltages and two digital pulses. There is <em>no</em> pixel address on the wire, <em>no</em> "this is row 3, column 57," <em>no</em> clock it can read. So how does it know where on the glass to put each color it's handed?
 </p>
-
+<p>
+It uses a <strong>stopwatch</strong>. The monitor and your FPGA agree on exactly one rule: <strong>"the instant a sync pulse appears is time zero. Start drawing from a fixed corner and just measure time from that edge."</strong> Every pixel's position is inferred purely from <em>how long it has been since the last sync pulse</em>. Sync is the shared starting gun — nothing more, nothing less.
+</p>
 <ul>
-  <li><strong>Front porch</strong> — a short black gap <em>after</em> the visible pixels but <em>before</em> the sync pulse.</li>
-  <li><strong>Sync pulse</strong> — the actual "go home" command to the monitor.</li>
-  <li><strong>Back porch</strong> — a short black gap <em>after</em> the sync pulse, giving the beam time to settle before real pixels start again.</li>
+  <li><strong>Hsync</strong> (horizontal sync) = "<em>this line is finished — snap back to the left edge and begin the next row.</em>"</li>
+  <li><strong>Vsync</strong> (vertical sync) = "<em>this whole picture is finished — snap back to the top-left corner and begin a fresh frame.</em>"</li>
 </ul>
+<p>
+Because position is measured as <em>time since the last sync edge</em>, those edges must land at <strong>exactly</strong> the right instant, every line and every frame, forever. If your sync timing drifts even slightly, the monitor's stopwatch points at the wrong spot and the picture rolls, tears, or reports "out of range."
+</p>
+
+<div class="callout tip">
+<strong>Analogy — an old typewriter.</strong> Typing characters across the page = the visible pixels. Slamming the carriage-return lever (<em>ding!</em>) = <strong>Hsync</strong>: throw the carriage back to the left and roll down one line. Pulling the sheet out and feeding a blank page = <strong>Vsync</strong>: back to the very top. The bell prints nothing — it is pure timing — and that is precisely what a sync pulse is.
+</div>
+
+<h3>4.2 — Why the counters run past 800×600 (the "bigger virtual screen")</h3>
+<p>
+You noticed your <code>hcount</code>/<code>vcount</code> climb to <strong>1040 × 666</strong> even though the screen is only <strong>800 × 600</strong>. You're not imagining it: the design genuinely scans a rectangle <em>larger</em> than anything you can see. Here's why.
+</p>
+<p>
+Back to the CRT. When the beam finishes a visible line at the right edge, it can't teleport home — the magnets steering it need <strong>physical time to swing back</strong> to the left. During that swing the beam must be forced <strong>black</strong> (blanked), or it would smear a bright diagonal streak across the picture. Same at the bottom: after the last visible line the beam needs time to fly from bottom-right all the way back up to top-left.
+</p>
+<p>
+So the standard pads every line and every frame with extra <strong>black, invisible time</strong>:
+</p>
+<ul>
+  <li>Horizontally: 800 visible + 240 invisible = <strong>1040</strong> clocks per line.</li>
+  <li>Vertically: 600 visible + 66 invisible = <strong>666</strong> lines per frame.</li>
+</ul>
+<p>
+Picture your real image as a small box sitting inside a larger <strong>timing canvas</strong>. The beam visits every cell of the big canvas on a fixed schedule, but only <em>paints</em> inside the small inner box — everywhere else it is held black:
+</p>
+
+<svg viewBox="0 0 620 380" width="620">
+  <!-- total timing canvas -->
+  <rect x="40" y="34" width="540" height="296" fill="#1f2937" stroke="#475569" stroke-width="2"/>
+  <!-- visible region -->
+  <rect x="62" y="56" width="396" height="206" fill="#065f46" stroke="#34d399" stroke-width="2"/>
+  <text x="260" y="150" text-anchor="middle" fill="#d1fae5" font-size="16" font-weight="bold">VISIBLE</text>
+  <text x="260" y="174" text-anchor="middle" fill="#d1fae5" font-size="12">800 × 600 — what you actually see</text>
+
+  <!-- blanking margin labels -->
+  <text x="520" y="158" text-anchor="middle" fill="#cbd5e1" font-size="11" transform="rotate(-90 520 158)">H blanking (240 clocks)</text>
+  <text x="260" y="300" text-anchor="middle" fill="#cbd5e1" font-size="11">V blanking (66 lines)</text>
+
+  <!-- captions -->
+  <text x="260" y="24" text-anchor="middle" fill="#94a3b8" font-size="12">TOTAL SCAN = 1040 × 666  (what hcount / vcount count up to)</text>
+  <text x="310" y="362" text-anchor="middle" fill="#94a3b8" font-size="11">Gray border = blanking: always black, and it carries the porches + sync pulses</text>
+</svg>
 
 <p>
-The visible pixels + front porch + sync + back porch together are <strong>more</strong> than the visible resolution. That is why an 800-pixel-wide screen actually needs <strong>1040 pixel-clocks per line</strong>, and a 600-line screen needs <strong>666 lines per frame</strong>.
+Those extra rows and columns are <strong>never displayed</strong>. They are pure housekeeping time during which the sync pulse fires and the beam repositions. Your counters keep ticking straight through them — which is exactly why the counters are bigger than the resolution. The clock doesn't pause during the "commercial break"; it simply doesn't draw.
+</p>
+
+<div class="callout">
+<strong>So "is there a bigger virtual display?"</strong> Yes — but in <em>time</em>, not in pixels. A larger <em>timing</em> rectangle (1040×666) is wrapped around the smaller <em>visible</em> rectangle (800×600). The gap between them is the blanking region, and it exists entirely to give the beam room to fly back and to carry the sync pulses.
+</div>
+
+<h3>4.3 — Front porch, sync, back porch</h3>
+<p>
+That invisible black time isn't one lump — on each axis it's split into three named slices arranged <em>around</em> the sync pulse:
+</p>
+<ul>
+  <li><strong>Front porch</strong> — a short black gap <em>after</em> the visible pixels but <em>before</em> the sync pulse (lets the line settle to black before the "go home" command).</li>
+  <li><strong>Sync pulse</strong> — the actual "snap back" command described in 4.1.</li>
+  <li><strong>Back porch</strong> — a short black gap <em>after</em> the sync pulse, giving the beam time to arrive and settle before real pixels resume.</li>
+</ul>
+<p>
+Order along one line: <span class="pill vis">VISIBLE</span> → <span class="pill blank">front porch</span> → <span class="pill sync">sync</span> → <span class="pill blank">back porch</span> → (repeat). The same three-part pattern repeats vertically in units of whole lines.
 </p>
 
 <div class="callout warn">
-The names "porch" come from the shape of the analog video waveform — the flat black shelves sitting on either side of the sync pulse looked like the front and back porches of a house.
+<strong>Where the silly name comes from:</strong> on an oscilloscope the analog video voltage shows two flat black "shelves" on either side of the sync pulse. To 1930s television engineers they looked like the flat <strong>front porch and back porch of a house</strong>, with the sync pulse as the step down between them — and the nickname simply stuck.
 </div>
 </section>
 
