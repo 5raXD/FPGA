@@ -51,16 +51,15 @@ module VGA_Interface_tb;
 
 
     always @(posedge clk) begin
-        expected_pixel_color <= pixel_color;
-        x_d <= XCoord;
-        y_d <= YCoord;
-
         if(vga_if.pix_en == 1) begin
+            expected_pixel_color <= pixel_color;
+            x_d <= XCoord;
+            y_d <= YCoord;
             pixel_color <= (XCoord <= H_VISIBLE && YCoord <= V_VISIBLE)? $random : 12'h000;
             correct <= ({vgaRed, vgaGreen, vgaBlue} === ((x_d <= H_VISIBLE && y_d <= V_VISIBLE) ? expected_pixel_color : 12'h000)) &&
-                    (Hsync === ((x_d > H_FRONT_PORCH) && (x_d <= H_SYNC_END))) &&
-                    (Vsync === ((y_d > V_FRONT_PORCH) && (y_d <= V_SYNC_END))) &&
-                    correct;
+                        (Hsync === ((x_d > H_FRONT_PORCH) && (x_d <= H_SYNC_END))) &&
+                        (Vsync === ((y_d > V_FRONT_PORCH) && (y_d <= V_SYNC_END))) &&
+                        correct;
         end
     end
 
@@ -72,18 +71,14 @@ module VGA_Interface_tb;
 
         clk = 0;
         correct = 1;
-        rstn = 1;
+        rstn = 0;
         pixel_color = 12'h000;
         expected_pixel_color = 12'h000;
         x_d = 0;
         y_d = 0;
 
-        // reset
-        @(posedge clk); 
-        rstn = 0;
-        correct = 1;
-        #10;
-        rstn = 1;
+        // reset for 20 ns
+        #20 rstn = 1;
         correct = 1;
 
         repeat ((H_TOTAL+1) * (V_TOTAL+1) * 2) #10; // run for 1 frames
