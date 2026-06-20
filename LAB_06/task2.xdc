@@ -8,6 +8,11 @@ set_property PACKAGE_PIN W5 [get_ports clk]
 set_property IOSTANDARD LVCMOS33 [get_ports clk]
 create_clock -period 10.000 -name sys_clk_pin -waveform {0.000 5.000} -add [get_ports clk]
 
+# 50 MHz pixel clock: the "pclk" register in VGA_Interface divides sys_clk by 2.
+# Declaring it as a generated clock makes Vivado time the FFs it drives
+# (clears the 36 TIMING-17 "Non-clocked sequential cell" critical warnings).
+# create_generated_clock -name pclk -source [get_pins -hierarchical -filter {NAME =~ *pclk_reg/C}] -divide_by 2 [get_pins -hierarchical -filter {NAME =~ *pclk_reg/Q}]
+
 # Switches
 set_property PACKAGE_PIN V17 [get_ports {sw[0]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {sw[0]}]
