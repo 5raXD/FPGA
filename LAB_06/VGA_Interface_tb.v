@@ -84,7 +84,7 @@ module VGA_Interface_tb;
         repeat ((H_TOTAL+1) * (V_TOTAL+1) * 2) #10; // run for 1 frames
 
         if (correct) begin
-            $display("Test passed!");
+            $display("Test passed!!");
         end else begin
             $display("Test failed!");
         end
