@@ -25,7 +25,7 @@ module Drawer(
     input  wire        btnr,
     input  wire [10:0] XCoord,
     input  wire [10:0] YCoord,
-    output reg  [11:0] pixel_color
+    output wire [11:0] pixel_color   // was: output reg [11:0] pixel_color
     );
 
     // 800x600 visible region downsampled by 8
@@ -65,8 +65,10 @@ module Drawer(
     wire inside = (x_ds >= left) && (x_ds <= right)
                && (y_ds >= top ) && (y_ds <= bottom);
 
-    always @(posedge clk) begin
-        pixel_color <= inside ? sw : 12'h000;
-    end
+    // always @(posedge clk) begin
+    //     pixel_color <= inside ? sw : 12'h000;
+    // end
+
+    assign pixel_color = inside ? sw : 12'h000;
 
 endmodule
