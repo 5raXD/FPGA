@@ -62,13 +62,13 @@ module Drawer(
     wire [7:0] x_ds = XCoord[10:3];
     wire [7:0] y_ds = YCoord[10:3];
 
-    wire inside = (x_ds >= left) && (x_ds <= right)
+    wire in_rect = (x_ds >= left) && (x_ds <= right)
                && (y_ds >= top ) && (y_ds <= bottom);
 
     // always @(posedge clk) begin
-    //     pixel_color <= inside ? sw : 12'h000;
+    //     pixel_color <= in_rect ? sw : 12'h000;
     // end
 
-    assign pixel_color = inside ? sw : 12'h000;
+    assign pixel_color = in_rect ? sw : 12'h000;
 
 endmodule
