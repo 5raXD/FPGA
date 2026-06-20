@@ -47,10 +47,9 @@ module VGA_Interface_tb;
 
     always @(posedge clk) begin
         pixel_color <= (XCoord <= H_VISIBLE && YCoord <= V_VISIBLE)? $random : 12'h000;
-        // correct <= 
-        
-        // ((XCoord <= 799) && (YCoord <= 599) ? pixel_color : 12'h000
-        //          && (XCoord <= 799) && (YCoord <= 599) ? 1'b1 : 1'b0);
+        correct <= ({vgaRed, vgaGreen, vgaBlue} == pixel_color) &&
+                   (Hsync == ((XCoord > H_FRONT_PORCH) && (XCoord <= H_SYNC_END))) &&
+                   (Vsync == ((YCoord > V_FRONT_PORCH) && (YCoord <= V_SYNC_END)));
     end
 
     initial begin
@@ -61,14 +60,15 @@ module VGA_Interface_tb;
 
         clk         = 0;
         rstn        = 1;
-        pixel_color = 12'hAF3;
+        pixel_color = 12'h000;
 
         // reset
-        #10 rstn = 0;
-        #20 rstn = 1;
+        #10; 
+        rstn = 0;
+        #10;
+        rstn = 1;
 
-        // run ~2 horizontal lines (1 line = 1040 px x 20 ns = 20.8 us)
-        #45_000;
+        repeat (H_TOTAL * V_TOTAL) #10; // run for 1 frames
         $finish;
     end
 
