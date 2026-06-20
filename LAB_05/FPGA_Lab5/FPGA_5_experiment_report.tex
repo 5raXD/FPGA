@@ -1,0 +1,707 @@
+\documentclass[11pt,a4paper]{article}
+
+% ----- Encoding & fonts (clean sans-serif) -----
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{microtype}
+
+% ----- Math + formatting -----
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{booktabs}
+
+% ----- Figures + drawing -----
+\usepackage{graphicx}
+\usepackage{float}
+
+% ----- Code listings -----
+\usepackage{listings}
+\usepackage[table]{xcolor}
+
+% ----- Layout -----
+\usepackage[margin=1in,headheight=14pt]{geometry}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+
+% ----- Theme colours -----
+\definecolor{accent}{HTML}{1F4E79}     % deep professional blue
+\definecolor{accentdk}{HTML}{2E2E2E}   % near-black for subsections
+\definecolor{accentlt}{HTML}{D9E2F0}   % light blue table tint
+\definecolor{rulegray}{HTML}{B9B9B9}
+\definecolor{codebg}{HTML}{F7F7F4}
+\definecolor{codecomment}{HTML}{6A737D}
+\definecolor{codekw}{HTML}{0B5FA5}
+\definecolor{codestr}{HTML}{B5210F}
+
+% ----- Section / subsection styling -----
+\titleformat{\section}
+  {\color{accent}\Large\bfseries}{}{0pt}{}
+  [\vspace{2pt}{\color{accent}\titlerule[1.1pt]}]
+\titlespacing*{\section}{0pt}{16pt}{8pt}
+
+\titleformat{\subsection}
+  {\color{accentdk}\large\bfseries}{}{0pt}{}
+\titlespacing*{\subsection}{0pt}{12pt}{3pt}
+
+% ----- Page header / footer -----
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{accentdk} FPGA 5 -- Keyboard}
+\fancyhead[R]{\small\color{accentdk}FPGA Lab}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% ----- Verilog listing style -----
+\lstdefinestyle{vlog}{
+    language=Verilog,
+    backgroundcolor=\color{codebg},
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{codekw}\bfseries,
+    commentstyle=\color{codecomment}\itshape,
+    stringstyle=\color{codestr},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    numbersep=8pt,
+    frame=single,
+    rulecolor=\color{rulegray},
+    breaklines=true,
+    showstringspaces=false,
+    tabsize=4,
+    xleftmargin=2.2em,
+    framexleftmargin=2.2em,
+    aboveskip=10pt,
+    belowskip=6pt,
+    captionpos=b,
+}
+\lstset{style=vlog}
+
+% ----- A placeholder box for screenshots still to be pasted in -----
+% Replace each \placeholder{...} with a real \includegraphics{...} once the
+% image is exported from Vivado / taken with a camera.
+\newcommand{\placeholder}[2][0.92\linewidth]{%
+  \begin{center}
+  \setlength{\fboxsep}{0pt}%
+  \fcolorbox{rulegray}{white}{\begin{minipage}[c][4.4cm][c]{#1}
+    \centering\itshape\color{gray}
+    [ paste screenshot here ]\\[5pt]
+    \footnotesize #2
+  \end{minipage}}
+  \end{center}%
+}
+
+% ----- A real figure: framed image + italic caption underneath -----
+\newcommand{\reportfig}[3][\linewidth]{%
+  \begin{center}
+  \setlength{\fboxsep}{1.5pt}%
+  \fcolorbox{rulegray}{white}{\includegraphics[width=#1]{#2}}\\[4pt]
+  {\footnotesize\itshape #3}
+  \end{center}%
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.6em}
+
+\begin{document}
+
+% ======================================================================
+%  TITLE BLOCK
+% ======================================================================
+\thispagestyle{fancy}
+\begin{center}
+  {\color{accent}\rule{\linewidth}{1.4pt}}\\[10pt]
+  {\fontsize{24}{28}\selectfont \textbf{\color{accent}FPGA Experiment Report}}\\[6pt]
+  {\large Experiment 5 --- PS/2 Keyboard Interface}\\[8pt]
+  {\color{accent}\rule{\linewidth}{1.4pt}}
+\end{center}
+
+\vspace{6pt}
+
+\renewcommand{\arraystretch}{1.3}
+\begin{center}
+\begin{tabular}{@{}l l l@{}}
+\textbf{Task:} & FPGA 5 --- Keyboard (PS/2 interface) & \\
+\textbf{Student 1:} & Mahmood Stitia & \textbf{ID:} 214032682 \\
+\textbf{Student 2:} & Saleh Khalil  & \textbf{ID:} 213310485 \\
+\end{tabular}
+\end{center}
+
+\vspace{6pt}
+
+% ======================================================================
+%  PART 1 - STATUS UPDATE
+% ======================================================================
+\section*{Part 1 --- Status update}
+
+The table below lists the submitted files and their status. The status is one of
+\emph{Done} (module and simulation written and passing), \emph{Partially done}
+(started but not fully working --- explained in the notes), or \emph{Not started}.
+
+\vspace{4pt}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabularx}{\textwidth}{|>{\bfseries\ttfamily}l|c|X|}
+\hline
+\rowcolor{accent}
+\textcolor{white}{\textbf{File / Step}} & \textcolor{white}{\textbf{Status}} & \textcolor{white}{\textbf{Notes / comments}} \\ \hline
+\rowcolor{accentlt}
+Ps2\_Interface.v     & Done & \\ \hline
+Ps2\_Interface\_tb.v & Done & \\ \hline
+\rowcolor{accentlt}
+Ps2\_Display.v       & Done & \\ \hline
+Ps2\_Top.v           & Done & \\ \hline
+\rowcolor{accentlt}
+task1.xdc            & Done & \\ \hline
+\end{tabularx}
+\renewcommand{\arraystretch}{1.0}
+
+\subsection*{Issues}
+
+Any errors present at the time of submission are described here (per module /
+simulation, with what the error means).
+
+\begin{itemize}[topsep=2pt,itemsep=2pt,leftmargin=1.4em]
+  \item \texttt{Ps2\_Interface.v}:
+  \item \texttt{Ps2\_Interface\_tb.v}:
+  \item \texttt{Ps2\_Display.v}:
+  \item \texttt{Ps2\_Top.v}:
+  \item \texttt{task1.xdc}:
+\end{itemize}
+
+% ======================================================================
+%  PART 2 - SIMULATIONS AND ANSWERS
+% ======================================================================
+\newpage
+\section*{Part 2 --- Simulations and answers}
+\vspace{1cm}
+\subsection*{Simulation --- Ps2\_Interface}
+
+
+
+
+
+
+
+
+To verify the \texttt{Ps2\_Interface} module, we  emulate the behavior of a real PS/2 keyboard. The PS/2 clock is generated with a
+\SI{60}{\micro\second} period (a \SI{30}{\micro\second} half-period),
+which corresponds to a frequency of approximately \SI{16.7}{\kilo\hertz}.
+This value sits inside the standard PS/2 clock range
+(\SIrange{10}{16.7}{\kilo\hertz}), so the simulation exercises the
+interface at a realistic device speed.
+
+Each key event is transmitted by the \texttt{send\_byte} task, which
+serializes a byte into the standard 11-bit PS/2 frame:
+one start bit (\texttt{0}), eight data bits sent LSB-first, one odd-parity
+bit, and one stop bit (\texttt{1}). For every bit the data line is updated
+and the PS/2 clock is toggled low-then-high, reproducing the way a keyboard
+shifts data out on its own clock. A short idle gap is inserted between
+frames to separate consecutive presses.
+
+
+\vspace{0.5cm}
+\subsubsection*{Simulated Scenario}
+
+The testbench plays out three scenarios that cover the key behaviours of the
+interface:
+
+\begin{enumerate}
+    \item \textbf{Press `5' (\texttt{0x73}).}
+    A single make-code is sent. We expect \texttt{keyPressed} to pulse and
+    \texttt{scancode} to equal \texttt{0x73}.
+
+    \item \textbf{Release `5' then press `0'.}
+    First the break sequence \texttt{F0 73} is sent (the \texttt{F0} prefix
+    marks a key release), and the interface correctly ignores it without
+    raising \texttt{keyPressed}. Immediately afterwards the make-code
+    \texttt{0x70} (`0') is sent, and we expect \texttt{keyPressed} to pulse
+    with \texttt{scancode == 0x70}. This checks that a release of one key is
+    discarded and a following new press is still detected.
+
+    \item \textbf{Hold `0' (auto-repeat).}
+    The same make-code \texttt{0x70} is sent a second time with no
+    intervening release. Because the key is already considered pressed, the
+    interface must \emph{not} raise \texttt{keyPressed} again, while
+    \texttt{scancode} still reads \texttt{0x70}. This verifies that the
+    keyboard's typematic auto-repeat does not generate spurious new presses.
+\end{enumerate}
+
+
+\vspace{1cm}
+\subsection{Metastability and Clock-Domain Considerations}
+
+The PS/2 clock and data lines come from the keyboard and are
+\emph{asynchronous} to the FPGA. Sampling such a signal while it is
+transitioning can drive a flip-flop into a \emph{metastable} state, where its
+output settles to an undefined value and may corrupt downstream logic.
+
+Following the approach from class, we only sample the line when it is
+guaranteed stable. The PS/2 protocol holds \texttt{PS2Data} steady through the
+falling edge of \texttt{PS2Clk}, so our receiver shifts the data in on
+\texttt{negedge PS2Clk}, capturing each bit in its stable window and avoiding
+metastable sampling.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\newpage
+\reportfig[\linewidth]{tb_waveform.png}{Full Ps2\_Interface\_tb
+ with $TCL$ $Console$ message \textbf{Test Passed - Ps2\_Interface\_tb}}
+
+\textbf{Signals} (top to bottom in the waveform):
+\begin{itemize}[noitemsep,topsep=2pt,leftmargin=1.4em]
+  \item \texttt{PS2Clk} - the keyboard clock (input). It toggles only while a byte is being sent and is idle-high.
+  \item \texttt{rstn} - active-low \emph{asynchronous} reset (driven by the test-bench).
+  \item \texttt{correct} - a test-bench-only pass/fail flag.
+  \item \texttt{PS2Data} - the serial data line. Carries 11-bit frame, sampled on the falling edge of \texttt{PS2Clk}.
+  \item \texttt{byte\_to\_send[7:0]} - a test-bench register holding the byte currently being bit-banged onto \texttt{PS2Data}.
+  \item \texttt{scancode[7:0]} - interface output: the most recent accepted make-code.
+  \item \texttt{keyPressed} - interface output: a one-cycle pulse on the first make-code of a new press.
+  \item \texttt{parity\_ok} - internal interface signal : high when the frame's odd-parity bit matches the 8 data bits.
+\end{itemize}
+
+\reportfig[\linewidth]{tb_waveform_.pdf}{Annotated close-up of the same
+simulation. The red notes mark the first key edge and that the first bit is sent
+on the \emph{negative} clock edge.}
+
+% ======================================================================
+%  ELABORATED DESIGN
+% ======================================================================
+\newpage
+\section*{Elaborated Design}
+
+\subsection*{Top module}
+
+\reportfig[\linewidth]{linter_elaborated_design.png}{RTL-elaborated schematic of
+\texttt{Ps2\_Top}: \texttt{u\_interface} (\texttt{Ps2\_Interface}, PS2Clk domain)
+feeds \texttt{keyPressed} and \texttt{scancode[7:0]} into \texttt{u\_display}
+(\texttt{Ps2\_Display}, 100\,MHz domain); the \texttt{reset} push-button passes
+through an \texttt{RTL\_INV} (\texttt{rstn\_i}) into \texttt{rstn}. Inputs
+\texttt{clk, PS2Clk, PS2Data, reset} are on the left and outputs
+\texttt{an[3:0], dp, led, seg[6:0]} on the right.}
+
+\subsection*{Ps2\_Interface}
+
+\reportfig[\linewidth]{sch_innterface.png}{RTL-elaborated schematic of the Interface}
+
+% ======================================================================
+%  IMPLEMENTATION
+% ======================================================================
+\newpage
+\section*{Implementation}
+
+\subsection*{Synthesis schematic}
+
+\reportfig[\linewidth]{synthesis_schematic.png}{Post-synthesis schematic. Every
+external port now passes through an \texttt{IBUF}/\texttt{OBUF}, the two clocks}
+
+\subsection*{Project summary}
+
+\reportfig[\linewidth]{project_summary.png}{Post-implementation project summary}
+
+\subsection*{Timing summary}
+
+\reportfig[\linewidth]{design_timing_report.png}{Design Timing Summary after
+implementation}
+
+\subsection*{Critical Path}
+
+\reportfig[\linewidth]{critical_path.png}{Intra-Clock Paths report. The worst
+paths (Path~1--4) run inside \texttt{u\_display} from
+\texttt{led\_timer\_reg[16]/C} to \texttt{led\_timer\_reg[20..23]/CE}, with slack
+$5.269$\,ns, 3 logic levels and $4.361$\,ns total delay ($1.054$\,ns logic
+$+\,3.307$\,ns net) against the $10$\,ns requirement}
+\newpage
+\subsection*{Device}
+
+\reportfig[1\linewidth]{synthesized_design.png}{Device (floorplan) view of the
+placed-and-routed design on the Artix-7 (\texttt{XC7A35T})}
+
+% ======================================================================
+%  PROBLEMS WE FACED
+% ======================================================================
+
+\reportfig[1\linewidth]{system.jpeg}{The full system on hardware: the numeric
+keypad plugged into the Basys-3 USB-host port. Key "5" is pressed and its
+PS/2 scan-code 73 is shown on the two right-hand 7-segment digits.}
+
+
+% ======================================================================
+%  APPENDIX - VERILOG SOURCE CODE
+% ======================================================================
+\newpage
+\section*{Appendix --- Verilog Source Code}
+
+The full source of the submitted files is listed below. Paste the code of each
+file inside its block.
+
+\subsection*{Ps2\_Interface.v}
+\begin{lstlisting}
+module Ps2_Interface(
+    input wire PS2Clk,
+    input wire rstn,
+    input wire PS2Data,
+    output reg [7:0] scancode,
+    output reg keyPressed
+    );
+
+    reg [21:0] shift_reg;
+    reg [3:0]  bit_count;
+    reg is_valid;
+    wire parity_ok;
+    wire [7:0] cur_byte  = shift_reg[20:13];
+    wire [7:0] prev_byte = shift_reg[9:2];
+
+    always @(negedge PS2Clk or negedge rstn) begin
+        if (!rstn) begin
+            bit_count <= 4'b0;
+            shift_reg <= 22'b0;
+            scancode <= 8'b0;
+            keyPressed <= 1'b0;
+            is_valid <= 1'b1;
+        end else begin
+            shift_reg <= {PS2Data, shift_reg[21:1]};
+            bit_count <= (bit_count == 4'd10)? 4'd0 : bit_count + 4'd1;
+            keyPressed <= 1'b0; // default
+
+            if (bit_count == 4'd10) begin
+                if (cur_byte == 8'hE0 || cur_byte == 8'hF0) begin
+                    // skip
+                end
+                else if (prev_byte == 8'hF0) begin
+                    is_valid <= 1'b1;
+                end
+                else begin
+                    scancode <= cur_byte;
+                    if (is_valid) begin
+                        keyPressed <= parity_ok;
+                        is_valid <= 1'b0;
+                    end
+                end
+            end 
+               
+        end
+
+    end
+
+    assign parity_ok = (shift_reg[21] == ~(^cur_byte));
+
+endmodule
+\end{lstlisting}
+
+\newpage
+\subsection*{Ps2\_Interface\_tb.v}
+\begin{lstlisting}
+module Ps2_Interface_tb();
+
+    localparam CLK_HALF = 30_000;   // 30 us half -> 60 us period -> ~16.7 kHz PS/2 clock
+
+    reg PS2Clk, rstn, PS2Data, correct;
+    wire [7:0] scancode;
+    wire keyPressed;
+    wire parity_ok = uut.parity_ok;
+    reg [7:0] byte_to_send;
+
+
+    // Instantiate the UUT (Unit Under Test)
+    Ps2_Interface uut(
+        .PS2Clk(PS2Clk),
+        .rstn(rstn),
+        .PS2Data(PS2Data),
+        .scancode(scancode),
+        .keyPressed(keyPressed)
+        );
+
+    initial begin
+
+        if($test$plusargs("vcd")) begin
+            $dumpfile("Ps2_Interface_tb.vcd");
+            $dumpvars(0, Ps2_Interface_tb);
+        end
+
+        correct = 1;
+        PS2Clk = 1;  
+        PS2Data = 1; 
+        rstn = 0;
+
+        #(CLK_HALF);
+        rstn = 1;
+        #(CLK_HALF);
+
+        // 1- press '5' (0x73)
+        byte_to_send = 8'h73;
+        send_byte(byte_to_send);
+        correct = correct & keyPressed & (scancode == 8'h73);
+
+        // 2- release '5' (F0 73) then press '0' (0x70)
+        byte_to_send = 8'hF0;
+        send_byte(byte_to_send);
+        byte_to_send = 8'h73;
+        send_byte(byte_to_send);
+        byte_to_send = 8'h70;
+        send_byte(byte_to_send);
+        correct = correct & keyPressed & (scancode == byte_to_send);
+
+        // 3- hold '0' (auto-repeat 0x70)
+        send_byte(byte_to_send);
+        correct = correct & ~keyPressed & (scancode == byte_to_send);
+
+
+        if (correct)
+            $display("Test Passed - %m");
+        else
+            $display("Test Failed - %m");
+        $finish;
+    end
+
+    // send the pressed key in serial format - 11 bits
+    task send_byte(input [7:0] b);
+        integer k;
+        reg [10:0] frame;
+        begin
+            frame = {1'b1, ~(^b), b, 1'b0};
+            for (k = 0; k < 11; k = k + 1) begin
+                PS2Data = frame[k];
+                #CLK_HALF;
+                PS2Clk = 0;
+                #CLK_HALF;
+                PS2Clk = 1;
+            end
+            #(CLK_HALF*4); // idle time gap between presses
+        end
+    endtask
+
+endmodule
+\end{lstlisting}
+
+\newpage
+\subsection*{Ps2\_Display.v}
+\begin{lstlisting}
+module Ps2_Display(
+    input  wire       clk,         // 100 MHz system clock
+    input  wire       rstn,        // active-low reset
+    input  wire       keyPressed,  // pulse from Ps2_Interface (slow domain)
+    input  wire [7:0] scancode,    // byte from Ps2_Interface (slow domain)
+    output wire [6:0] seg,         // 7-segment cathodes (active low)
+    output wire [3:0] an,          // 4 digit anodes (active low)
+    output wire       dp,          // decimal point
+    output reg        led          // strobe LED, one visible blink per press
+    );
+    reg [6:0] a_to_g;
+    reg [3:0] an_reg;
+
+    assign seg = a_to_g;
+    assign an  = an_reg;
+    assign dp  = 1'b1;
+    
+    wire [1:0] s;    
+    reg  [3:0] digit;
+
+    reg kp_sync1, kp_sync2, kp_prev;
+    reg [7:0] valid_scancode;
+    
+    always @(posedge clk or negedge rstn) begin
+        if (!rstn) begin
+            kp_sync1 <= 1'b0;
+            kp_sync2 <= 1'b0;
+            kp_prev  <= 1'b0;
+            valid_scancode <= 8'h00;
+        end else begin
+            kp_sync1 <= keyPressed;
+            kp_sync2 <= kp_sync1;
+            kp_prev  <= kp_sync2;
+
+            if (kp_sync2 & ~kp_prev) begin
+                valid_scancode <= scancode;
+            end
+        end
+    end
+    
+    wire kp_edge = kp_sync2 & ~kp_prev;
+
+    reg [23:0] led_timer;
+    
+    always @(posedge clk or negedge rstn) begin
+        if (!rstn) begin
+            led_timer <= 24'd0;
+            led <= 1'b0;
+        end else if (kp_edge) begin
+            led_timer <= 24'd10_000_000; // ~0.1 seconds at 100MHz
+            led <= 1'b1;
+        end else if (led_timer > 0) begin
+            led_timer <= led_timer - 1;
+            led <= 1'b1;
+        end else begin
+            led <= 1'b0;
+        end
+    end
+
+    reg [19:0] clkdiv = 20'b0;
+    
+    always @(posedge clk or negedge rstn) begin
+        if (!rstn)
+            clkdiv <= 0;
+        else
+            clkdiv <= clkdiv + 1;
+    end
+    
+    assign s = clkdiv[19:18];
+
+    always @(*) begin
+        an_reg = 4'b1111; 
+        
+        case(s)
+            2'b00: begin 
+                digit = valid_scancode[3:0];
+                an_reg[0] = 1'b0;
+            end
+            2'b01: begin 
+                digit = valid_scancode[7:4];
+                an_reg[1] = 1'b0;
+            end
+            default: begin 
+                digit = 4'h0; 
+                an_reg = 4'b1111;
+            end
+        endcase
+    end
+
+    always @(*) begin
+        case(digit)
+            //////////<---MSB-LSB<---/////
+            4'h0: a_to_g = 7'b1000000; // 0
+            4'h1: a_to_g = 7'b1111001; // 1
+            4'h2: a_to_g = 7'b0100100; // 2
+            4'h3: a_to_g = 7'b0110000; // 3
+            4'h4: a_to_g = 7'b0011001; // 4
+            4'h5: a_to_g = 7'b0010010; // 5
+            4'h6: a_to_g = 7'b0000010; // 6
+            4'h7: a_to_g = 7'b1111000; // 7
+            4'h8: a_to_g = 7'b0000000; // 8
+            4'h9: a_to_g = 7'b0010000; // 9
+            4'hA: a_to_g = 7'b0001000; // A
+            4'hB: a_to_g = 7'b0000011; // b
+            4'hC: a_to_g = 7'b1000110; // C
+            4'hD: a_to_g = 7'b0100001; // d
+            4'hE: a_to_g = 7'b0000110; // E
+            4'hF: a_to_g = 7'b0001110; // F
+            default: a_to_g = 7'b1111111; // blank
+        endcase
+    end
+endmodule
+\end{lstlisting}
+
+\newpage
+\subsection*{Ps2\_Top.v}
+\begin{lstlisting}
+module Ps2_Top(
+    input  wire       clk,        // W5  - 100 MHz system clock
+    input  wire       reset,      // U18 - btnC, active high (pressed = 1)
+    input  wire       PS2Clk,     // C17 - keyboard clock
+    input  wire       PS2Data,    // B17 - keyboard data
+    output wire [6:0] seg,        // 7-segment cathodes
+    output wire [3:0] an,         // 7-segment anodes
+    output wire       dp,         // decimal point
+    output wire       led         // U16 - strobe LED (LD0)
+    );
+
+    wire rstn = ~reset;
+    wire keyPressed;
+    wire [7:0] scancode;
+
+    Ps2_Display u_display(
+    .clk  (clk),
+    .rstn (rstn),
+    .keyPressed (keyPressed),
+    .scancode   (scancode),
+    .seg  (seg),
+    .an   (an),
+    .dp   (dp),
+    .led  (led));
+
+    Ps2_Interface u_interface(
+    .PS2Clk   (PS2Clk),
+    .rstn     (rstn),
+    .PS2Data  (PS2Data),
+    .scancode (scancode),
+    .keyPressed (keyPressed));
+
+endmodule
+\end{lstlisting}
+
+\newpage
+\subsection*{task1.xdc}
+\begin{lstlisting}[language=]
+# Clock signal
+set_property PACKAGE_PIN W5 [get_ports clk]
+set_property IOSTANDARD LVCMOS33 [get_ports clk]
+create_clock -period 10.000 -name sys_clk_pin -waveform {0.000 5.000} -add [get_ports clk]
+# LEDs
+set_property PACKAGE_PIN U16 [get_ports led]
+set_property IOSTANDARD LVCMOS33 [get_ports led]
+#7 segment display
+set_property PACKAGE_PIN W7 [get_ports {seg[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {seg[0]}]
+set_property PACKAGE_PIN W6 [get_ports {seg[1]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {seg[1]}]
+set_property PACKAGE_PIN U8 [get_ports {seg[2]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {seg[2]}]
+set_property PACKAGE_PIN V8 [get_ports {seg[3]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {seg[3]}]
+set_property PACKAGE_PIN U5 [get_ports {seg[4]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {seg[4]}]
+set_property PACKAGE_PIN V5 [get_ports {seg[5]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {seg[5]}]
+set_property PACKAGE_PIN U7 [get_ports {seg[6]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {seg[6]}]
+
+set_property PACKAGE_PIN V7 [get_ports dp]
+set_property IOSTANDARD LVCMOS33 [get_ports dp]
+
+set_property PACKAGE_PIN U2 [get_ports {an[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {an[0]}]
+set_property PACKAGE_PIN U4 [get_ports {an[1]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {an[1]}]
+set_property PACKAGE_PIN V4 [get_ports {an[2]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {an[2]}]
+set_property PACKAGE_PIN W4 [get_ports {an[3]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {an[3]}]
+
+
+#Buttons
+set_property PACKAGE_PIN U18 [get_ports reset]
+set_property IOSTANDARD LVCMOS33 [get_ports reset]
+#USB HID (PS/2)
+set_property PACKAGE_PIN C17 [get_ports PS2Clk]
+set_property IOSTANDARD LVCMOS33 [get_ports PS2Clk]
+set_property PULLUP true [get_ports PS2Clk]
+set_property PACKAGE_PIN B17 [get_ports PS2Data]
+set_property IOSTANDARD LVCMOS33 [get_ports PS2Data]
+set_property PULLUP true [get_ports PS2Data]
+
+# Don't even think to change the following values !!!!!
+set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
+set_property BITSTREAM.CONFIG.CONFIGRATE 33 [current_design]
+set_property CONFIG_MODE SPIx4 [current_design]
+set_property CFGBVS VCCO [current_design]
+set_property CONFIG_VOLTAGE 3.3 [current_design]
+\end{lstlisting}
+
+\end{document}
