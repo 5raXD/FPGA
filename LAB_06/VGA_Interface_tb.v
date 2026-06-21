@@ -48,8 +48,6 @@ module VGA_Interface_tb;
     reg [11:0] expected_pixel_color;
     reg [10:0] x_d, y_d;
 
-
-
     always @(posedge clk) begin
         if(vga_if.pix_en == 1) begin
             expected_pixel_color <= pixel_color;
