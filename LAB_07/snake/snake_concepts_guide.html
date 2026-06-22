@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Snake on an FPGA — Background &amp; Concepts Guide (Lab 7)</title>
+<style>
+  :root{
+    --bg:#0f172a; --panel:#1e293b; --ink:#e2e8f0; --muted:#94a3b8;
+    --accent:#38bdf8; --accent2:#fbbf24; --good:#34d399; --bad:#f87171;
+    --snake:#34d399; --food:#f87171; --empty:#1f2937; --head:#a3e635; --wall:#64748b;
+    --code:#0b1220;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--ink);line-height:1.65;
+  }
+  header{
+    background:linear-gradient(135deg,#14532d,#0ea5e9);padding:40px 20px;text-align:center;
+    box-shadow:0 4px 20px rgba(0,0,0,.4);
+  }
+  header h1{margin:0;font-size:2.2rem}
+  header p{margin:8px 0 0;color:#dbeafe}
+  main{max-width:1100px;margin:0 auto;padding:30px 20px}
+  nav.toc{
+    background:var(--panel);border-radius:12px;padding:20px 24px;margin-bottom:30px;
+    border:1px solid #334155;
+  }
+  nav.toc h2{margin:0 0 10px;color:var(--accent)}
+  nav.toc ol{margin:0;padding-left:20px}
+  nav.toc a{color:var(--ink);text-decoration:none}
+  nav.toc a:hover{color:var(--accent)}
+  section{
+    background:var(--panel);border-radius:12px;padding:28px;margin-bottom:24px;
+    border:1px solid #334155;box-shadow:0 2px 10px rgba(0,0,0,.25);
+  }
+  section h2{color:var(--accent);border-bottom:2px solid #334155;padding-bottom:8px;margin-top:0}
+  section h3{color:var(--accent2);margin-top:24px}
+  code,pre{font-family:"JetBrains Mono",Menlo,Consolas,monospace;font-size:.9rem}
+  pre{
+    background:var(--code);padding:16px;border-radius:8px;overflow-x:auto;
+    border-left:4px solid var(--accent);
+  }
+  code{background:#0b1220;padding:2px 6px;border-radius:4px;color:#fde68a}
+  pre code{background:none;padding:0;color:var(--ink)}
+  .callout{
+    background:rgba(56,189,248,.1);border-left:4px solid var(--accent);
+    padding:14px 18px;border-radius:6px;margin:16px 0;
+  }
+  .callout.warn{background:rgba(248,113,113,.1);border-left-color:var(--bad)}
+  .callout.tip{background:rgba(52,211,153,.1);border-left-color:var(--good)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media (max-width:760px){.grid2{grid-template-columns:1fr}}
+  table{width:100%;border-collapse:collapse;margin:14px 0}
+  th,td{border:1px solid #334155;padding:8px 12px;text-align:left}
+  th{background:#1e293b;color:var(--accent2)}
+  tr:nth-child(even){background:rgba(255,255,255,.02)}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:10px 0}
+  .legend span{display:inline-flex;align-items:center;gap:6px;font-size:.9rem}
+  .legend i{display:inline-block;width:14px;height:14px;border-radius:3px}
+  svg{display:block;margin:18px auto;max-width:100%;height:auto}
+  .pill{
+    display:inline-block;padding:2px 10px;border-radius:999px;
+    font-size:.8rem;font-weight:700;background:#334155;color:var(--ink);
+  }
+  .pill.snake{background:#065f46;color:#d1fae5}
+  .pill.head{background:#3f6212;color:#ecfccb}
+  .pill.food{background:#7f1d1d;color:#fecaca}
+  .pill.wall{background:#334155;color:#cbd5e1}
+  kbd{
+    display:inline-block;background:#0b1220;border:1px solid #475569;border-bottom-width:3px;
+    border-radius:6px;padding:1px 9px;font-family:monospace;font-weight:700;color:#fde68a;
+  }
+  nav.topbar{
+    position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:2px;
+    background:rgba(11,18,32,.97);border-bottom:1px solid #334155;padding:8px 10px;
+  }
+  nav.topbar a{
+    color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:6px;
+    font-size:.82rem;font-weight:600;white-space:nowrap;
+  }
+  nav.topbar a:hover{background:#1e293b;color:var(--ink)}
+  nav.topbar a.active{background:var(--accent);color:#0f172a}
+  nav.topbar a.home{color:var(--accent2)}
+  .badge{
+    display:inline-block;padding:4px 12px;border-radius:999px;
+    font-size:.78rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase;
+  }
+  .badge.reuse{background:#065f46;color:#d1fae5}
+  .badge.adapt{background:#3f3f1e;color:#fde68a}
+  .badge.newm{background:#1e3a8a;color:#dbeafe}
+  .modhead{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    background:rgba(255,255,255,.03);border:1px solid #334155;border-radius:10px;
+    padding:16px 18px;margin:0 0 20px;
+  }
+  footer{text-align:center;color:var(--muted);padding:30px;font-size:.9rem}
+  .step{
+    counter-increment:step;
+    background:rgba(255,255,255,.03);padding:14px 16px;border-radius:8px;margin:10px 0;
+    border-left:3px solid var(--accent2);
+  }
+  .step::before{
+    content:"Step " counter(step);
+    display:inline-block;background:var(--accent2);color:#0f172a;
+    padding:2px 10px;border-radius:6px;font-weight:700;margin-right:10px;font-size:.85rem;
+  }
+  .steps{counter-reset:step}
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <a class="home active" href="snake_concepts_guide.html">🐍 main</a>
+  <a href="mod_ps2_interface.html">PS2_Interface</a>
+  <a href="mod_direction_control.html">Direction Control</a>
+  <a href="mod_game_tick.html">Game Tick</a>
+  <a href="mod_lfsr.html">LFSR</a>
+  <a href="mod_snake_logic.html">Snake_Logic</a>
+  <a href="mod_renderer.html">Renderer</a>
+  <a href="mod_vga_interface.html">VGA_Interface</a>
+  <a href="mod_seg7_display.html">Seg7 Display</a>
+</nav>
+
+<header>
+  <h1>Snake on an FPGA — Background &amp; Concepts Guide</h1>
+  <p>Tel Aviv University · FPGA Lab · Experiment 7 — Snake</p>
+</header>
+
+<main>
+
+<nav class="toc">
+  <h2>Table of Contents</h2>
+  <ol>
+    <li><a href="#what">What kind of lab is this? (No new protocol — integration)</a></li>
+    <li><a href="#arch">The Big Picture: System Architecture</a></li>
+    <li><a href="#grid">From Pixels to a Game Grid</a></li>
+    <li><a href="#represent">Representing the Snake in Hardware</a></li>
+    <li><a href="#tick">Game Time: the "Tick" vs. the Pixel Clock</a></li>
+    <li><a href="#control">Control: Keyboard, Direction &amp; No Reversal</a></li>
+    <li><a href="#food">Food &amp; Pseudo-Random Numbers (LFSR)</a></li>
+    <li><a href="#collision">Collision Detection (Wall &amp; Self)</a></li>
+    <li><a href="#render">Rendering on VGA</a></li>
+    <li><a href="#score">Score on the 7-Segment Display</a></li>
+    <li><a href="#fsm">Game State Machine &amp; Game-Over Screen</a></li>
+    <li><a href="#pitfalls">Common Pitfalls (Lab 7 Hints!)</a></li>
+    <li><a href="#files">Previous Files That Might Be Useful</a></li>
+  </ol>
+</nav>
+
+<!-- ============================================================ -->
+<section id="what">
+<h2>1. What kind of lab is this? (No new protocol — integration)</h2>
+
+<p>
+Labs 5 and 6 each taught you <strong>one new protocol</strong>: PS/2 (how to read a keyboard) and VGA (how to paint a screen). Lab 7 teaches you <strong>no new protocol at all</strong>. Instead it asks the harder question every real digital-design course eventually asks:
+</p>
+
+<div class="callout tip">
+<strong>The whole lab in one sentence:</strong> you already own all the pieces — a keyboard reader, a screen painter, a 7-segment display, and counters — now <em>design the logic that turns those pieces into a game</em>, from scratch, with no module skeletons handed to you.
+</div>
+
+<p>
+That is exactly what the assignment says: <em>"you are expected to design and implement the modules by yourselves without detailed guidance. We will not supply any code or module inputs and outputs."</em> So this guide is <strong>not</strong> a protocol reference — it is a <strong>concept and architecture</strong> guide. Its job is to give you the mental models you don't have yet so you can invent the block diagram yourself.
+</p>
+
+<h3>What you are building</h3>
+<ul>
+  <li><strong>Graphics</strong> on a VGA monitor — the snake and the food, clearly distinguishable. (reuse Lab 6)</li>
+  <li><strong>Score</strong> on the 7-segment display, incremented every time the snake eats. (reuse earlier 7-seg labs)</li>
+  <li><strong>Control</strong> from the keyboard: <kbd>4</kbd>=Left, <kbd>6</kbd>=Right, <kbd>8</kbd>=Up, <kbd>5</kbd>=Down, with <strong>no immediate 180° reversal</strong>. (reuse Lab 5)</li>
+  <li><strong>Game logic</strong>: the snake grows when it eats, and the game ends if it hits a wall or itself.</li>
+  <li><strong>Bonus</strong>: a dedicated "Game Over" screen.</li>
+</ul>
+
+<div class="callout">
+<strong>Mindset shift.</strong> In Labs 5–6 the timing was dictated by an external standard you had to obey. Here <strong>you</strong> invent the timing, the data structures, and the rules. The grade is mostly about a <em>clean block diagram</em> and modules that are <em>parametric</em> (assignment rule #3: e.g. grid size, snake max length, and bit-widths must be parameters, not magic constants).
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="arch">
+<h2>2. The Big Picture: System Architecture</h2>
+
+<p>
+Before a single line of Verilog, draw the boxes. A clean way to split Snake is into <strong>input → logic → output</strong>, with the game logic in the middle as the brain. Here is a block diagram you can adapt:
+</p>
+
+<svg viewBox="0 0 920 470" width="920">
+  <defs>
+    <marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <!-- INPUT column -->
+  <rect x="20" y="40" width="170" height="70" rx="8" fill="#1e3a8a" stroke="#60a5fa"/>
+  <text x="105" y="68" text-anchor="middle" fill="#dbeafe" font-size="13" font-weight="bold">PS2_Interface</text>
+  <text x="105" y="88" text-anchor="middle" fill="#bfdbfe" font-size="10">(reused, Lab 5)</text>
+  <text x="105" y="102" text-anchor="middle" fill="#bfdbfe" font-size="10">scancode, keyPressed</text>
+
+  <rect x="20" y="150" width="170" height="60" rx="8" fill="#1e3a8a" stroke="#60a5fa"/>
+  <text x="105" y="175" text-anchor="middle" fill="#dbeafe" font-size="13" font-weight="bold">Direction Control</text>
+  <text x="105" y="194" text-anchor="middle" fill="#bfdbfe" font-size="10">decode + no-reversal</text>
+
+  <rect x="20" y="250" width="170" height="60" rx="8" fill="#3f3f1e" stroke="#fbbf24"/>
+  <text x="105" y="275" text-anchor="middle" fill="#fde68a" font-size="13" font-weight="bold">Game Tick</text>
+  <text x="105" y="294" text-anchor="middle" fill="#fef3c7" font-size="10">slow clock-enable</text>
+
+  <rect x="20" y="350" width="170" height="60" rx="8" fill="#3f1e1e" stroke="#f87171"/>
+  <text x="105" y="375" text-anchor="middle" fill="#fecaca" font-size="13" font-weight="bold">LFSR (random)</text>
+  <text x="105" y="394" text-anchor="middle" fill="#fecaca" font-size="10">food position</text>
+
+  <!-- BRAIN -->
+  <rect x="350" y="120" width="220" height="220" rx="10" fill="#064e3b" stroke="#34d399" stroke-width="2"/>
+  <text x="460" y="160" text-anchor="middle" fill="#d1fae5" font-size="16" font-weight="bold">Snake_Logic</text>
+  <text x="460" y="182" text-anchor="middle" fill="#a7f3d0" font-size="11">(the brain — you design this)</text>
+  <text x="460" y="212" text-anchor="middle" fill="#a7f3d0" font-size="11">• snake body memory</text>
+  <text x="460" y="232" text-anchor="middle" fill="#a7f3d0" font-size="11">• head move on each tick</text>
+  <text x="460" y="252" text-anchor="middle" fill="#a7f3d0" font-size="11">• grow / shrink tail</text>
+  <text x="460" y="272" text-anchor="middle" fill="#a7f3d0" font-size="11">• collision + score</text>
+  <text x="460" y="292" text-anchor="middle" fill="#a7f3d0" font-size="11">• game-state FSM</text>
+
+  <!-- OUTPUT column -->
+  <rect x="730" y="60" width="170" height="70" rx="8" fill="#3b1e5e" stroke="#a78bfa"/>
+  <text x="815" y="88" text-anchor="middle" fill="#ddd6fe" font-size="13" font-weight="bold">Renderer</text>
+  <text x="815" y="108" text-anchor="middle" fill="#e9d5ff" font-size="10">pixel_color from grid</text>
+
+  <rect x="730" y="170" width="170" height="70" rx="8" fill="#1e3a8a" stroke="#60a5fa"/>
+  <text x="815" y="198" text-anchor="middle" fill="#dbeafe" font-size="13" font-weight="bold">VGA_Interface</text>
+  <text x="815" y="218" text-anchor="middle" fill="#bfdbfe" font-size="10">(reused, Lab 6)</text>
+
+  <rect x="730" y="280" width="170" height="70" rx="8" fill="#3f3f1e" stroke="#fbbf24"/>
+  <text x="815" y="308" text-anchor="middle" fill="#fde68a" font-size="13" font-weight="bold">Seg7 Display</text>
+  <text x="815" y="328" text-anchor="middle" fill="#fef3c7" font-size="10">(reused) score</text>
+
+  <!-- arrows input -> brain -->
+  <line x1="190" y1="80"  x2="349" y2="160" stroke="#94a3b8" marker-end="url(#arr)"/>
+  <line x1="190" y1="180" x2="349" y2="200" stroke="#94a3b8" marker-end="url(#arr)"/>
+  <line x1="190" y1="280" x2="349" y2="250" stroke="#94a3b8" marker-end="url(#arr)"/>
+  <line x1="190" y1="380" x2="349" y2="300" stroke="#94a3b8" marker-end="url(#arr)"/>
+
+  <!-- arrows brain -> output -->
+  <line x1="570" y1="180" x2="729" y2="95"  stroke="#94a3b8" marker-end="url(#arr)"/>
+  <line x1="570" y1="290" x2="729" y2="315" stroke="#94a3b8" marker-end="url(#arr)"/>
+  <!-- renderer -> vga -->
+  <line x1="815" y1="130" x2="815" y2="169" stroke="#94a3b8" marker-end="url(#arr)"/>
+
+  <!-- VGA coords feedback to renderer -->
+  <path d="M730,205 C650,205 650,120 729,110" fill="none" stroke="#475569" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <text x="640" y="150" fill="#64748b" font-size="9" text-anchor="middle">XCoord / YCoord</text>
+
+  <text x="460" y="40" text-anchor="middle" fill="#94a3b8" font-size="12">INPUT  →  GAME LOGIC (brain)  →  OUTPUT</text>
+</svg>
+
+<table>
+<tr><th>Block</th><th>Job</th><th>Reused from</th></tr>
+<tr><td><a href="mod_ps2_interface.html"><strong>PS2_Interface</strong></a></td><td>Turn keyboard scancodes into a clean <code>keyPressed</code> + <code>scancode</code></td><td><span class="badge reuse">reuse</span> Lab 5</td></tr>
+<tr><td><a href="mod_direction_control.html"><strong>Direction Control</strong></a></td><td>Map scancode → direction, reject illegal reversals</td><td><span class="badge newm">new</span> small</td></tr>
+<tr><td><a href="mod_game_tick.html"><strong>Game Tick</strong></a></td><td>Produce one "move now" pulse every ~100–200 ms</td><td><span class="badge newm">new</span> counter</td></tr>
+<tr><td><a href="mod_lfsr.html"><strong>LFSR</strong></a></td><td>Cheap pseudo-random number for food location</td><td><span class="badge newm">new</span> small</td></tr>
+<tr><td><a href="mod_snake_logic.html"><strong>Snake_Logic</strong></a></td><td>The brain: body memory, movement, growth, collision, score, FSM</td><td><span class="badge newm">new</span> core</td></tr>
+<tr><td><a href="mod_renderer.html"><strong>Renderer</strong></a></td><td>For the pixel currently scanned, return its color</td><td><span class="badge adapt">adapt</span> Lab 6 Drawer</td></tr>
+<tr><td><a href="mod_vga_interface.html"><strong>VGA_Interface</strong></a></td><td>Generate sync + scan coordinates, gate color in blanking</td><td><span class="badge reuse">reuse</span> Lab 6</td></tr>
+<tr><td><a href="mod_seg7_display.html"><strong>Seg7 Display</strong></a></td><td>Show the score in decimal/hex</td><td><span class="badge reuse">reuse</span> 7-seg lab</td></tr>
+</table>
+
+<div class="callout">
+<strong>Every box has its own page.</strong> Click any block name above — or use the menu bar at the top of the screen — to open a focused guide for that module: what it does, suggested ports, an implementation idea or skeleton, and (for the <span class="badge reuse">reuse</span> blocks) exactly which previous lab to import it from.
+</div>
+
+<h3>File checklist — what to import vs. create</h3>
+<table>
+<tr><th>Module</th><th>Status</th><th>File to import</th><th>New file to create</th></tr>
+<tr><td>PS2_Interface</td><td><span class="badge reuse">reuse</span></td><td><code>LAB_05/Ps2_Interface.v</code></td><td>—</td></tr>
+<tr><td>VGA_Interface</td><td><span class="badge reuse">reuse</span></td><td><code>LAB_06/VGA_Interface.v</code></td><td>—</td></tr>
+<tr><td>Seg7 Display</td><td><span class="badge reuse">reuse</span></td><td><code>LAB_05/Seg_7_Display.v</code></td><td>—</td></tr>
+<tr><td>Renderer</td><td><span class="badge adapt">adapt</span></td><td>copy <code>LAB_06/Drawer.v</code></td><td><code>Renderer.v</code></td></tr>
+<tr><td>Direction Control</td><td><span class="badge newm">new</span></td><td>(needs Ps2_Interface)</td><td><code>Direction_Control.v</code></td></tr>
+<tr><td>Game Tick</td><td><span class="badge newm">new</span></td><td>(ref <code>LAB_04/Counter.v</code>)</td><td><code>Game_Tick.v</code></td></tr>
+<tr><td>LFSR</td><td><span class="badge newm">new</span></td><td>—</td><td><code>LFSR_Food.v</code></td></tr>
+<tr><td>Snake_Logic</td><td><span class="badge newm">new</span></td><td>(ref <code>LAB_04/Stopwatch.v</code>, <code>Debouncer.v</code>)</td><td><code>Snake_Logic.v</code></td></tr>
+<tr><td>Top level</td><td><span class="badge newm">new</span></td><td>(pattern: <code>LAB_06/VGA_Top.v</code>)</td><td><code>Snake_Top.v</code></td></tr>
+<tr><td>Constraints</td><td><span class="badge adapt">adapt</span></td><td>merge <code>LAB_05/task1.xdc</code> + <code>LAB_06/task2.xdc</code></td><td><code>snake.xdc</code></td></tr>
+</table>
+
+<div class="callout tip">
+<strong>Assignment tip "Start simple, iterate."</strong> Bring up one box at a time: first get VGA painting a static colored square (you already did this in Lab 6). Then make the square <em>move on a tick</em>. Then make it <em>turn with the keyboard</em>. Then add a <em>tail</em>. Then <em>food + growth</em>. Then <em>collisions</em>. Then <em>score</em>. Then the <em>game-over screen</em>. Each step is testable on its own.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="grid">
+<h2>3. From Pixels to a Game Grid</h2>
+
+<p>
+The screen is <strong>800 × 600 = 480 000 pixels</strong>. You absolutely do <em>not</em> want to reason about the snake at pixel resolution. The single most important simplification in the whole lab is to <strong>quantize the screen into a coarse grid of cells</strong>, exactly like the <em>downsample trick</em> from Lab 6 (hint #8).
+</p>
+
+<p>
+Pick a cell size that divides nicely. With <strong>20 × 20-pixel cells</strong> you get a <strong>40 × 30 grid</strong> (40·20 = 800, 30·20 = 600). The snake then lives on a tiny 40×30 board — small enough to store, fast enough to render.
+</p>
+
+<h3>The math behind a "clean" cell size: gcd(800, 600)</h3>
+<p>
+A square cell of side <em>d</em> tiles the visible area with <strong>no leftover pixels</strong> only if <em>d</em> divides <strong>both</strong> 800 and 600 — that is, only if <em>d</em> divides their greatest common divisor:
+</p>
+<pre><code>gcd(800, 600) = 200          // 800 = 200·4 , 600 = 200·3</code></pre>
+<p>
+So <strong>200 × 200 is the largest square cell</strong> that fits the screen exactly (a 4 × 3 board — far too coarse to play). Every <em>smaller</em> clean choice is a <strong>divisor of 200</strong>; pick one small enough to be playable:
+</p>
+
+<table>
+<tr><th>Cell <em>d</em> (divisor of 200)</th><th>Grid (cols × rows)</th><th>Total cells</th><th>Note</th></tr>
+<tr><td>200</td><td>4 × 3</td><td>12</td><td>largest possible — too coarse</td></tr>
+<tr><td>100</td><td>8 × 6</td><td>48</td><td>still very chunky</td></tr>
+<tr><td>50</td><td>16 × 12</td><td>192</td><td>tiny, trivial to simulate</td></tr>
+<tr><td>40</td><td>20 × 15</td><td>300</td><td>good for a first bring-up</td></tr>
+<tr><td>25</td><td>32 × 24</td><td>768</td><td>nice playable size</td></tr>
+<tr><td><strong>20</strong></td><td><strong>40 × 30</strong></td><td><strong>1200</strong></td><td><strong>the sweet spot used in this guide</strong></td></tr>
+<tr><td>10</td><td>80 × 60</td><td>4800</td><td>fine — bigger body memory</td></tr>
+<tr><td>8</td><td>100 × 75</td><td>7500</td><td>fine</td></tr>
+<tr><td>5</td><td>160 × 120</td><td>19200</td><td>very fine — lots of cells</td></tr>
+</table>
+<p>(The full divisor list is 1, 2, 4, 5, 8, 10, 20, 25, 40, 50, 100, 200 — each gives a grid of <code>800/d × 600/d</code>.)</p>
+
+<h3>Smarter sizing: use log₂ so "divide" becomes a shift</h3>
+<p>
+Converting a pixel to a cell is a division: <code>col = XCoord / d</code>. Division is expensive in hardware — <em>unless</em> <code>d</code> is a power of two. Dividing by <code>2^k</code> is simply <strong>dropping the low <code>k</code> bits</strong>, i.e. a wire-only shift, where <code>k = log₂(d)</code>:
+</p>
+<pre><code>// if d = 2^k  then  X / d  ==  X >> k ,  with  k = log2(d)
+//   d=8  -> k=3 -> XCoord >> 3   (no divider, just re-wiring!)
+//   d=16 -> k=4 -> XCoord >> 4
+//   d=32 -> k=5 -> XCoord >> 5</code></pre>
+<p>For a pure shift, <code>log₂(d)</code> must be a whole number — i.e. <code>d ∈ {2, 4, 8, 16, 32, …}</code>.</p>
+
+<p>The smartest cell size satisfies <strong>both</strong> rules at once:</p>
+<ul>
+  <li><strong>divisor of 200</strong> → tiles the screen with no leftover pixels (the gcd rule), <em>and</em></li>
+  <li><strong>power of two</strong> → the cell index is a free shift (the log₂ rule).</li>
+</ul>
+<p>
+Factor the gcd: <code>200 = 2³ × 5² = 8 × 25</code>. The only powers of two hiding inside it are <code>1, 2, 4, 8</code> — so the largest size meeting both wishes is <strong>8</strong>.
+</p>
+
+<div class="callout tip">
+<strong>Best of both worlds: d = 8.</strong> It tiles exactly (800/8 = 100, 600/8 = 75 → a <strong>100 × 75</strong> grid) <em>and</em> its index is a pure shift (<code>col = XCoord &gt;&gt; 3</code>, <code>row = YCoord &gt;&gt; 3</code>) because log₂8 = 3. No divider, no leftover pixels.
+</div>
+
+<table>
+<tr><th>Cell <em>d</em></th><th>log₂ <em>d</em></th><th>Index op</th><th>Divides 200? (clean tile)</th><th>Grid</th></tr>
+<tr><td><strong>8</strong></td><td>3</td><td><code>&gt;&gt;3</code></td><td>✓ yes</td><td>100 × 75</td></tr>
+<tr><td>16</td><td>4</td><td><code>&gt;&gt;4</code></td><td>✗ no (600/16 = 37.5)</td><td>50 × 37 + blank strip</td></tr>
+<tr><td>20</td><td>≈ 4.32</td><td>real divide</td><td>✓ yes</td><td>40 × 30</td></tr>
+<tr><td>25</td><td>≈ 4.64</td><td>real divide</td><td>✓ yes</td><td>32 × 24</td></tr>
+<tr><td>32</td><td>5</td><td><code>&gt;&gt;5</code></td><td>✗ no</td><td>25 × 18 + blank strip</td></tr>
+</table>
+
+<div class="callout warn">
+<strong>The trade-off in one line.</strong> A <em>divisor of 200</em> (20, 25, 40…) tiles perfectly but needs a real divider; a <em>power of two</em> (16, 32) costs only a shift but leaves a partial row/column to blank. <strong>d = 8 is the rare size that is both</strong> — and is why the 100 × 75 grid is the cheapest clean choice. (Powers of two &gt; 8 keep the shift but waste an edge strip; this is the caveat behind the 16-px option below.)
+</div>
+
+<svg viewBox="0 0 640 380" width="640">
+  <!-- visible screen -->
+  <rect x="40" y="30" width="480" height="300" fill="#0b1220" stroke="#94a3b8" stroke-width="2"/>
+  <!-- grid lines (coarse) -->
+  <g stroke="#1e293b" stroke-width="1">
+    <line x1="120" y1="30" x2="120" y2="330"/><line x1="200" y1="30" x2="200" y2="330"/>
+    <line x1="280" y1="30" x2="280" y2="330"/><line x1="360" y1="30" x2="360" y2="330"/>
+    <line x1="440" y1="30" x2="440" y2="330"/>
+    <line x1="40" y1="90" x2="520" y2="90"/><line x1="40" y1="150" x2="520" y2="150"/>
+    <line x1="40" y1="210" x2="520" y2="210"/><line x1="40" y1="270" x2="520" y2="270"/>
+  </g>
+  <!-- a snake -->
+  <rect x="201" y="151" width="78" height="58" fill="#a3e635"/>            <!-- head -->
+  <rect x="281" y="151" width="78" height="58" fill="#34d399"/>
+  <rect x="361" y="151" width="78" height="58" fill="#34d399"/>
+  <rect x="361" y="91"  width="78" height="58" fill="#34d399"/>
+  <!-- food -->
+  <rect x="121" y="91" width="78" height="58" fill="#f87171"/>
+  <!-- labels -->
+  <text x="240" y="185" text-anchor="middle" fill="#1a2e05" font-size="11" font-weight="bold">head</text>
+  <text x="160" y="125" text-anchor="middle" fill="#450a0a" font-size="11" font-weight="bold">food</text>
+  <text x="280" y="20" text-anchor="middle" fill="#94a3b8" font-size="12">screen quantized into a 40 × 30 grid of 20×20-pixel cells</text>
+  <text x="280" y="360" text-anchor="middle" fill="#94a3b8" font-size="11">the snake and food snap to whole cells — never to arbitrary pixels</text>
+</svg>
+
+<h3>The two coordinate systems</h3>
+<table>
+<tr><th>Space</th><th>Range</th><th>Used by</th></tr>
+<tr><td><strong>Pixel</strong> space</td><td>X 0–799, Y 0–599 (from VGA <code>XCoord</code>/<code>YCoord</code>)</td><td>the Renderer, per pixel-clock</td></tr>
+<tr><td><strong>Cell</strong> space</td><td>col 0–39, row 0–29</td><td>the Snake_Logic brain, per tick</td></tr>
+</table>
+
+<p>Converting between them is just a shift (because 20 isn't a power of two, you can either divide, or — easier in hardware — pick a power-of-two cell size like 16 and use a shift):</p>
+
+<pre><code>// Option A: 20px cells -> divide (synthesizes to a small divider/compare logic)
+wire [5:0] cell_col = XCoord / CELL;   // CELL = 20  -> 0..39
+wire [5:0] cell_row = YCoord / CELL;   //              0..29
+
+// Option B (preferred): 16px cells -> just shift, no divider
+//   800/16 = 50 cols, 600/16 = 37.5 -> use 37 rows (592px) and blank the rest
+wire [5:0] cell_col = XCoord >> 4;     // 0..49
+wire [5:0] cell_row = YCoord >> 4;     // 0..36</code></pre>
+
+<div class="callout tip">
+<strong>Make the grid parametric (assignment rule #3).</strong> Define <code>CELL</code>, <code>GRID_W</code>, <code>GRID_H</code> as parameters. Then a grader can shrink the grid to make simulation tiny, and your collision/render logic still works untouched.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="represent">
+<h2>4. Representing the Snake in Hardware</h2>
+
+<p>
+This is the conceptual heart of the lab and the part with no obvious "right" answer. The snake is a <strong>growing, ordered list of occupied cells</strong> with a head and a tail. Software would use a queue or linked list — but you have no <code>malloc</code> in hardware. Here are the two standard approaches; pick one and justify it in your report.
+</p>
+
+<h3>Approach A — Array of segment coordinates (a shift register of cells)</h3>
+<p>
+Store an array of up to <code>MAX_LEN</code> coordinates. Index 0 is the head. On every tick, every segment copies the position of the segment ahead of it, and the head steps in the current direction.
+</p>
+
+<svg viewBox="0 0 820 230" width="820">
+  <!-- before -->
+  <text x="60" y="40" fill="#94a3b8" font-size="12">Before tick:</text>
+  <g font-family="monospace" font-size="11" text-anchor="middle">
+    <rect x="60"  y="50" width="70" height="40" rx="6" fill="#3f6212"/><text x="95"  y="68" fill="#ecfccb">head</text><text x="95" y="82" fill="#ecfccb">(5,3)</text>
+    <rect x="140" y="50" width="70" height="40" rx="6" fill="#065f46"/><text x="175" y="68" fill="#d1fae5">seg1</text><text x="175" y="82" fill="#d1fae5">(4,3)</text>
+    <rect x="220" y="50" width="70" height="40" rx="6" fill="#065f46"/><text x="255" y="68" fill="#d1fae5">seg2</text><text x="255" y="82" fill="#d1fae5">(3,3)</text>
+    <rect x="300" y="50" width="70" height="40" rx="6" fill="#065f46"/><text x="335" y="68" fill="#d1fae5">tail</text><text x="335" y="82" fill="#d1fae5">(2,3)</text>
+  </g>
+  <text x="500" y="75" fill="#fbbf24" font-size="12">direction = RIGHT</text>
+
+  <!-- arrows -->
+  <g stroke="#94a3b8" stroke-width="1.5" fill="none">
+    <path d="M150,120 L120,140" marker-end="url(#arr2)"/>
+  </g>
+  <defs>
+    <marker id="arr2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+  <text x="410" y="125" text-anchor="middle" fill="#94a3b8" font-size="11">each segment ⟵ copies the one ahead; head steps +1 in X</text>
+
+  <!-- after -->
+  <text x="60" y="170" fill="#94a3b8" font-size="12">After tick:</text>
+  <g font-family="monospace" font-size="11" text-anchor="middle">
+    <rect x="60"  y="180" width="70" height="40" rx="6" fill="#3f6212"/><text x="95"  y="198" fill="#ecfccb">head</text><text x="95" y="212" fill="#ecfccb">(6,3)</text>
+    <rect x="140" y="180" width="70" height="40" rx="6" fill="#065f46"/><text x="175" y="198" fill="#d1fae5">seg1</text><text x="175" y="212" fill="#d1fae5">(5,3)</text>
+    <rect x="220" y="180" width="70" height="40" rx="6" fill="#065f46"/><text x="255" y="198" fill="#d1fae5">seg2</text><text x="255" y="212" fill="#d1fae5">(4,3)</text>
+    <rect x="300" y="180" width="70" height="40" rx="6" fill="#065f46"/><text x="335" y="198" fill="#d1fae5">tail</text><text x="335" y="212" fill="#d1fae5">(3,3)</text>
+  </g>
+  <text x="560" y="205" fill="#94a3b8" font-size="11">the body "flows" forward one cell — exactly a shift register</text>
+</svg>
+
+<pre><code>localparam MAX_LEN = 64;
+reg [5:0] snake_x [0:MAX_LEN-1];   // column of each segment
+reg [5:0] snake_y [0:MAX_LEN-1];   // row    of each segment
+reg [6:0] length;                  // how many segments are alive
+
+integer i;
+always @(posedge clk) if (tick) begin
+    for (i = MAX_LEN-1; i > 0; i = i-1) begin   // body follows the head
+        snake_x[i] &lt;= snake_x[i-1];
+        snake_y[i] &lt;= snake_y[i-1];
+    end
+    snake_x[0] &lt;= snake_x[0] + dx;              // head steps in current dir
+    snake_y[0] &lt;= snake_y[0] + dy;
+    if (ate_food) length &lt;= length + 1;         // growth = keep one more segment
+end</code></pre>
+
+<ul>
+  <li><span class="pill tip" style="background:#065f46;color:#d1fae5">+ Simple to think about</span> — it literally is the snake.</li>
+  <li><span class="pill" style="background:#7f1d1d;color:#fecaca">− Rendering cost</span> — to color a pixel you must compare its cell against <em>all</em> live segments (up to <code>MAX_LEN</code> comparators), and self-collision is the same all-pairs check.</li>
+  <li>Best when <code>MAX_LEN</code> is modest (say ≤ 64).</li>
+</ul>
+
+<h3>Approach B — Grid memory with a countdown (the scalable trick)</h3>
+<p>
+Keep a 2-D memory, one entry per cell, holding a small number: <strong>0 = empty</strong>, and any non-zero value <strong>n</strong> means "this cell is body, and it will become empty in <em>n</em> more ticks." The genius is that the tail clears itself automatically.
+</p>
+
+<div class="steps">
+  <div class="step">On each tick, write the current snake <code>length</code> into the <strong>new head cell</strong>.</div>
+  <div class="step">Decrement every non-zero cell by 1. The oldest cell (the tail) was holding 1, so it hits 0 and vanishes.</div>
+  <div class="step">A cell is "snake" simply if its value is non-zero — that's your render test and your self-collision test, both O(1) per cell.</div>
+  <div class="step">Ate food? Don't shrink: bump <code>length</code> by 1 so every cell survives one extra tick.</div>
+</div>
+
+<svg viewBox="0 0 740 200" width="740">
+  <text x="40" y="30" fill="#94a3b8" font-size="12">grid values (tail = lowest number, head = length):</text>
+  <g font-family="monospace" font-size="13" text-anchor="middle">
+    <rect x="60"  y="50" width="56" height="56" rx="6" fill="#065f46"/><text x="88"  y="84" fill="#d1fae5">1</text>
+    <rect x="120" y="50" width="56" height="56" rx="6" fill="#065f46"/><text x="148" y="84" fill="#d1fae5">2</text>
+    <rect x="180" y="50" width="56" height="56" rx="6" fill="#065f46"/><text x="208" y="84" fill="#d1fae5">3</text>
+    <rect x="240" y="50" width="56" height="56" rx="6" fill="#3f6212"/><text x="268" y="84" fill="#ecfccb">4</text>
+    <text x="88"  y="125" fill="#94a3b8" font-size="10">tail</text>
+    <text x="268" y="125" fill="#a3e635" font-size="10">head=length</text>
+  </g>
+  <text x="380" y="84" fill="#fbbf24" font-size="13">— after one tick →</text>
+  <g font-family="monospace" font-size="13" text-anchor="middle">
+    <rect x="470" y="50" width="56" height="56" rx="6" fill="#1f2937"/><text x="498" y="84" fill="#64748b">0</text>
+    <rect x="530" y="50" width="56" height="56" rx="6" fill="#065f46"/><text x="558" y="84" fill="#d1fae5">1</text>
+    <rect x="590" y="50" width="56" height="56" rx="6" fill="#065f46"/><text x="618" y="84" fill="#d1fae5">2</text>
+    <rect x="650" y="50" width="56" height="56" rx="6" fill="#065f46"/><text x="678" y="84" fill="#d1fae5">3</text>
+    <text x="498" y="125" fill="#64748b" font-size="10">tail cleared!</text>
+  </g>
+  <text x="370" y="165" text-anchor="middle" fill="#94a3b8" font-size="11">new head (value 4) would appear in the cell the head moved into</text>
+</svg>
+
+<ul>
+  <li><span class="pill" style="background:#065f46;color:#d1fae5">+ O(1) render &amp; collision</span> — just read one cell.</li>
+  <li><span class="pill" style="background:#7f1d1d;color:#fecaca">− "decrement every cell" each tick</span> — but ticks are ~100 ms apart and the FPGA runs at 100 MHz, so you have <em>millions</em> of clock cycles to walk the grid one cell at a time. Plenty of time.</li>
+  <li>Scales to large snakes and big grids; uses block RAM cleanly.</li>
+</ul>
+
+<div class="callout tip">
+<strong>Recommendation.</strong> For a first working version, <strong>Approach A</strong> with a small <code>MAX_LEN</code> is easiest to get on the screen and to simulate. If you have time and want a long snake, <strong>Approach B</strong> is the elegant, scalable answer — and makes a great point in the "internal design and logic" part of your report.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="tick">
+<h2>5. Game Time: the "Tick" vs. the Pixel Clock</h2>
+
+<p>
+There are <strong>three different rates</strong> living in this design, and confusing them is the classic beginner mistake:
+</p>
+
+<table>
+<tr><th>Clock / rate</th><th>Frequency</th><th>Drives</th></tr>
+<tr><td>System clock</td><td>100 MHz</td><td>everything synchronous</td></tr>
+<tr><td>Pixel clock</td><td>50 MHz (÷2)</td><td>VGA scanning, the Renderer</td></tr>
+<tr><td><strong>Game tick</strong></td><td><strong>~5–10 Hz</strong></td><td>the snake <em>moves one cell</em></td></tr>
+</table>
+
+<p>
+The snake must move at a speed a <em>human</em> can play — a handful of cells per second. If you moved it on every pixel clock it would cross the screen in microseconds. So you build a <strong>clock-enable pulse</strong>: a slow strobe that is high for exactly one 100 MHz cycle every ~150 ms, and your whole game logic advances only when that strobe is high.
+</p>
+
+<svg viewBox="0 0 760 170" width="760">
+  <text x="10" y="45" fill="#38bdf8" font-size="12" font-weight="bold">100MHz</text>
+  <polyline fill="none" stroke="#38bdf8" stroke-width="1.5"
+    points="70,55 80,55 80,35 90,35 90,55 100,55 100,35 110,35 110,55 120,55 120,35 130,35 130,55 140,55 140,35 150,35 150,55 700,55"/>
+  <text x="400" y="48" fill="#64748b" font-size="10">… millions of cycles …</text>
+
+  <text x="10" y="105" fill="#fbbf24" font-size="12" font-weight="bold">tick</text>
+  <polyline fill="none" stroke="#fbbf24" stroke-width="2"
+    points="70,115 360,115 360,95 380,95 380,115 690,115 690,95 700,95"/>
+  <text x="370" y="150" text-anchor="middle" fill="#94a3b8" font-size="11">one-cycle-wide pulse every ~150 ms — "move the snake now"</text>
+</svg>
+
+<pre><code>// Game tick: one 100 MHz cycle high every TICK_MAX cycles.
+// 100e6 * 0.15 s = 15_000_000 -> ~6.7 moves/second.
+localparam TICK_MAX = 15_000_000;
+reg [23:0] tick_cnt = 0;
+reg        tick = 0;
+always @(posedge clk) begin
+    if (tick_cnt == TICK_MAX-1) begin tick_cnt &lt;= 0; tick &lt;= 1; end
+    else                        begin tick_cnt &lt;= tick_cnt + 1; tick &lt;= 0; end
+end</code></pre>
+
+<div class="callout tip">
+<strong>Why a clock-enable and not a real slow clock?</strong> Generating a genuine 6 Hz clock and using it as a <code>posedge</code> creates a new, unsynchronized clock domain (and burns a clock buffer). The clean FPGA idiom is to stay in <em>one</em> 100 MHz domain and gate updates with <code>if (tick)</code>. Same reasoning the VGA lab used for the 50 MHz pixel clock-enable.
+</div>
+
+<div class="callout">
+<strong>Optional polish:</strong> make the snake speed up as the score grows by shrinking <code>TICK_MAX</code> — a nice, cheap difficulty curve and another use of the "make it parametric" rule.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="control">
+<h2>6. Control: Keyboard, Direction &amp; No Reversal</h2>
+
+<p>
+Reuse your Lab-5 <code>PS2_Interface</code>. It already hands you a <code>scancode</code> and a one-shot <code>keyPressed</code> pulse. You only need to map four numeric-keypad keys to four directions. The make-codes are exactly the ones from the Lab-5 keypad table:
+</p>
+
+<table>
+<tr><th>Key</th><th>Direction</th><th>Keypad make-code</th><th>(dx, dy)</th></tr>
+<tr><td><kbd>4</kbd></td><td>Left</td><td><code>0x6B</code></td><td>(−1, 0)</td></tr>
+<tr><td><kbd>6</kbd></td><td>Right</td><td><code>0x74</code></td><td>(+1, 0)</td></tr>
+<tr><td><kbd>8</kbd></td><td>Up</td><td><code>0x75</code></td><td>(0, −1)</td></tr>
+<tr><td><kbd>5</kbd></td><td>Down</td><td><code>0x73</code></td><td>(0, +1)</td></tr>
+</table>
+
+<div class="callout">
+<strong>Mind the screen's Y axis.</strong> On a VGA raster, <strong>row 0 is the top</strong> and the row index grows <em>downward</em>. So "Up" means <em>decreasing</em> the row (dy = −1) and "Down" means <em>increasing</em> it (dy = +1). Getting this backwards is a common and confusing bug.
+</div>
+
+<h3>The "no immediate reversal" rule (requirement 3.b)</h3>
+<p>
+If the snake is moving Right, pressing Left must be <strong>ignored</strong> — otherwise the head walks straight into its own neck and the game ends instantly. The rule: <em>reject any new direction that is the exact opposite of the current direction.</em>
+</p>
+
+<svg viewBox="0 0 700 200" width="700">
+  <!-- current dir -->
+  <rect x="40" y="70" width="140" height="60" rx="8" fill="#064e3b" stroke="#34d399"/>
+  <text x="110" y="95" text-anchor="middle" fill="#d1fae5" font-size="12">moving RIGHT</text>
+  <text x="110" y="115" text-anchor="middle" fill="#a7f3d0" font-size="10">dir = R</text>
+
+  <!-- allowed -->
+  <g>
+    <line x1="180" y1="85" x2="300" y2="50" stroke="#34d399" marker-end="url(#arr)"/>
+    <line x1="180" y1="100" x2="300" y2="100" stroke="#f87171" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+    <line x1="180" y1="115" x2="300" y2="150" stroke="#34d399" marker-end="url(#arr)"/>
+  </g>
+  <rect x="305" y="30" width="120" height="40" rx="8" fill="#065f46"/><text x="365" y="55" text-anchor="middle" fill="#d1fae5" font-size="11">UP — allowed ✓</text>
+  <rect x="305" y="82" width="120" height="40" rx="8" fill="#7f1d1d"/><text x="365" y="107" text-anchor="middle" fill="#fecaca" font-size="11">LEFT — blocked ✗</text>
+  <rect x="305" y="134" width="120" height="40" rx="8" fill="#065f46"/><text x="365" y="159" text-anchor="middle" fill="#d1fae5" font-size="11">DOWN — allowed ✓</text>
+
+  <text x="560" y="95" text-anchor="middle" fill="#94a3b8" font-size="11">only the direct 180°</text>
+  <text x="560" y="112" text-anchor="middle" fill="#94a3b8" font-size="11">opposite is rejected</text>
+</svg>
+
+<pre><code>localparam L=2'b00, R=2'b01, U=2'b10, D=2'b11;
+reg [1:0] dir;       // current direction (changes only on a tick)
+reg [1:0] dir_next;  // latest legal request from the keyboard
+
+always @(posedge clk) if (keyPressed) begin
+    case (scancode)
+        8'h6B: if (dir != R) dir_next &lt;= L;   // pressing Left is legal unless going Right
+        8'h74: if (dir != L) dir_next &lt;= R;
+        8'h75: if (dir != D) dir_next &lt;= U;
+        8'h73: if (dir != U) dir_next &lt;= D;
+    endcase
+end
+
+always @(posedge clk) if (tick) dir &lt;= dir_next;  // commit the turn once per move</code></pre>
+
+<div class="callout warn">
+<strong>Latch the request, apply it on the tick.</strong> Notice <code>dir</code> only updates inside <code>if (tick)</code>. If you turned the snake the instant a key was pressed, two fast key presses between ticks could let it reverse in two 90° steps within a single move. Buffering into <code>dir_next</code> and committing once per tick prevents that and keeps motion grid-aligned.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="food">
+<h2>7. Food &amp; Pseudo-Random Numbers (LFSR)</h2>
+
+<p>
+When the snake eats, you must drop new food at a "random" empty cell. An FPGA has no <code>rand()</code>, but you don't need true randomness — you need cheap, unpredictable-looking numbers. The standard hardware answer is a <strong>Linear-Feedback Shift Register (LFSR)</strong>.
+</p>
+
+<h3>What the name means</h3>
+<ul>
+  <li><strong>Shift Register</strong> — a row of flip-flops; on every clock each bit shifts one position into its neighbour.</li>
+  <li><strong>Feedback</strong> — the bit that would normally be lost off the end is replaced by a value fed back from inside the register.</li>
+  <li><strong>Linear</strong> — that fed-back value is computed only with <strong>XOR</strong> gates (XOR is a linear operation over GF(2)). No carry, no addition — just a handful of XORs.</li>
+</ul>
+<p>
+So an LFSR is just <em>"shift everything by one, and fill the vacated bit with the XOR of a few chosen bits (the <strong>taps</strong>)."</em> That one rule, iterated, marches the register through a long, scrambled-looking sequence of values that is actually 100% deterministic — perfect for a game, where you want variety but also repeatable simulation.
+</p>
+
+<svg viewBox="0 0 900 252" width="900">
+  <defs>
+    <marker id="lfsrArr" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#f87171"/>
+    </marker>
+  </defs>
+
+  <!-- inter-stage data wire (drawn first; shows through the gaps between cells) -->
+  <line x1="30" y1="108" x2="824" y2="108" stroke="#475569" stroke-width="2"/>
+
+  <!-- 16 register cells; tapped bits (10,12,13,15) get a red box -->
+  <g font-family="monospace" font-size="11" text-anchor="middle">
+    <rect x="30"  y="85" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="52"  y="113" fill="#e2e8f0">b0</text>
+    <rect x="80"  y="85" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="102" y="113" fill="#e2e8f0">b1</text>
+    <rect x="130" y="85" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="152" y="113" fill="#e2e8f0">b2</text>
+    <rect x="180" y="85" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="202" y="113" fill="#e2e8f0">b3</text>
+    <rect x="230" y="85" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="252" y="113" fill="#e2e8f0">b4</text>
+    <rect x="280" y="85" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="302" y="113" fill="#e2e8f0">b5</text>
+    <rect x="330" y="85" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="352" y="113" fill="#e2e8f0">b6</text>
+    <rect x="380" y="85" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="402" y="113" fill="#e2e8f0">b7</text>
+    <rect x="430" y="85" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="452" y="113" fill="#e2e8f0">b8</text>
+    <rect x="480" y="85" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="502" y="113" fill="#e2e8f0">b9</text>
+    <rect x="530" y="85" width="44" height="46" rx="4" fill="#3f1e1e" stroke="#f87171"/><text x="552" y="113" fill="#fecaca">b10</text>
+    <rect x="580" y="85" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="602" y="113" fill="#e2e8f0">b11</text>
+    <rect x="630" y="85" width="44" height="46" rx="4" fill="#3f1e1e" stroke="#f87171"/><text x="652" y="113" fill="#fecaca">b12</text>
+    <rect x="680" y="85" width="44" height="46" rx="4" fill="#3f1e1e" stroke="#f87171"/><text x="702" y="113" fill="#fecaca">b13</text>
+    <rect x="730" y="85" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="752" y="113" fill="#e2e8f0">b14</text>
+    <rect x="780" y="85" width="44" height="46" rx="4" fill="#3f1e1e" stroke="#f87171"/><text x="802" y="113" fill="#fecaca">b15</text>
+  </g>
+
+  <text x="130" y="74" fill="#94a3b8" font-size="11">shift →  (each clock: bit i moves into bit i+1)</text>
+
+  <!-- XOR gate (bottom-right) -->
+  <circle cx="862" cy="170" r="16" fill="#3f1e1e" stroke="#f87171" stroke-width="2"/>
+  <text x="862" y="175" text-anchor="middle" fill="#fecaca" font-size="15">⊕</text>
+  <text x="862" y="203" text-anchor="middle" fill="#f87171" font-size="10">XOR</text>
+
+  <!-- taps from b10,b12,b13,b15 down to a bus, into the XOR -->
+  <g stroke="#f87171" stroke-width="1.6" fill="none">
+    <line x1="552" y1="131" x2="552" y2="170"/>
+    <line x1="652" y1="131" x2="652" y2="170"/>
+    <line x1="702" y1="131" x2="702" y2="170"/>
+    <line x1="802" y1="131" x2="802" y2="170"/>
+    <line x1="552" y1="170" x2="846" y2="170"/>
+  </g>
+  <g fill="#f87171">
+    <circle cx="552" cy="170" r="3"/><circle cx="652" cy="170" r="3"/><circle cx="702" cy="170" r="3"/><circle cx="802" cy="170" r="3"/>
+  </g>
+
+  <!-- feedback routed ABOVE the register, back into bit 0 (separate from the data path) -->
+  <polyline fill="none" stroke="#f87171" stroke-width="1.6"
+    points="862,154 862,40 14,40 14,108 28,108" marker-end="url(#lfsrArr)"/>
+  <text x="438" y="32" text-anchor="middle" fill="#94a3b8" font-size="10">feedback bit enters at b0</text>
+
+  <text x="450" y="232" text-anchor="middle" fill="#94a3b8" font-size="11">taps at bits 15, 13, 12, 10 are XORed together and shifted into bit 0 — a <tspan fill="#fecaca">maximal</tspan> 16-bit LFSR</text>
+  <text x="450" y="248" text-anchor="middle" fill="#94a3b8" font-size="11">it visits all 65 535 non-zero values before repeating (the all-zeros state is a trap and is never reached)</text>
+</svg>
+
+<h3>Why those exact taps? (maximal length)</h3>
+<p>
+You cannot pick the tap bits at random. Only certain tap sets make the register cycle through <strong>every</strong> non-zero value before repeating — the longest possible run, called a <strong>maximal-length</strong> sequence. An <em>n</em>-bit maximal LFSR has period <strong>2<sup>n</sup> − 1</strong>; for <em>n</em> = 16 that is <strong>65 535</strong> distinct values. The tap set <code>{15, 13, 12, 10}</code> used here is one of the known-good "primitive polynomial" choices for 16 bits (you look these up in a tap table such as Xilinx <code>XAPP052</code>; you don't derive them by hand).
+</p>
+
+<div class="callout warn">
+<strong>Never let the LFSR be all-zeros.</strong> If every bit is 0, the XOR of the taps is also 0, so it shifts in 0 forever — the register is stuck. That's why the period is 2<sup>n</sup>−1 (not 2<sup>n</sup>): the all-zeros state is excluded. Always initialise it to a <strong>non-zero seed</strong> (and if you ever clear it on reset, clear it to a non-zero constant).
+</div>
+
+<pre><code>// 16-bit Fibonacci LFSR (taps 15,13,12,10), free-running on the system clock.
+reg [15:0] lfsr = 16'hACE1;          // any NON-ZERO seed
+always @(posedge clk)
+    // shift left; the new bit 0 = XOR of the four tapped bits
+    lfsr &lt;= {lfsr[14:0], lfsr[15]^lfsr[13]^lfsr[12]^lfsr[10]};
+
+// When food must respawn, sample the LFSR and squeeze it into the grid:
+wire [5:0] food_col = lfsr[5:0]  % GRID_W;   // 0..GRID_W-1
+wire [5:0] food_row = lfsr[11:6] % GRID_H;   // 0..GRID_H-1</code></pre>
+
+<div class="callout">
+<strong>Fibonacci vs. Galois form.</strong> The code above is the <em>Fibonacci</em> style: all taps are XORed together and fed into one end (it matches the diagram one-to-one, so it's easiest to learn from). There is an equivalent <em>Galois</em> style that instead XORs the shifted-out bit into several positions inside the register; it produces the same kind of sequence but with shorter logic paths. For this lab the Fibonacci form is perfectly fine — pick whichever you find clearer.
+</div>
+
+<div class="callout warn">
+<strong>Food must not land on the snake.</strong> After generating a candidate cell, check whether it is already occupied. If it is, just keep sampling on the next clock (the LFSR is free-running, so the next value is different) until you find an empty cell, then latch it. Because the LFSR runs at 100 MHz, a valid spot is found in nanoseconds.
+</div>
+
+<div class="callout tip">
+<strong>Why let the LFSR free-run?</strong> If you only clocked it when food is eaten, the "random" position would depend solely on <em>how many</em> foods you've eaten — perfectly predictable. Free-running means the value at the moment of eating depends on real time, which feels random to the player.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="collision">
+<h2>8. Collision Detection (Wall &amp; Self)</h2>
+
+<p>
+The game ends on two events. Both are tested on the <strong>new head position</strong>, computed on each tick <em>before</em> you commit the move.
+</p>
+
+<div class="grid2">
+  <div>
+    <h3>Wall collision</h3>
+    <p>The head leaves the grid. With cell coordinates this is a trivial bounds check:</p>
+    <pre><code>wire hit_wall =
+     (new_col &lt; 0) || (new_col &gt;= GRID_W) ||
+     (new_row &lt; 0) || (new_row &gt;= GRID_H);</code></pre>
+    <p>(If your columns/rows are unsigned, "&lt; 0" becomes a wrap to a huge value, which the <code>&gt;=</code> check already catches.)</p>
+  </div>
+  <div>
+    <h3>Self collision</h3>
+    <p>The head lands on a cell that is already part of the body.</p>
+    <ul>
+      <li><strong>Approach A:</strong> compare <code>(new_col,new_row)</code> against every body segment.</li>
+      <li><strong>Approach B:</strong> just read the grid cell — non-zero means "already snake," so it's a hit. (one memory read!)</li>
+    </ul>
+  </div>
+</div>
+
+<svg viewBox="0 0 700 220" width="700">
+  <!-- grid -->
+  <rect x="40" y="20" width="280" height="180" fill="#0b1220" stroke="#64748b" stroke-width="3"/>
+  <g stroke="#1e293b"><line x1="100" y1="20" x2="100" y2="200"/><line x1="160" y1="20" x2="160" y2="200"/><line x1="220" y1="20" x2="220" y2="200"/><line x1="280" y1="20" x2="280" y2="200"/><line x1="40" y1="80" x2="320" y2="80"/><line x1="40" y1="140" x2="320" y2="140"/></g>
+  <!-- snake near wall -->
+  <rect x="221" y="81" width="58" height="58" fill="#34d399"/><rect x="281" y="81" width="38" height="58" fill="#a3e635"/>
+  <line x1="320" y1="110" x2="360" y2="110" stroke="#f87171" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="180" y="215" text-anchor="middle" fill="#f87171" font-size="11">head about to cross the right wall → game over</text>
+
+  <!-- self -->
+  <rect x="420" y="20" width="240" height="180" fill="#0b1220" stroke="#64748b" stroke-width="2"/>
+  <g fill="#34d399">
+    <rect x="481" y="41" width="38" height="38"/><rect x="521" y="41" width="38" height="38"/><rect x="561" y="41" width="38" height="38"/>
+    <rect x="561" y="81" width="38" height="38"/><rect x="521" y="81" width="38" height="38"/>
+  </g>
+  <rect x="481" y="81" width="38" height="38" fill="#a3e635"/>
+  <line x1="500" y1="79" x2="500" y2="55" stroke="#f87171" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="540" y="215" text-anchor="middle" fill="#f87171" font-size="11">head turns into its own body → game over</text>
+</svg>
+
+<div class="callout">
+<strong>One self-collision subtlety.</strong> The tail cell is about to be vacated this very tick, so moving the head <em>into</em> the old tail position is actually legal (the tail will have moved away). Decide whether your check happens before or after the tail update and document it — graders love this kind of detail in the report.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="render">
+<h2>9. Rendering on VGA</h2>
+
+<p>
+Reuse the Lab-6 <code>VGA_Interface</code> unchanged — it still produces <code>XCoord</code>/<code>YCoord</code> and the sync signals. Your old "Drawer" becomes a <strong>Renderer</strong> whose only job, for the pixel currently being scanned, is to answer: <em>"is this pixel snake, food, border, or background?"</em>
+</p>
+
+<svg viewBox="0 0 760 170" width="760">
+  <rect x="20" y="40" width="150" height="60" rx="8" fill="#1e3a8a" stroke="#60a5fa"/>
+  <text x="95" y="65" text-anchor="middle" fill="#dbeafe" font-size="12">VGA_Interface</text>
+  <text x="95" y="84" text-anchor="middle" fill="#bfdbfe" font-size="10">X,Y of current pixel</text>
+
+  <line x1="170" y1="70" x2="250" y2="70" stroke="#94a3b8" marker-end="url(#arr)"/>
+  <text x="210" y="60" text-anchor="middle" fill="#64748b" font-size="9">X,Y</text>
+
+  <rect x="250" y="30" width="220" height="80" rx="8" fill="#3b1e5e" stroke="#a78bfa"/>
+  <text x="360" y="58" text-anchor="middle" fill="#ddd6fe" font-size="12" font-weight="bold">Renderer</text>
+  <text x="360" y="78" text-anchor="middle" fill="#e9d5ff" font-size="10">cell = (X,Y) quantized</text>
+  <text x="360" y="95" text-anchor="middle" fill="#e9d5ff" font-size="10">look up cell type → color</text>
+
+  <line x1="470" y1="70" x2="560" y2="70" stroke="#94a3b8" marker-end="url(#arr)"/>
+  <text x="515" y="60" text-anchor="middle" fill="#64748b" font-size="9">pixel_color</text>
+
+  <rect x="560" y="40" width="170" height="60" rx="8" fill="#1e3a8a" stroke="#60a5fa"/>
+  <text x="645" y="65" text-anchor="middle" fill="#dbeafe" font-size="12">VGA_Interface</text>
+  <text x="645" y="84" text-anchor="middle" fill="#bfdbfe" font-size="10">drives R,G,B pins</text>
+</svg>
+
+<pre><code>// Combinational color decision for the pixel at (XCoord,YCoord)
+wire [5:0] col = XCoord / CELL;
+wire [5:0] row = YCoord / CELL;
+
+always @(*) begin
+    if (game_over)              pixel_color = OVER_COLOR;   // game-over screen
+    else if (col==food_col && row==food_row)
+                                pixel_color = 12'hF00;      // food = red
+    else if (is_snake(col,row)) pixel_color = 12'h0F0;      // snake = green
+    else                        pixel_color = 12'h000;      // background = black
+end</code></pre>
+
+<p>
+<code>is_snake(col,row)</code> is where the two representations differ: in <strong>Approach A</strong> it ORs together comparisons against each segment; in <strong>Approach B</strong> it is one memory read (<code>grid[row][col] != 0</code>). To make the head stand out (requirement 1.b — "clearly distinguishable"), color the head a lighter green.
+</p>
+
+<div class="legend">
+  <span><i style="background:var(--head)"></i> head (light green)</span>
+  <span><i style="background:var(--snake)"></i> body (green)</span>
+  <span><i style="background:var(--food)"></i> food (red)</span>
+  <span><i style="background:#000"></i> background (black)</span>
+</div>
+
+<div class="callout warn">
+<strong>Still obey the Lab-6 blanking rule.</strong> The <code>VGA_Interface</code> must force <code>{R,G,B}=0</code> whenever <code>hcount≥800</code> or <code>vcount≥600</code>. The Renderer only produces a candidate color; the interface gates it. Don't drop that gate or you get the rolling/tearing screen from Lab 6.
+</div>
+
+<div class="callout tip">
+<strong>Reading vs. writing the grid.</strong> The Renderer <em>reads</em> the snake state at 50 MHz (per pixel); the Snake_Logic <em>writes</em> it at the tick rate. Because the writes happen in a one-cycle burst once every ~150 ms, there's no real contention — but if you use block RAM, give it a true read port for the Renderer and a write port for the logic (a simple dual-port pattern).
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="score">
+<h2>10. Score on the 7-Segment Display</h2>
+
+<p>
+This is pure reuse of your earlier 7-segment lab. Keep a <code>score</code> register, increment it by one each time <code>ate_food</code> fires, and feed it to your existing display module (the one that multiplexes the four digits via <code>an[3:0]</code> and drives <code>seg[6:0]</code>).
+</p>
+
+<pre><code>reg [13:0] score;                     // up to 9999
+always @(posedge clk) begin
+    if (start)          score &lt;= 0;
+    else if (ate_food)  score &lt;= score + 1;   // one point per food
+end
+// score -> (existing) binary-to-BCD / hex -> seg7_display module</code></pre>
+
+<div class="callout">
+<strong>Decimal vs. hex.</strong> If you display the raw binary in hex it's trivial; if requirement readers expect a human decimal score, add a binary-to-BCD step (double-dabble) before the digit mux. Either is acceptable — state which you chose.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="fsm">
+<h2>11. Game State Machine &amp; Game-Over Screen</h2>
+
+<p>
+Tie everything together with a tiny <strong>finite state machine</strong>. Three states are enough; the bonus game-over screen is just behavior of one of them.
+</p>
+
+<svg viewBox="0 0 760 230" width="760">
+  <!-- states -->
+  <circle cx="130" cy="120" r="58" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+  <text x="130" y="115" text-anchor="middle" fill="#e2e8f0" font-size="14" font-weight="bold">IDLE</text>
+  <text x="130" y="135" text-anchor="middle" fill="#94a3b8" font-size="10">reset / start</text>
+
+  <circle cx="390" cy="120" r="58" fill="#064e3b" stroke="#34d399" stroke-width="2"/>
+  <text x="390" y="115" text-anchor="middle" fill="#d1fae5" font-size="14" font-weight="bold">PLAY</text>
+  <text x="390" y="135" text-anchor="middle" fill="#a7f3d0" font-size="10">move / eat / score</text>
+
+  <circle cx="650" cy="120" r="58" fill="#3f1e1e" stroke="#f87171" stroke-width="2"/>
+  <text x="650" y="113" text-anchor="middle" fill="#fecaca" font-size="13" font-weight="bold">GAME</text>
+  <text x="650" y="130" text-anchor="middle" fill="#fecaca" font-size="13" font-weight="bold">OVER</text>
+
+  <!-- transitions -->
+  <line x1="188" y1="120" x2="332" y2="120" stroke="#94a3b8" marker-end="url(#arr)"/>
+  <text x="260" y="110" text-anchor="middle" fill="#94a3b8" font-size="10">start pressed</text>
+
+  <line x1="448" y1="120" x2="592" y2="120" stroke="#f87171" marker-end="url(#arr)"/>
+  <text x="520" y="110" text-anchor="middle" fill="#f87171" font-size="10">hit_wall || hit_self</text>
+
+  <path d="M640,178 C520,235 230,235 135,178" fill="none" stroke="#94a3b8" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <text x="390" y="225" text-anchor="middle" fill="#94a3b8" font-size="10">reset / press a key → restart</text>
+</svg>
+
+<table>
+<tr><th>State</th><th>What runs</th><th>Display</th></tr>
+<tr><td><span class="pill">IDLE</span></td><td>initialise snake (length, center), score = 0, seed/freeze food</td><td>start screen or blank</td></tr>
+<tr><td><span class="pill snake">PLAY</span></td><td>tick → move, eat, grow, score, collision checks</td><td>live board + score</td></tr>
+<tr><td><span class="pill food">GAME OVER</span></td><td>freeze the snake; wait for restart</td><td>game-over screen (bonus)</td></tr>
+</table>
+
+<h3>The game-over screen (bonus, requirement 4.b)</h3>
+<p>
+You don't need fonts. Anything unmistakable works and earns the bonus:
+</p>
+<ul>
+  <li><strong>Easiest:</strong> flood the whole visible area red (<code>pixel_color = 12'hF00</code>) while <code>game_over</code> is high.</li>
+  <li><strong>Nicer:</strong> draw a big "X", a border frame, or a checkerboard, using simple <code>XCoord</code>/<code>YCoord</code> comparisons — the same rectangle math you used in Lab 6.</li>
+  <li><strong>Showy:</strong> a hard-coded bitmap of the word "OVER" stored in a small ROM, indexed by the downsampled coordinate.</li>
+</ul>
+
+<div class="callout tip">
+<strong>Restart cleanly.</strong> On returning to <code>IDLE</code>, re-initialise <em>every</em> piece of state — snake body, length, direction, score, and food — or your second game starts with the corpse of the first. An asynchronous reset (the Lab-5 metastability topic) that returns to IDLE is the simplest way.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="pitfalls">
+<h2>12. Common Pitfalls (Lab 7 Hints!)</h2>
+
+<ol>
+  <li>
+    <strong>Mixing up the three rates.</strong> The snake moves on the <em>tick</em> (~6 Hz), the screen is painted on the <em>pixel clock</em> (50 MHz), and logic is clocked at 100 MHz. Update game state only inside <code>if (tick)</code>; never on every pixel.
+  </li>
+  <li>
+    <strong>Turning more than once per tick.</strong> Buffer the keyboard request into <code>dir_next</code> and commit it once per tick, or fast presses let the snake reverse via two 90° turns. (requirement 3.b)
+  </li>
+  <li>
+    <strong>Inverted Y axis.</strong> Up = row − 1, Down = row + 1, because VGA row 0 is at the top.
+  </li>
+  <li>
+    <strong>Food spawning on the snake.</strong> Always re-roll the LFSR until the candidate cell is empty before latching the new food.
+  </li>
+  <li>
+    <strong>Forgetting to grow correctly.</strong> Growth means <em>not removing the tail</em> on the eating tick (Approach A: <code>length++</code>; Approach B: bump the head value). If you move <em>and</em> grow you'll get an off-by-one body.
+  </li>
+  <li>
+    <strong>Self-collision against the vacating tail.</strong> Decide whether the head may enter the cell the tail is leaving this tick, and check collision in the matching order.
+  </li>
+  <li>
+    <strong>Leaking color into the blanking region.</strong> The Lab-6 rule still holds: force black unless <code>hcount&lt;800 &amp;&amp; vcount&lt;600</code>.
+  </li>
+  <li>
+    <strong>Hard-coded magic numbers.</strong> Rule #3 demands parametric modules — make <code>CELL</code>, <code>GRID_W</code>, <code>GRID_H</code>, <code>MAX_LEN</code>, <code>TICK_MAX</code> parameters so the design is reusable and easy to simulate.
+  </li>
+  <li>
+    <strong>Not resetting all state on restart.</strong> Re-initialise snake, length, direction, score, and food when returning to IDLE.
+  </li>
+  <li>
+    <strong>Missing keyboard one-shot.</strong> Reuse the Lab-5 fix: the keyboard resends make-codes while a key is held, so derive a single <code>keyPressed</code> pulse — don't act on every repeat.
+  </li>
+</ol>
+
+<div class="callout tip">
+<strong>If you internalize one sentence from this whole document:</strong> Snake is not a new protocol — it is a small grid-based state machine clocked by a slow "tick," wedged between the keyboard reader you built in Lab 5 and the screen painter you built in Lab 6; design the grid data structure first and everything else falls into place.
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="files">
+<h2>13. Previous Files That Might Be Useful</h2>
+
+<p>
+You are not starting from zero. Almost every input/output block already exists in your earlier lab folders — copy the file into the <code>lab7</code> project and instantiate it. Here is the concrete inventory, with the actual module ports so you can wire them straight away.
+</p>
+
+<h3>13.0 — Import manifest (every file to copy, at a glance)</h3>
+<p>The complete list of files to pull in from previous labs, with why and how badly you need each:</p>
+<table>
+<tr><th>File (from)</th><th>Need</th><th>Short reason</th></tr>
+<tr><td><code>LAB_05/Ps2_Interface.v</code></td><td><span class="badge reuse">required</span></td><td>the keyboard reader — gives you <code>scancode</code> + <code>keyPressed</code></td></tr>
+<tr><td><code>LAB_06/VGA_Interface.v</code></td><td><span class="badge reuse">required</span></td><td>VGA sync generator + <code>XCoord</code>/<code>YCoord</code>; drives the screen</td></tr>
+<tr><td><code>LAB_05/Seg_7_Display.v</code><br><span style="color:var(--muted)">(or LAB_04 / LAB_03 copy)</span></td><td><span class="badge reuse">required</span></td><td>4-digit 7-seg driver — displays the score</td></tr>
+<tr><td><code>LAB_06/Drawer.v</code></td><td><span class="badge adapt">required (as template)</span></td><td>copy &amp; edit into your <code>Renderer.v</code> — same <code>XCoord</code>/<code>YCoord</code>→<code>pixel_color</code> shape</td></tr>
+<tr><td><code>LAB_05/task1.xdc</code> + <code>LAB_06/task2.xdc</code></td><td><span class="badge adapt">required</span></td><td>pin constraints; <strong>merge both</strong> into one <code>snake.xdc</code> (keyboard + 7-seg + VGA)</td></tr>
+<tr><td><code>LAB_06/Debouncer.v</code><br><span style="color:var(--muted)">(= LAB_04/Debouncer.v)</span></td><td><span class="badge newm">recommended</span></td><td>debounce the start/restart push-button into a clean one-cycle pulse</td></tr>
+<tr><td><code>LAB_04/Counter.v</code>, <code>LAB_04/Lim_Inc.v</code></td><td><span class="badge newm">optional</span></td><td>counter building blocks you can reuse for the game-tick divider / score</td></tr>
+<tr><td><code>LAB_04/Stopwatch.v</code> + <code>LAB_04/Ctl.v</code></td><td><span class="badge newm">optional</span></td><td>FSM + counter reference for the IDLE/PLAY/GAME-OVER state machine</td></tr>
+<tr><td><code>LAB_05/Ps2_Display.v</code></td><td><span class="badge newm">optional</span></td><td>reference only — the clean clock-domain-crossing (3-FF sync + edge detect) pattern</td></tr>
+<tr><td><code>LAB_05/Ps2_Interface_tb.v</code>, <code>LAB_06/VGA_Interface_tb.v</code></td><td><span class="badge newm">optional</span></td><td>ready-made testbench scaffolding (clock/reset/stimulus) to adapt for simulation</td></tr>
+</table>
+<div class="callout tip">
+<strong>Minimum to compile &amp; run:</strong> the four <span class="badge reuse">required</span> source files (<code>Ps2_Interface.v</code>, <code>VGA_Interface.v</code>, <code>Seg_7_Display.v</code>, <code>Drawer.v</code>→<code>Renderer.v</code>) plus the merged <code>snake.xdc</code>. Everything else is convenience or reference. Details and ports for each are in the sub-sections below.
+</div>
+
+<h3>13.1 — Drop-in reusable (instantiate almost as-is)</h3>
+<table>
+<tr><th>File</th><th>Module &amp; ports</th><th>Use in Snake</th></tr>
+<tr>
+  <td><code>LAB_05/Ps2_Interface.v</code></td>
+  <td><code>Ps2_Interface(PS2Clk, rstn, PS2Data, scancode[7:0], keyPressed)</code></td>
+  <td>The keyboard reader — the entire input side of §6. Feed <code>scancode</code>/<code>keyPressed</code> into your Direction Control.</td>
+</tr>
+<tr>
+  <td><code>LAB_06/VGA_Interface.v</code></td>
+  <td><code>VGA_Interface(clk, rstn, pixel_color[11:0], vgaRed[3:0], vgaGreen[3:0], vgaBlue[3:0], Hsync, Vsync, XCoord[10:0], YCoord[10:0])</code></td>
+  <td>The screen painter (§9). Reuse <strong>unchanged</strong>; it already gates color in blanking and reports <code>XCoord</code>/<code>YCoord</code>.</td>
+</tr>
+<tr>
+  <td><code>LAB_05/Seg_7_Display.v</code><br><span style="color:var(--muted)">(same module in LAB_04/LAB_03)</span></td>
+  <td><code>Seg_7_Display(x[15:0], clk, clr, a_to_g[6:0], an[3:0], dp)</code></td>
+  <td>The score display (§10). Drive <code>x</code> with your <code>score</code> register.</td>
+</tr>
+<tr>
+  <td><code>LAB_06/Debouncer.v</code><br><span style="color:var(--muted)">(identical in LAB_04)</span></td>
+  <td><code>Debouncer(clk, input_unstable, output_stable)</code></td>
+  <td>Clean a push-button (e.g. <code>btnC</code> to start/restart the game) into a single-cycle pulse.</td>
+</tr>
+</table>
+
+<h3>13.2 — Templates to adapt</h3>
+<table>
+<tr><th>File</th><th>What it gives you</th><th>How to adapt</th></tr>
+<tr>
+  <td><code>LAB_06/Drawer.v</code></td>
+  <td>The Lab-6 "is this pixel inside my rectangle?" painter, with the <code>XCoord</code>/<code>YCoord</code> → <code>pixel_color</code> shape already correct.</td>
+  <td>Morph it into your <strong>Renderer</strong> (§9): replace the rectangle test with the snake/food/background cell lookup.</td>
+</tr>
+<tr>
+  <td><code>LAB_06/VGA_Top.v</code></td>
+  <td>A working example of wiring <code>Drawer.pixel_color</code> → <code>VGA_Interface</code> and feeding <code>XCoord</code>/<code>YCoord</code> back — the exact feedback loop your <code>Snake_Top</code> needs.</td>
+  <td>Copy the wiring pattern; add the PS2, tick, logic and seg7 instances around it.</td>
+</tr>
+<tr>
+  <td><code>LAB_05/Ps2_Top.v</code></td>
+  <td>An example top that already wires <code>Ps2_Interface</code> to a display — good reference for the input half of your top.</td>
+  <td>Lift the PS2 wiring; route <code>scancode</code>/<code>keyPressed</code> to game logic instead of a display.</td>
+</tr>
+<tr>
+  <td><code>LAB_04/Counter.v</code>, <code>LAB_04/Lim_Inc.v</code></td>
+  <td>Parametric counters / limited-incrementer building blocks.</td>
+  <td>Reference (or reuse) for the <strong>game-tick divider</strong> (§5) and the score counter.</td>
+</tr>
+<tr>
+  <td><code>LAB_04/Stopwatch.v</code> + <code>LAB_04/Ctl.v</code></td>
+  <td>A finite-state-machine + counter integration you already built and debugged.</td>
+  <td>Reference pattern for your <strong>game-state FSM</strong> (§11): IDLE / PLAY / GAME OVER.</td>
+</tr>
+</table>
+
+<h3>13.3 — Patterns worth copying (not whole modules)</h3>
+<table>
+<tr><th>File</th><th>Pattern to steal</th></tr>
+<tr>
+  <td><code>LAB_05/Ps2_Display.v</code></td>
+  <td>A correct <strong>clock-domain crossing</strong>: <code>keyPressed</code> goes through a 3-FF synchroniser + edge detect, and <code>scancode</code> is sampled on the settled pulse. Use the same idea anywhere the slow PS2 domain meets your 100 MHz logic, and recall the metastability topic from Lab 5.</td>
+</tr>
+<tr>
+  <td><code>LAB_05/Ps2_Interface_tb.v</code>, <code>LAB_06/VGA_Interface_tb.v</code></td>
+  <td>Ready-made <strong>testbench scaffolding</strong> (clock generation, reset sequencing, stimulus). Adapt these to test your <code>Snake_Logic</code> tick-by-tick in simulation — exactly the "test incrementally" step the assignment asks for.</td>
+</tr>
+</table>
+
+<h3>13.4 — Constraint files (.xdc) — merge two into one</h3>
+<p>
+Snake needs the pins of <em>both</em> previous labs at once: keyboard + 7-segment <strong>and</strong> VGA. So build the <code>lab7</code> XDC by merging:
+</p>
+<table>
+<tr><th>File</th><th>Pins it defines</th></tr>
+<tr><td><code>LAB_05/task1.xdc</code></td><td><code>clk</code>, reset button, <code>PS2Clk</code>/<code>PS2Data</code>, <code>seg</code>/<code>an</code>/<code>dp</code>, LEDs</td></tr>
+<tr><td><code>LAB_06/task2.xdc</code></td><td><code>clk</code>, reset, <code>vgaRed</code>/<code>vgaGreen</code>/<code>vgaBlue</code>, <code>Hsync</code>/<code>Vsync</code>, buttons, switches</td></tr>
+</table>
+
+<div class="callout warn">
+<strong>When merging XDC files:</strong> keep the <code>clk</code> and reset constraints <em>only once</em> (duplicates cause errors), and make sure every <code>set_property</code> port name matches a port on your <code>Snake_Top</code> exactly. Delete pin lines for any peripheral you don't actually use, and rename the file to whatever your top module expects.
+</div>
+
+<div class="callout tip">
+<strong>Suggested build order using these files:</strong> start from <code>LAB_06/VGA_Top.v</code> (you get pixels on screen immediately), drop in <code>Ps2_Interface</code> from Lab 5 to read the keys, add the tick divider from the <code>LAB_04</code> counters, then write the one genuinely new module — <code>Snake_Logic</code> — and finally hang <code>Seg_7_Display</code> off the score. Four of the six boxes in the §2 diagram are already sitting in your repo.
+</div>
+</section>
+
+<footer>
+  Created for FPGA Lab Experiment 7 · Tel Aviv University<br>
+  Open this file in any browser — no internet required, all diagrams are inline SVG.
+</footer>
+
+</main>
+</body>
+</html>

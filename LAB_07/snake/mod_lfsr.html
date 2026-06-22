@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LFSR (random food) — Module Guide (Lab 7 Snake)</title>
+<style>
+  :root{--bg:#0f172a;--panel:#1e293b;--ink:#e2e8f0;--muted:#94a3b8;--accent:#38bdf8;--accent2:#fbbf24;--good:#34d399;--bad:#f87171;--code:#0b1220}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--ink);line-height:1.65}
+  header{background:linear-gradient(135deg,#14532d,#0ea5e9);padding:34px 20px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+  header h1{margin:0;font-size:1.9rem}
+  header p{margin:8px 0 0;color:#dbeafe}
+  main{max-width:1000px;margin:0 auto;padding:30px 20px}
+  section{background:var(--panel);border-radius:12px;padding:28px;margin-bottom:24px;border:1px solid #334155;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+  section h2{color:var(--accent);border-bottom:2px solid #334155;padding-bottom:8px;margin-top:0}
+  section h3{color:var(--accent2);margin-top:24px}
+  code,pre{font-family:"JetBrains Mono",Menlo,Consolas,monospace;font-size:.9rem}
+  pre{background:var(--code);padding:16px;border-radius:8px;overflow-x:auto;border-left:4px solid var(--accent)}
+  code{background:#0b1220;padding:2px 6px;border-radius:4px;color:#fde68a}
+  pre code{background:none;padding:0;color:var(--ink)}
+  .callout{background:rgba(56,189,248,.1);border-left:4px solid var(--accent);padding:14px 18px;border-radius:6px;margin:16px 0}
+  .callout.warn{background:rgba(248,113,113,.1);border-left-color:var(--bad)}
+  .callout.tip{background:rgba(52,211,153,.1);border-left-color:var(--good)}
+  table{width:100%;border-collapse:collapse;margin:14px 0}
+  th,td{border:1px solid #334155;padding:8px 12px;text-align:left}
+  th{background:#1e293b;color:var(--accent2)}
+  tr:nth-child(even){background:rgba(255,255,255,.02)}
+  svg{display:block;margin:18px auto;max-width:100%;height:auto}
+  nav.topbar{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:2px;background:rgba(11,18,32,.97);border-bottom:1px solid #334155;padding:8px 10px}
+  nav.topbar a{color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:6px;font-size:.82rem;font-weight:600;white-space:nowrap}
+  nav.topbar a:hover{background:#1e293b;color:var(--ink)}
+  nav.topbar a.active{background:var(--accent);color:#0f172a}
+  nav.topbar a.home{color:var(--accent2)}
+  .badge{display:inline-block;padding:4px 12px;border-radius:999px;font-size:.78rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase}
+  .badge.newm{background:#1e3a8a;color:#dbeafe}
+  .modhead{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:rgba(255,255,255,.03);border:1px solid #334155;border-radius:10px;padding:16px 18px;margin:0 0 20px}
+  .backlink{display:inline-block;margin-top:10px;color:var(--accent);text-decoration:none}
+  footer{text-align:center;color:var(--muted);padding:30px;font-size:.9rem}
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <a class="home" href="snake_concepts_guide.html">🐍 main</a>
+  <a href="mod_ps2_interface.html">PS2_Interface</a>
+  <a href="mod_direction_control.html">Direction Control</a>
+  <a href="mod_game_tick.html">Game Tick</a>
+  <a class="active" href="mod_lfsr.html">LFSR</a>
+  <a href="mod_snake_logic.html">Snake_Logic</a>
+  <a href="mod_renderer.html">Renderer</a>
+  <a href="mod_vga_interface.html">VGA_Interface</a>
+  <a href="mod_seg7_display.html">Seg7 Display</a>
+</nav>
+
+<header>
+  <h1>LFSR — Pseudo-Random Food</h1>
+  <p>Tel Aviv University · FPGA Lab · Experiment 7 — Snake · Module Guide</p>
+</header>
+
+<main>
+
+<section>
+<div class="modhead">
+  <span class="badge newm">new — short, you write it</span>
+  <strong>~3 lines of Verilog. Nothing to import.</strong>
+</div>
+
+<h2>Files: import vs. create</h2>
+<table>
+<tr><th>Action</th><th>File</th><th>Why</th></tr>
+<tr><td><strong>Create new</strong></td><td><code>LFSR_Food.v</code></td><td>there is no LFSR in earlier labs; it is tiny and written fresh</td></tr>
+</table>
+</section>
+
+<section>
+<h2>Job</h2>
+<p>Give the snake "random" food positions. An FPGA has no <code>rand()</code>, so use a <strong>Linear-Feedback Shift Register</strong>: a shift register whose input bit is the XOR of a few tap bits. It free-runs and cycles through values in a scrambled order.</p>
+
+<svg viewBox="0 0 900 232" width="900">
+  <defs><marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#f87171"/></marker></defs>
+
+  <line x1="30" y1="98" x2="824" y2="98" stroke="#475569" stroke-width="2"/>
+
+  <g font-family="monospace" font-size="11" text-anchor="middle">
+    <rect x="30"  y="75" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="52"  y="103" fill="#e2e8f0">b0</text>
+    <rect x="80"  y="75" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="102" y="103" fill="#e2e8f0">b1</text>
+    <rect x="130" y="75" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="152" y="103" fill="#e2e8f0">b2</text>
+    <rect x="180" y="75" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="202" y="103" fill="#e2e8f0">b3</text>
+    <rect x="230" y="75" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="252" y="103" fill="#e2e8f0">b4</text>
+    <rect x="280" y="75" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="302" y="103" fill="#e2e8f0">b5</text>
+    <rect x="330" y="75" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="352" y="103" fill="#e2e8f0">b6</text>
+    <rect x="380" y="75" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="402" y="103" fill="#e2e8f0">b7</text>
+    <rect x="430" y="75" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="452" y="103" fill="#e2e8f0">b8</text>
+    <rect x="480" y="75" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="502" y="103" fill="#e2e8f0">b9</text>
+    <rect x="530" y="75" width="44" height="46" rx="4" fill="#3f1e1e" stroke="#f87171"/><text x="552" y="103" fill="#fecaca">b10</text>
+    <rect x="580" y="75" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="602" y="103" fill="#e2e8f0">b11</text>
+    <rect x="630" y="75" width="44" height="46" rx="4" fill="#3f1e1e" stroke="#f87171"/><text x="652" y="103" fill="#fecaca">b12</text>
+    <rect x="680" y="75" width="44" height="46" rx="4" fill="#3f1e1e" stroke="#f87171"/><text x="702" y="103" fill="#fecaca">b13</text>
+    <rect x="730" y="75" width="44" height="46" rx="4" fill="#1e293b" stroke="#475569"/><text x="752" y="103" fill="#e2e8f0">b14</text>
+    <rect x="780" y="75" width="44" height="46" rx="4" fill="#3f1e1e" stroke="#f87171"/><text x="802" y="103" fill="#fecaca">b15</text>
+  </g>
+
+  <text x="130" y="64" fill="#94a3b8" font-size="11">shift →</text>
+
+  <circle cx="862" cy="160" r="16" fill="#3f1e1e" stroke="#f87171" stroke-width="2"/>
+  <text x="862" y="165" text-anchor="middle" fill="#fecaca" font-size="15">⊕</text>
+
+  <g stroke="#f87171" stroke-width="1.6" fill="none">
+    <line x1="552" y1="121" x2="552" y2="160"/>
+    <line x1="652" y1="121" x2="652" y2="160"/>
+    <line x1="702" y1="121" x2="702" y2="160"/>
+    <line x1="802" y1="121" x2="802" y2="160"/>
+    <line x1="552" y1="160" x2="846" y2="160"/>
+  </g>
+  <g fill="#f87171">
+    <circle cx="552" cy="160" r="3"/><circle cx="652" cy="160" r="3"/><circle cx="702" cy="160" r="3"/><circle cx="802" cy="160" r="3"/>
+  </g>
+
+  <polyline fill="none" stroke="#f87171" stroke-width="1.6"
+    points="862,144 862,38 14,38 14,98 28,98" marker-end="url(#arr)"/>
+  <text x="438" y="30" text-anchor="middle" fill="#94a3b8" font-size="10">feedback enters at b0</text>
+
+  <text x="450" y="200" text-anchor="middle" fill="#94a3b8" font-size="11">taps 15, 13, 12, 10 → XOR → bit 0 · maximal 16-bit LFSR (65 535 values, all-zeros excluded)</text>
+</svg>
+
+<div class="callout warn">
+<strong>Never let it be all-zeros.</strong> 0 XOR 0 = 0, so an all-zero register shifts in zeros forever and freezes. Seed it with a non-zero constant (e.g. <code>16'hACE1</code>) — that's why the period is 2¹⁶−1 = 65 535, not 65 536.
+</div>
+</section>
+
+<section>
+<h2>Implementation idea</h2>
+<pre><code>reg [15:0] lfsr = 16'hACE1;             // any non-zero seed
+always @(posedge clk)
+    lfsr &lt;= {lfsr[14:0], lfsr[15]^lfsr[13]^lfsr[12]^lfsr[10]};
+
+// squeeze into the grid when you need a new food cell:
+wire [5:0] cand_col = lfsr[5:0]  % GRID_W;
+wire [5:0] cand_row = lfsr[11:6] % GRID_H;</code></pre>
+
+<div class="callout warn">
+<strong>Don't spawn on the snake.</strong> After computing a candidate cell, ask <a href="mod_snake_logic.html">Snake_Logic</a> if it's occupied; if so, just take the next LFSR value (it changes every clock) until you find an empty cell, then latch it as the new food.
+</div>
+<div class="callout tip">
+<strong>Let it free-run.</strong> If you only clock the LFSR when food is eaten, the position depends solely on <em>how many</em> foods you've eaten — predictable. Free-running ties it to real time, which feels random.
+</div>
+
+<h3>Connects to</h3>
+<p><code>cand_col</code>/<code>cand_row</code> → <a href="mod_snake_logic.html">Snake_Logic</a>, which validates and stores <code>food_col</code>/<code>food_row</code> (then read by the <a href="mod_renderer.html">Renderer</a>).</p>
+
+<a class="backlink" href="snake_concepts_guide.html">← back to main</a>
+</section>
+
+<footer>FPGA Lab Experiment 7 · Tel Aviv University · module guide</footer>
+</main>
+</body>
+</html>
