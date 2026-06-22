@@ -5,6 +5,8 @@
 
 module LFSR_Food #(GRID_X = 100, GRID_Y = 75)(
     input clk,
+    // input from keyboard to be used as seed for the LFSR
+    // input [15:0] seed,
     output [6:0] food_x,
     output [6:0] food_y
 );
