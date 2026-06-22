@@ -14,7 +14,13 @@
       "Bash(iverilog -g2012 -o sim_run tb_run.v /Users/saleh/Desktop/TAU/FPGA/FPGA_git/LAB_06/VGA_Interface.v)",
       "Bash(vvp sim_run +vcd)",
       "Bash(rm -f VGA_Interface_tb.vcd)",
-      "Bash(iverilog -g2012 -o sim VGA_Top.v VGA_Interface.v Drawer.v Debouncer.v)"
+      "Bash(iverilog -g2012 -o sim VGA_Top.v VGA_Interface.v Drawer.v Debouncer.v)",
+      "Bash(iverilog -o /tmp/lfsr_food.out LFSR_Food.v LFSR_Food_tb.v)",
+      "Bash(vvp /tmp/lfsr_food.out)",
+      "Bash(iverilog -g2012 -o /tmp/lfsr_food.out LFSR_Food.v LFSR_Food_tb.v)",
+      "Bash(python3 -c \"import matplotlib\")",
+      "Bash(python3 coverage.py)",
+      "Bash(python3 coverage.py --binary -o screen.png)"
     ]
   }
 }

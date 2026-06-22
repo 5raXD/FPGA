@@ -104,13 +104,24 @@ The Renderer asks Snake_Logic "is the cell I'm scanning right now part of the sn
 <pre><code>wire [5:0] col = XCoord / CELL;   // or  XCoord >> 4 for CELL=16
 wire [5:0] row = YCoord / CELL;
 
+// grid lines: a dim line on the left/top edge of every cell so the
+// empty board reads as a grid instead of one black void
+wire [5:0] xin = XCoord % CELL;   // low bits = position within the cell
+wire [5:0] yin = YCoord % CELL;
+wire on_grid = (xin == 0) || (yin == 0);
+
 always @(*) begin
     if (game_over)                          pixel_color = 12'hF00; // red over-screen
     else if (cell_is_head)                  pixel_color = 12'h7F0; // light green head
     else if (cell_is_snake)                 pixel_color = 12'h0F0; // green body
     else if (col==food_col && row==food_row)pixel_color = 12'hF00; // red food
+    else if (on_grid)                       pixel_color = 12'h222; // dim grid line
     else                                    pixel_color = 12'h000; // black bg
 end</code></pre>
+
+<div class="callout tip">
+<strong>Visible grid.</strong> The <code>on_grid</code> line (lowest priority) frames every cell so neighbouring empty cells stand out as squares rather than merging into a black blob. <code>xin</code>/<code>yin</code> are just the low bits of the coordinate (for <code>CELL=8</code>, <code>XCoord[2:0]</code>) — two comparisons, no extra memory. See the main guide §9 for variations (graph-paper lines over everything, or inset tiles).
+</div>
 
 <div class="legend">
   <span><i style="background:var(--head)"></i> head</span>

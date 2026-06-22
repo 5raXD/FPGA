@@ -135,8 +135,8 @@ always @(posedge clk)
     lfsr &lt;= {lfsr[14:0], lfsr[15]^lfsr[13]^lfsr[12]^lfsr[10]};
 
 // squeeze into the grid when you need a new food cell:
-wire [5:0] cand_col = lfsr[5:0]  % GRID_W;
-wire [5:0] cand_row = lfsr[11:6] % GRID_H;</code></pre>
+wire [5:0] cand_col = lfsr[5:0]  % GRID_X;
+wire [5:0] cand_row = lfsr[11:6] % GRID_Y;</code></pre>
 
 <div class="callout warn">
 <strong>Don't spawn on the snake.</strong> After computing a candidate cell, ask <a href="mod_snake_logic.html">Snake_Logic</a> if it's occupied; if so, just take the next LFSR value (it changes every clock) until you find an empty cell, then latch it as the new food.

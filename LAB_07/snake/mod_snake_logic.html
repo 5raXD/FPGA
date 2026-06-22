@@ -82,7 +82,7 @@
 <p>On every <code>tick</code>: move the head in the current direction, follow with the body, grow on food, drop new food, check collisions, update the score, and run the game state machine.</p>
 
 <h3>Suggested ports</h3>
-<pre><code>module Snake_Logic #(parameter GRID_W=40, GRID_H=30, MAX_LEN=64)(
+<pre><code>module Snake_Logic #(parameter GRID_X=40, GRID_Y=30, MAX_LEN=64)(
     input  wire        clk, rstn,
     input  wire        tick,          // from Game Tick
     input  wire        start,         // debounced start/restart button
@@ -105,7 +105,7 @@
 <div class="steps">
   <div class="step"><code>dir &lt;= dir_next;</code> — commit the buffered turn (one turn per move).</div>
   <div class="step">Compute the new head cell from <code>dir</code> (remember: Up = row−1).</div>
-  <div class="step">Wall check: new head outside <code>0..GRID_W-1 / 0..GRID_H-1</code> → <code>game_over</code>.</div>
+  <div class="step">Wall check: new head outside <code>0..GRID_X-1 / 0..GRID_Y-1</code> → <code>game_over</code>.</div>
   <div class="step">Self check: new head lands on an occupied body cell → <code>game_over</code>.</div>
   <div class="step">Food check: new head == food → <code>score++</code>, grow (don't drop the tail), respawn food via the <a href="mod_lfsr.html">LFSR</a> (re-roll if it hits the snake).</div>
   <div class="step">Otherwise move normally: add the new head, remove the tail.</div>
