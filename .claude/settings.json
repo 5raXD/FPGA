@@ -20,7 +20,10 @@
       "Bash(iverilog -g2012 -o /tmp/lfsr_food.out LFSR_Food.v LFSR_Food_tb.v)",
       "Bash(python3 -c \"import matplotlib\")",
       "Bash(python3 coverage.py)",
-      "Bash(python3 coverage.py --binary -o screen.png)"
+      "Bash(python3 coverage.py --binary -o screen.png)",
+      "Bash(cd /Users/saleh/Desktop/TAU/FPGA/saed_fpga_lab/week7 && echo \"=== final_block lines 1-20 ===\"; sed -n '1,20p' game_over_final_block.v; echo \"=== loser_block lines 1-20 ===\"; sed -n '1,20p' game_over_loser_block.v)",
+      "Read(//Users/saleh/Desktop/TAU/FPGA/saed_fpga_lab/week7/**)",
+      "Bash(python3 -)"
     ]
   }
 }
