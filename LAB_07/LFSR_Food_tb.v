@@ -6,6 +6,7 @@
 module LFSR_TB();
 
     reg clk;
+    reg keyPressed;
     wire [6:0] food_x;
     wire [6:0] food_y;
 
@@ -17,6 +18,7 @@ module LFSR_TB();
 
     LFSR_Food #(.GRID_X(GRID_X), .GRID_Y(GRID_Y)) dut(
         .clk(clk),
+        .keyPressed(keyPressed),
         .food_x(food_x),
         .food_y(food_y)
     );
@@ -33,11 +35,13 @@ module LFSR_TB();
         f = $fopen("coords.txt", "w");
 
         clk = 0;
+        keyPressed = 0;
         repeat(2*GRID_X*GRID_Y) #5 clk = ~clk; // Almost 2 hit per block
         $finish;
     end
 
     always @(posedge clk) begin
+        keyPressed = ($urandom_range(999) < 1); // high ~0.1% of clocks
         $fdisplay(f, "(%d, %d)", food_x, food_y);
     end
 

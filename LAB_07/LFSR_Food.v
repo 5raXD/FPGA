@@ -5,9 +5,8 @@
 
 module LFSR_Food #(GRID_X = 100, GRID_Y = 75)(
     input clk,
-    // input from keyboard to be used as seed for the LFSR
-    // input [15:0] seed,
-    // input keyPressed,
+    // input from keyboard to be used to enhance Randomness
+    input keyPressed,
     output [6:0] food_x,
     output [6:0] food_y
 );
@@ -15,7 +14,7 @@ module LFSR_Food #(GRID_X = 100, GRID_Y = 75)(
     reg [15:0] lfsr = 16'hABCD;
 
     always @(posedge clk) begin
-        lfsr <= {lfsr[14:0], lfsr[15]^lfsr[13]^lfsr[12]^lfsr[10]};
+        lfsr <= {lfsr[14:0], lfsr[15]^lfsr[13]^lfsr[12]^lfsr[10]^keyPressed};
     end
 
     assign food_x = lfsr[6:0] % GRID_X;
