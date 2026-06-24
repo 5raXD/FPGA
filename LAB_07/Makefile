@@ -30,10 +30,10 @@ SRC := \
 all: $(OUT)
 
 $(OUT): $(SRC)
-	$(IVERILOG) $(IVFLAGS) -s $(TOP) -o $(OUT) $(SRC)
+	@$(IVERILOG) $(IVFLAGS) -s $(TOP) -o $(OUT) $(SRC)
 
 run: $(OUT)
-	$(VVP) $(OUT) +vcd
+	@$(VVP) $(OUT) +vcd
 
 clean:
-	rm -f $(OUT) *.vcd
+	@rm -f $(OUT) *.vcd
