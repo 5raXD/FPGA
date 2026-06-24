@@ -4,23 +4,22 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module Renderer(
+module GridMapper(
     // Inputs
     input  wire        clk,
     input  wire        reset,
-    // input  wire [1:0]  dir,
-    input  wire [10:0] XCoord,
-    input  wire [10:0] YCoord,
+
     // Outputs
-    output reg  [11:0] pixel_color
-);
+    output wire grid_enable,
+    );
 
-    localparam IDLE = 2'b00;
-    localparam PLAY = 2'b01;
-    localparam GAME_OVER = 2'b10;
+    always @(posedge clk) begin // What screen to display (IDLE, PLAY, GAME_OVER)
+        if(reset) begin
+            state <= IDLE;
+        end else begin
 
-    reg [1:0] state = IDLE;
-    
+        end
+    end
 
     // snake location - block level
 
@@ -29,12 +28,7 @@ module Renderer(
     //      food generator
 
 
-    // pixel color assignment - case for display layers (background, grid, snake, food)
-
-
-    // 
-
-
+    // pixel color assignment - case for display layers (background, snake, food)
 
 
 endmodule

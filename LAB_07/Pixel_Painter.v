@@ -4,10 +4,11 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module Renderer(
+module Pixel_Painter(
     // Inputs
-    input  wire        clk,
-    input  wire        reset,
+    input  wire clk,
+    input  wire reset,
+    input  wire tick,
     // input  wire [1:0]  dir,
     input  wire [10:0] XCoord,
     input  wire [10:0] YCoord,
@@ -21,19 +22,9 @@ module Renderer(
 
     reg [1:0] state = IDLE;
     
+    
 
-    // snake location - block level
-
-
-    // farmer - food allocation - block level
-    //      food generator
-
-
-    // pixel color assignment - case for display layers (background, grid, snake, food)
-
-
-    // 
-
+    // grid lines - mask - pixel level
 
 
 

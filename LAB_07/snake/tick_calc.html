@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Game Tick Calculator — Lab 7 Snake</title>
+<style>
+  :root{--bg:#0f172a;--panel:#1e293b;--ink:#e2e8f0;--muted:#94a3b8;--accent:#38bdf8;--accent2:#fbbf24;--good:#34d399;--bad:#f87171;--code:#0b1220}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--ink);line-height:1.6}
+  header{background:linear-gradient(135deg,#14532d,#0ea5e9);padding:30px 20px;text-align:center}
+  header h1{margin:0;font-size:1.7rem}header p{margin:6px 0 0;color:#dbeafe}
+  main{max-width:760px;margin:0 auto;padding:26px 18px}
+  nav.topbar{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:2px;background:rgba(11,18,32,.97);border-bottom:1px solid #334155;padding:8px 10px}
+  nav.topbar a{color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:6px;font-size:.82rem;font-weight:600;white-space:nowrap}
+  nav.topbar a:hover{background:#1e293b;color:var(--ink)}nav.topbar a.active{background:var(--accent);color:#0f172a}nav.topbar a.home{color:var(--accent2)}
+  .card{background:var(--panel);border:1px solid #334155;border-radius:14px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.3)}
+  label{display:block;font-size:.95rem;color:var(--muted);margin-bottom:8px}
+  .inrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  input[type=number]{width:200px;background:#0b1220;border:1px solid #475569;border-radius:10px;color:#fde68a;padding:12px 14px;font-family:Menlo,Consolas,monospace;font-size:1.3rem}
+  .unit{font-size:1.1rem;color:var(--ink);font-weight:700}
+  .presets{margin:14px 0 0;display:flex;gap:8px;flex-wrap:wrap}
+  .presets button{background:#0b1220;border:1px solid #475569;color:var(--ink);border-radius:999px;padding:6px 14px;font-size:.85rem;cursor:pointer}
+  .presets button:hover{border-color:var(--accent);color:var(--accent)}
+  .result{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:560px){.result{grid-template-columns:1fr}}
+  .stat{background:#0b1220;border:1px solid #334155;border-radius:10px;padding:14px 16px}
+  .stat .k{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .stat .v{font-size:1.5rem;font-weight:800;font-family:Menlo,Consolas,monospace;margin-top:4px;word-break:break-all}
+  .tmax .v{color:var(--accent2)} .act .v{color:var(--good)}
+  pre{background:var(--code);border-left:4px solid var(--accent);border-radius:8px;padding:16px;overflow-x:auto;margin:20px 0 0;font-family:Menlo,Consolas,monospace;font-size:.95rem;color:var(--ink)}
+  .warn{color:var(--bad);font-weight:700}
+  .note{background:rgba(52,211,153,.1);border-left:4px solid var(--good);padding:12px 16px;border-radius:6px;margin-top:18px;font-size:.9rem;color:#cbd5e1}
+  code{background:#0b1220;padding:2px 6px;border-radius:4px;color:#fde68a;font-family:Menlo,Consolas,monospace}
+  footer{text-align:center;color:var(--muted);padding:26px;font-size:.85rem}
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <a class="home" href="snake_concepts_guide.html">🐍 main</a>
+  <a href="mod_ps2_interface.html">PS2_Interface</a>
+  <a href="mod_direction_control.html">Direction Control</a>
+  <a href="mod_game_tick.html">Game Tick</a>
+  <a href="mod_lfsr.html">LFSR</a>
+  <a href="mod_snake_logic.html">Snake_Logic</a>
+  <a href="mod_renderer.html">Renderer</a>
+  <a href="mod_vga_interface.html">VGA_Interface</a>
+  <a href="mod_seg7_display.html">Seg7 Display</a>
+  <a href="project_tree.html">Project Tree</a>
+  <a class="active" href="tick_calc.html">Tick Calculator</a>
+</nav>
+
+<header>
+  <h1>Game Tick Calculator</h1>
+  <p>System clock fixed at 100 MHz · enter a target rate → get <code style="color:#fff">TICK_MAX</code></p>
+</header>
+
+<main>
+<div class="card">
+  <label for="hz">Target tick rate</label>
+  <div class="inrow">
+    <input id="hz" type="number" step="any" value="6" oninput="calc()" autofocus>
+    <span class="unit">Hz</span>
+  </div>
+  <div class="presets">
+    <button onclick="setHz(1)">1 Hz</button>
+    <button onclick="setHz(2)">2 Hz</button>
+    <button onclick="setHz(6)">6 Hz</button>
+    <button onclick="setHz(10)">10 Hz</button>
+    <button onclick="setHz(15)">15 Hz</button>
+    <button onclick="setHz(30)">30 Hz</button>
+  </div>
+
+  <div class="result">
+    <div class="stat tmax"><div class="k">TICK_MAX</div><div class="v" id="oTmax">–</div></div>
+    <div class="stat"><div class="k">Counter width</div><div class="v" id="oWidth">–</div></div>
+    <div class="stat act"><div class="k">Actual tick rate</div><div class="v" id="oAct">–</div></div>
+    <div class="stat"><div class="k">Tick period</div><div class="v" id="oPer">–</div></div>
+  </div>
+
+  <pre id="oCode">// enter a frequency</pre>
+  <div id="oErr"></div>
+
+  <div class="note">
+    <strong>Formula:</strong> <code>tick</code> pulses one clock every <code>TICK_MAX</code> cycles, so rate = <code>100&nbsp;MHz / TICK_MAX</code> → <code>TICK_MAX = 100,000,000 / target&nbsp;Hz</code>. The counter holds up to <code>TICK_MAX-1</code>, so it needs <code>ceil(log2(TICK_MAX))</code> bits — widen <code>cnt</code> when this exceeds 27.
+  </div>
+</div>
+</main>
+
+<footer>FPGA Lab Experiment 7 · Tel Aviv University · open in any browser</footer>
+
+<script>
+var CLK = 100e6;
+function fmtU(n){ return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "_"); }
+function setHz(v){ document.getElementById("hz").value = v; calc(); }
+function calc(){
+  var hz = parseFloat(document.getElementById("hz").value);
+  var tmax=document.getElementById("oTmax"), width=document.getElementById("oWidth"),
+      act=document.getElementById("oAct"), per=document.getElementById("oPer"),
+      code=document.getElementById("oCode"), err=document.getElementById("oErr");
+  err.innerHTML="";
+  if(!(hz>0)){ tmax.textContent=width.textContent=act.textContent=per.textContent="–"; code.textContent="// enter a positive frequency"; return; }
+  if(hz>CLK){ err.innerHTML='<p class="warn">Target must be ≤ 100 MHz.</p>'; }
+  var T = Math.max(1, Math.round(CLK/hz));
+  var w = Math.max(1, Math.ceil(Math.log2(T)));
+  var a = CLK/T, p = 1000/a, e = Math.abs(a-hz)/hz*100;
+  tmax.textContent = fmtU(T);
+  width.textContent = w + " bits";
+  act.textContent = a.toFixed(4) + " Hz";
+  per.textContent = (p<1 ? (p*1000).toFixed(2)+" µs" : p.toFixed(3)+" ms");
+  code.textContent =
+    "module Game_Tick #(parameter TICK_MAX = " + fmtU(T) + ")(  // 100 MHz / " + hz + " Hz\n" +
+    "    input  wire clk,\n" +
+    "    input  wire reset,\n" +
+    "    output reg  tick\n" +
+    ");\n" +
+    "    reg [" + (w-1) + ":0] cnt;   // " + w + " bits, 2^" + w + " = " + fmtU(Math.pow(2,w)) + "\n" +
+    "    // ... count to TICK_MAX-1, pulse tick, wrap ...\n" +
+    "endmodule";
+  if(e>0.0001) err.innerHTML += '<p style="color:#94a3b8;font-size:.88rem;margin:10px 0 0">Integer rounding error: '+e.toFixed(4)+'% (TICK_MAX must be a whole number).</p>';
+}
+calc();
+</script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 
 //////////////////////////////////////////////////////////////////////////////////
 
-module pseudo_random_tb();
+module farmer_tb();
 
     reg clk;
     reg keyPressed;
@@ -16,7 +16,7 @@ module pseudo_random_tb();
     integer f;
 
 
-    pseudo_random #(.GRID_X(GRID_X), .GRID_Y(GRID_Y)) dut(
+    farmer #(.GRID_X(GRID_X), .GRID_Y(GRID_Y)) dut(
         .clk(clk),
         .keyPressed(keyPressed),
         .food_x(food_x),
@@ -29,7 +29,7 @@ module pseudo_random_tb();
 
         if($test$plusargs("vcd")) begin
             $dumpfile("LFSR_Food.vcd");
-            $dumpvars(0, LFSR_TB);
+            $dumpvars(0, farmer_tb);
         end
     
         f = $fopen("coords.txt", "w");
