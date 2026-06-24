@@ -5,7 +5,7 @@
 
 module snake_game(
     // Inputs
-    input  wire clk,     // W5  - 100 MHz system clock
+    input  wire clk,   // W5  - 100 MHz system clock
     input  wire rst,   // U18 - btnC, active high (pressed = 1)
     // Inputs - from PS2 keyboard
     input  wire PS2Clk,  // C17 - keyboard clock
