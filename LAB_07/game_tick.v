@@ -3,7 +3,7 @@
 
 //////////////////////////////////////////////////////////////////////////////////
 
-module Game_Tick #(parameter TICK_MAX = 100_000_000)(  // 100MHz / 100M = 1Hz
+module Game_Tick #(parameter TICK_MAX = 14285714)( // 7Hz tick for 100MHz clock
     // Inputs
     input  wire clk,
     input  wire reset,
@@ -11,7 +11,7 @@ module Game_Tick #(parameter TICK_MAX = 100_000_000)(  // 100MHz / 100M = 1Hz
     output reg  tick
     );
 
-    reg [26:0] cnt;
+    reg [23:0] cnt;
     
     always @(posedge clk) begin
         if (reset) begin 

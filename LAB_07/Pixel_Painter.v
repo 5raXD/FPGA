@@ -16,6 +16,14 @@ module Pixel_Painter(
     output reg  [11:0] pixel_color
     );
 
+    GridMapper #(GRID_X = 100, GRID_Y = 75) grid_mapper(
+    // Inputs
+    .clk(clk),
+    .reset(reset),
+    // Outputs
+    .grid_enable(grid_enable)
+    );
+
 
     
 
