@@ -3,7 +3,7 @@
 
 //////////////////////////////////////////////////////////////////////////////////
 
-module LFSR_TB();
+module pseudo_random_tb();
 
     reg clk;
     reg keyPressed;
@@ -16,7 +16,7 @@ module LFSR_TB();
     integer f;
 
 
-    LFSR_Food #(.GRID_X(GRID_X), .GRID_Y(GRID_Y)) dut(
+    pseudo_random #(.GRID_X(GRID_X), .GRID_Y(GRID_Y)) dut(
         .clk(clk),
         .keyPressed(keyPressed),
         .food_x(food_x),
