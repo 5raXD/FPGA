@@ -54,7 +54,7 @@ module snake_game(
         .a_to_g(a_to_g),
         .an(an),
         .dp(dp)
-	 );
+	);
 
     Ps2_Interface ps2_interface(
         // Inputs
@@ -112,7 +112,7 @@ module snake_game(
     );
 
     // Game Tick - Clock Divider
-    Game_Tick game_tick(
+    Game_Tick #(.TICK_MAX(14285714)) game_tick( // 7Hz tick for 100MHz clock
         // Inputs
         .clk(clk),
         .reset(reset),
