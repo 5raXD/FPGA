@@ -11,7 +11,7 @@ module Game_Tick #(parameter TICK_MAX = 14285714)( // 7Hz tick for 100MHz clock
     output reg  tick
     );
 
-    reg [$clog2(TICK_MAX)+1:0] cnt;
+    reg [$clog2(TICK_MAX)-1:0] cnt;
     
     always @(posedge clk) begin
         if (reset) begin 
