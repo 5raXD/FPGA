@@ -16,9 +16,10 @@ SRC := \
 	Ps2_Interface.v \
 	VGA_Interface.v \
 	Pixel_Painter.v \
-	Game_Tick.v \
-	Seg_7_Display.v \ 
-	grid_mapper.v 
+	game_tick.v \
+	Seg_7_Display.v \
+	grid_mapper.v \
+	farmer.v 
 
 ##################################################
 # add more files here, one per line, e.g.:
