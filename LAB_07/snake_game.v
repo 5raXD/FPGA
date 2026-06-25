@@ -90,6 +90,7 @@ module snake_game(
         // Inputs
         .clk(clk),
         .reset(reset),
+        .keyPressed(keyPressed),
         .XCoord(XCoord),
         .YCoord(YCoord),
         .tick(tick),

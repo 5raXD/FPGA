@@ -17,7 +17,8 @@ SRC := \
 	VGA_Interface.v \
 	Pixel_Painter.v \
 	Game_Tick.v \
-	Seg_7_Display.v
+	Seg_7_Display.v \ 
+	grid_mapper.v 
 
 ##################################################
 # add more files here, one per line, e.g.:
