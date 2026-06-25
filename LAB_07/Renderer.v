@@ -4,7 +4,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module Renderer(
+module Renderer( // delete me
     // Inputs
     input  wire        clk,
     input  wire        reset,
