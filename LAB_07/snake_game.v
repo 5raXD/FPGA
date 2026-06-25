@@ -86,6 +86,7 @@ module snake_game(
     //  Internal  //
     ////////////////
 
+    // Image Processing - Screen
     Pixel_Painter painter(
         // Inputs
         .clk(clk),
@@ -99,6 +100,7 @@ module snake_game(
         .pixel_color(pixel_color)
     );
 
+    // Navigation System - Keyboard
     Navigation_System navigation_system(
         // Inputs
         .clk(clk),
@@ -109,6 +111,7 @@ module snake_game(
         .dir(dir)
     );
 
+    // Game Tick - Clock Divider
     Game_Tick game_tick(
         // Inputs
         .clk(clk),
