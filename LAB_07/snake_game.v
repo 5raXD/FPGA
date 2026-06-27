@@ -87,7 +87,7 @@ module snake_game(
     ////////////////
 
     // Image Processing - Screen
-    Pixel_Painter painter(
+    Pixel_Painter #(.GRID_X(100), .GRID_Y(75)) painter(
         // Inputs
         .clk(clk),
         .reset(reset),

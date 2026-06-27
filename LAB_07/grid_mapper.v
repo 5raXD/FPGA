@@ -9,19 +9,24 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     input  wire clk,
     input  wire reset,
     input  wire keyPressed,
-    input  wire [10:0] x,
-    input  wire [10:0] y,
+    input  wire [$clog2(GRID_X)-1:0] x,
+    input  wire [$clog2(GRID_Y)-1:0] y,
     // Outputs
     output wire grid_enable,
     output reg  [11:0] block_color
     );
 
+    // FSM states
     localparam IDLE = 2'b00;
     localparam PLAY = 2'b01;
     localparam GAME_OVER = 2'b10;
 
+    // Colors
     localparam WHITE = 12'hFFF;
     localparam BLACK = 12'h000;
+    localparam GREEN = 12'h0F0;
+    localparam FOOD   = 12'hF11;
+    localparam SNAKE_COLOR = 12'h333;
 
     reg [1:0] state = IDLE;
     reg [$clog2(GRID_X * GRID_Y)-1:0] score = 0;
@@ -61,8 +66,8 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
 
     // farmer - food allocation - block level
     // always @(posedge clk) begin
-    //     if() begin // if not on the snake & not eating food
-        
+    //     if(is_eaten) begin // if not on the snake & not eating food
+
     //     end
     // end
     //      food generator
@@ -82,11 +87,25 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     initial $readmemb("skull.mem", skull);
 
     wire in_grid  = (x < GRID_X) && (y < GRID_Y);
-    wire skull_on = in_grid && skull[y][GRID_X-1-x];
+    wire on_skull = in_grid && skull[y][GRID_X-1-x];
+    wire on_snake;
+    wire is_food;
 
     always @(*) begin
         case (state)
-            GAME_OVER: block_color = skull_on ? WHITE : BLACK;
+            IDLE: begin
+            end
+            PLAY: begin
+                case({on_snake, is_food})
+                    2'b01: block_color = FOOD; // food
+                    2'b10: block_color = SNAKE_COLOR; // snake
+                    default: block_color = GREEN;
+                endcase
+            end
+            GAME_OVER: begin
+                block_color = on_skull? WHITE : BLACK;
+            end
+
             default: block_color = BLACK;
         endcase
     end
