@@ -122,6 +122,7 @@
   <a href="mod_seg7_display.html">Seg7 Display</a>
   <a href="project_tree.html">Project Tree</a>
   <a href="tick_calc.html">Tick Calculator</a>
+  <a href="vga_color_picker.html">Color Picker</a>
 </nav>
 
 <header>
@@ -558,8 +559,317 @@ Keep a 2-D memory, one entry per cell, holding a small number: <strong>0 = empty
   <li>Scales to large snakes and big grids; uses block RAM cleanly.</li>
 </ul>
 
+<!-- ===================== INTERACTIVE APPROACH-B DEMO ===================== -->
+<style>
+  .bdemo{background:#0b1220;border:1px solid #334155;border-radius:12px;padding:18px;margin:18px 0;}
+  .bdemo h4{margin:0 0 6px;color:#34d399;font-size:1.05rem;}
+  .bdemo .lead{color:#94a3b8;font-size:.9rem;margin:0 0 14px;}
+  .bdemo-wrap{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start;}
+  .bdemo-board{display:grid;gap:2px;background:#1e293b;padding:6px;border-radius:8px;
+    outline:2px solid transparent;transition:outline .15s;}
+  .bdemo-board:focus{outline:2px solid #38bdf8;}
+  .bcell{width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+    font-family:"JetBrains Mono",monospace;font-weight:700;font-size:.95rem;border-radius:4px;
+    color:#0b1220;user-select:none;cursor:pointer;transition:background .08s;}
+  .bcell.empty{background:#111827;color:#334155;}
+  .bcell.food{background:#f87171;color:#450a0a;}
+  .bdemo-side{flex:1 1 240px;min-width:230px;}
+  .bdemo-pad{display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(2,40px);
+    gap:6px;justify-content:start;margin-bottom:12px;}
+  .bdemo-pad button{background:#1e293b;border:1px solid #475569;color:#e2e8f0;border-radius:8px;
+    font-size:1.1rem;font-weight:700;cursor:pointer;}
+  .bdemo-pad button:hover{background:#334155;}
+  .bdemo-pad .up{grid-column:2;grid-row:1;} .bdemo-pad .left{grid-column:1;grid-row:2;}
+  .bdemo-pad .down{grid-column:2;grid-row:2;} .bdemo-pad .right{grid-column:3;grid-row:2;}
+  .bdemo-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px;}
+  .bdemo-row button{background:#3f3f1e;border:1px solid #fbbf24;color:#fde68a;border-radius:8px;
+    padding:6px 12px;font-weight:600;cursor:pointer;font-size:.85rem;}
+  .bdemo-row label{color:#94a3b8;font-size:.82rem;display:flex;align-items:center;gap:5px;cursor:pointer;}
+  .bstat{font-family:"JetBrains Mono",monospace;font-size:.84rem;line-height:1.7;}
+  .bstat .k{color:#64748b;} .bstat .v{color:#fde68a;}
+  .baction{background:#111827;border-left:3px solid #34d399;border-radius:6px;padding:8px 11px;
+    font-size:.82rem;color:#a7f3d0;min-height:2.4em;margin-top:6px;}
+  .baction.bad{border-left-color:#f87171;color:#fecaca;}
+  .baction.warn{border-left-color:#fbbf24;color:#fde68a;}
+  .blegend{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;font-size:.78rem;color:#94a3b8;}
+  .blegend span{display:inline-flex;align-items:center;gap:5px;}
+  .blegend i{width:14px;height:14px;border-radius:3px;display:inline-block;}
+</style>
+
+<div class="bdemo">
+  <h4>🎮 Interactive demo — drive the countdown grid yourself</h4>
+  <p class="lead">
+    Each cell shows its stored number: <strong>0 = empty</strong>, and any <strong>n</strong> means
+    "this cell is snake and clears in <strong>n</strong> more ticks." Watch the rule run live:
+    <em>(1)</em> every move decrements all non-zero cells — the tail (value&nbsp;1) hits 0 and vanishes,
+    <em>(2)</em> the new head cell is written with the current <code>length</code>,
+    <em>(3)</em> eating food <em>skips</em> the decrement so the tail survives and the body grows by one.
+  </p>
+
+  <div class="bdemo-wrap">
+    <div class="bdemo-board" id="bBoard" tabindex="0" title="Click here, then use Arrow keys / WASD"></div>
+
+    <div class="bdemo-side">
+      <div class="bdemo-pad">
+        <button class="up"    onclick="bStep(0,-1)">▲</button>
+        <button class="left"  onclick="bStep(-1,0)">◀</button>
+        <button class="down"  onclick="bStep(0,1)">▼</button>
+        <button class="right" onclick="bStep(1,0)">▶</button>
+      </div>
+      <div class="bdemo-row">
+        <button onclick="bReset()">⟳ Reset</button>
+        <label><input type="checkbox" id="bShow0" checked onchange="bRender()"> show 0s</label>
+      </div>
+      <div class="bstat">
+        <div><span class="k">length&nbsp;(= head value):</span> <span class="v" id="bLen">3</span></div>
+        <div><span class="k">head cell (col,row):</span> <span class="v" id="bHead">3,4</span></div>
+        <div><span class="k">moves made:</span> <span class="v" id="bMoves">0</span> &nbsp; <span class="k">eaten:</span> <span class="v" id="bEaten">0</span></div>
+      </div>
+      <div class="baction" id="bAction">Click the board, then steer with the arrows. Eat the red food to grow.</div>
+      <div class="blegend">
+        <span><i style="background:#a3e635"></i> head = length</span>
+        <span><i style="background:hsl(152,60%,42%)"></i> body (n)</span>
+        <span><i style="background:#f87171"></i> food</span>
+        <span><i style="background:#111827;outline:1px solid #334155"></i> empty = 0</span>
+      </div>
+      <p class="lead" style="margin-top:12px">
+        Tip: try to <strong>run into your own body</strong> — notice the head cell you'd enter is
+        <em>non-zero</em>, which is exactly the O(1) self-collision test. Moving into the
+        <strong>tail</strong> (value 1) is legal on a non-eating tick, because it clears the same tick.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const W = 12, H = 9;                 // demo grid (cols x rows)
+  let grid, length, headX, headY, dir, foodX, foodY, moves, eaten, dead;
+
+  function emptyCells(){
+    const out=[];
+    for(let r=0;r<H;r++) for(let c=0;c<W;c++) if(grid[r][c]===0 && !(c===headX&&r===headY)) out.push([c,r]);
+    return out;
+  }
+  function placeFood(){
+    const e=emptyCells();
+    if(!e.length){ foodX=-1; foodY=-1; return; }
+    const [c,r]=e[Math.floor(Math.random()*e.length)];
+    foodX=c; foodY=r;
+  }
+  window.bReset=function(){
+    grid=Array.from({length:H},()=>Array(W).fill(0));
+    length=3; headY=4; const sx=2;
+    for(let i=0;i<length;i++) grid[headY][sx+i]=i+1;   // 1=tail ... length=head
+    headX=sx+length-1; dir=[1,0]; moves=0; eaten=0; dead=false;
+    placeFood();
+    setAction("New game. length=3, head value=3. Steer with the arrows.", "");
+    bRender();
+  };
+
+  function setAction(msg,kind){
+    const el=document.getElementById('bAction');
+    el.textContent=msg; el.className="baction"+(kind?(" "+kind):"");
+  }
+
+  window.bStep=function(dx,dy){
+    if(dead){ bReset(); return; }
+    if(length>1 && dx===-dir[0] && dy===-dir[1]){           // no-reversal rule (req 3.b)
+      setAction("↩ reversal ignored — can't turn 180° into your own neck.","warn"); return;
+    }
+    const nx=headX+dx, ny=headY+dy;
+    if(nx<0||nx>=W||ny<0||ny>=H){                            // wall
+      dead=true; setAction("💥 WALL — head left the grid → GAME OVER. (press a direction to restart)","bad");
+      bRender(); return;
+    }
+    const target=grid[ny][nx];
+    const ateFood=(nx===foodX && ny===foodY);
+    const tailVacates=(target===1 && !ateFood);
+    if(target!==0 && !tailVacates){                          // self-collision: cell already snake
+      dead=true; setAction("💥 SELF — head entered a cell holding "+target+" (non-zero) → GAME OVER.","bad");
+      bRender(); return;
+    }
+    if(ateFood){
+      length+=1; grid[ny][nx]=length; eaten++;
+      setAction("🍎 ATE FOOD → length="+length+". SKIPPED the decrement (tail kept), wrote head="+length+".","");
+      placeFood();
+    }else{
+      for(let r=0;r<H;r++) for(let c=0;c<W;c++) if(grid[r][c]>0) grid[r][c]-=1; // decrement all
+      grid[ny][nx]=length;                                   // then write head
+      setAction("➡ MOVE → decremented every non-zero cell (tail 1→0 cleared), wrote head="+length+".","");
+    }
+    headX=nx; headY=ny; dir=[dx,dy]; moves++;
+    bRender();
+  };
+
+  window.bRender=function(){
+    const board=document.getElementById('bBoard');
+    board.style.gridTemplateColumns="repeat("+W+",34px)";
+    const show0=document.getElementById('bShow0').checked;
+    let html="";
+    for(let r=0;r<H;r++) for(let c=0;c<W;c++){
+      const v=grid[r][c];
+      let cls="bcell", style="", txt="";
+      if(c===foodX && r===foodY && v===0){ cls+=" food"; txt="F"; }
+      else if(v===0){ cls+=" empty"; txt=show0?"0":""; }
+      else if(v===length){ style="background:#a3e635"; txt=v; }     // head
+      else { const l=22+38*(v/length); style="background:hsl(152,60%,"+l.toFixed(0)+"%)"; txt=v; }
+      html+="<div class='"+cls+"' style='"+style+"' onclick='bFood("+c+","+r+")'>"+txt+"</div>";
+    }
+    board.innerHTML=html;
+    document.getElementById('bLen').textContent=length;
+    document.getElementById('bHead').textContent=headX+","+headY;
+    document.getElementById('bMoves').textContent=moves;
+    document.getElementById('bEaten').textContent=eaten;
+  };
+
+  window.bFood=function(c,r){                                 // click an empty cell to move the food there
+    if(grid[r][c]===0 && !(c===headX&&r===headY)){ foodX=c; foodY=r; bRender(); }
+  };
+
+  document.getElementById('bBoard').addEventListener('keydown',function(e){
+    const k=e.key.toLowerCase();
+    const map={arrowup:[0,-1],w:[0,-1],arrowdown:[0,1],s:[0,1],arrowleft:[-1,0],a:[-1,0],arrowright:[1,0],d:[1,0]};
+    if(map[k]){ e.preventDefault(); bStep(map[k][0],map[k][1]); }
+  });
+
+  bReset();
+})();
+</script>
+<!-- =================== END INTERACTIVE APPROACH-B DEMO =================== -->
+
 <div class="callout tip">
 <strong>Recommendation.</strong> For a first working version, <strong>Approach A</strong> with a small <code>MAX_LEN</code> is easiest to get on the screen and to simulate. If you have time and want a long snake, <strong>Approach B</strong> is the elegant, scalable answer — and makes a great point in the "internal design and logic" part of your report.
+</div>
+
+<h3 id="share">Sharing the grid with every module — the Verilog way</h3>
+<p>
+Approach B gives you <strong>one</strong> 2-D array of cell values — but several blocks need to see it at once: <strong>Snake_Logic</strong> writes it, the <strong>Renderer</strong> reads it to color pixels, and the <strong>food / LFSR</strong> block reads it to avoid spawning on the snake. The software instinct is to "pass the matrix around." <strong>In Verilog you cannot:</strong> a <code>reg […] grid [0:N-1]</code> is a <em>memory</em>, and memories may not be carried through module ports. So turn the question around:
+</p>
+
+<div class="callout tip">
+<strong>The rule.</strong> Keep the matrix in <em>one</em> owner module and give every other module an <strong>address-in → data-out read port</strong>. You never move the array — you move a small address and get back one cell. And the Renderer already <em>produces</em> that address for free: the cell index <code>(XCoord&gt;&gt;3, YCoord&gt;&gt;3)</code> it computes every pixel <strong>is</strong> the read address.
+</div>
+
+<svg viewBox="0 0 740 300" width="740">
+  <!-- owner -->
+  <rect x="270" y="110" width="200" height="90" rx="10" fill="#064e3b" stroke="#34d399" stroke-width="2"/>
+  <text x="370" y="140" text-anchor="middle" fill="#d1fae5" font-size="14" font-weight="bold">Grid_Memory</text>
+  <text x="370" y="160" text-anchor="middle" fill="#a7f3d0" font-size="10">the ONE owner of grid[row][col]</text>
+  <text x="370" y="178" text-anchor="middle" fill="#a7f3d0" font-size="10">(infers block RAM)</text>
+
+  <!-- writer -->
+  <rect x="30" y="120" width="160" height="70" rx="8" fill="#3f3f1e" stroke="#fbbf24"/>
+  <text x="110" y="148" text-anchor="middle" fill="#fde68a" font-size="12" font-weight="bold">Snake_Logic</text>
+  <text x="110" y="166" text-anchor="middle" fill="#fef3c7" font-size="9">the only writer</text>
+  <line x1="190" y1="150" x2="269" y2="150" stroke="#fbbf24" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="230" y="140" text-anchor="middle" fill="#94a3b8" font-size="9">we, wr_col/row, wr_val</text>
+
+  <!-- renderer reader -->
+  <rect x="560" y="40" width="160" height="70" rx="8" fill="#3b1e5e" stroke="#a78bfa"/>
+  <text x="640" y="68" text-anchor="middle" fill="#ddd6fe" font-size="12" font-weight="bold">Renderer</text>
+  <text x="640" y="86" text-anchor="middle" fill="#e9d5ff" font-size="9">reads per pixel</text>
+  <line x1="560" y1="65" x2="471" y2="120" stroke="#a78bfa" marker-end="url(#arr)"/>
+  <text x="540" y="92" fill="#94a3b8" font-size="9">a_col,a_row →</text>
+  <line x1="470" y1="135" x2="559" y2="80" stroke="#475569" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <text x="540" y="128" fill="#64748b" font-size="9">← a_cell</text>
+
+  <!-- food reader -->
+  <rect x="560" y="200" width="160" height="70" rx="8" fill="#3f1e1e" stroke="#f87171"/>
+  <text x="640" y="228" text-anchor="middle" fill="#fecaca" font-size="12" font-weight="bold">Food / LFSR</text>
+  <text x="640" y="246" text-anchor="middle" fill="#fecaca" font-size="9">"is this cell free?"</text>
+  <line x1="560" y1="240" x2="471" y2="185" stroke="#f87171" marker-end="url(#arr)"/>
+  <text x="540" y="220" fill="#94a3b8" font-size="9">b_col,b_row →</text>
+  <line x1="470" y1="170" x2="559" y2="225" stroke="#475569" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <text x="540" y="200" fill="#64748b" font-size="9">← b_cell</text>
+
+  <text x="370" y="285" text-anchor="middle" fill="#94a3b8" font-size="11">one writer, many address-based readers — the matrix itself never crosses a port</text>
+</svg>
+
+<h4 style="color:#fbbf24;margin-top:18px">Your three choices (and which are legal in plain Verilog)</h4>
+<table>
+<tr><th>Option</th><th>What it is</th><th>Plain Verilog?</th><th>Cost / when to use</th></tr>
+<tr>
+  <td><strong>① Owner + address read ports</strong> <span class="badge reuse">recommended</span></td>
+  <td>One <code>Grid_Memory</code> module; others send <code>(col,row)</code>, get back the cell value.</td>
+  <td>✓ <strong>yes</strong> (Verilog-2001)</td>
+  <td>Infers <strong>dual-port block RAM</strong>; scales to the full 100×75 countdown grid.</td>
+</tr>
+<tr>
+  <td><strong>② Flatten to one wide bus</strong></td>
+  <td>Expose a 1-bit-per-cell occupancy bitmap as a single packed vector port.</td>
+  <td>✓ <strong>yes</strong> — you already do this with <code>skull</code>!</td>
+  <td>Becomes flip-flops, so keep it to <strong>1 bit/cell</strong> (≤ ~7500 wires). Great for <em>occupancy only</em>.</td>
+</tr>
+<tr>
+  <td><strong>③ 2-D array ports / interface</strong></td>
+  <td>Pass <code>grid[row][col]</code> straight through a port, or bundle it in an <code>interface</code>.</td>
+  <td>✗ <strong>SystemVerilog only — not available to you</strong></td>
+  <td>Off the table. (And it still becomes the same hardware anyway.)</td>
+</tr>
+</table>
+
+<div class="callout warn">
+<strong>You are restricted to Verilog, so ③ is out</strong> — which costs you nothing. Option ① is the textbook hardware answer regardless of language; the only thing SystemVerilog would have bought you is prettier syntax, not better silicon.
+</div>
+
+<h4 style="color:#fbbf24">Option ① — the owner module (this is all the "sharing" you need)</h4>
+<pre><code>module Grid_Memory #(parameter GRID_X=100, GRID_Y=75, B=13) (
+    input  wire clk,
+    // ---- WRITE port : ONLY Snake_Logic drives this ----
+    input  wire                       we,
+    input  wire [$clog2(GRID_X)-1:0]  wr_col,
+    input  wire [$clog2(GRID_Y)-1:0]  wr_row,
+    input  wire [B-1:0]               wr_val,
+    // ---- READ port A : the Renderer (addr from XCoord/YCoord) ----
+    input  wire [$clog2(GRID_X)-1:0]  a_col,
+    input  wire [$clog2(GRID_Y)-1:0]  a_row,
+    output wire [B-1:0]               a_cell,
+    // ---- READ port B : the food / LFSR free-cell check ----
+    input  wire [$clog2(GRID_X)-1:0]  b_col,
+    input  wire [$clog2(GRID_Y)-1:0]  b_row,
+    output wire [B-1:0]               b_cell
+);
+    reg [B-1:0] grid [0:GRID_X*GRID_Y-1];          // ONE memory, lives only here
+    always @(posedge clk)
+        if (we) grid[wr_row*GRID_X + wr_col] &lt;= wr_val;   // single writer
+
+    assign a_cell = grid[a_row*GRID_X + a_col];     // renderer reads
+    assign b_cell = grid[b_row*GRID_X + b_col];     // food checks
+endmodule
+
+// In a consumer, the 2-D matrix never appears — just a 1-bit answer:
+wire [6:0] col = XCoord &gt;&gt; 3;        // CELL = 8
+wire [6:0] row = YCoord &gt;&gt; 3;
+wire on_snake  = (a_cell != 0);      // O(1) render + self-collision test</code></pre>
+
+<h4 style="color:#fbbf24">Option ② — flatten to a bus (only for 1-bit occupancy)</h4>
+<p>If a consumer only needs "snake or not" (not the countdown number), you can avoid a memory port entirely and expose a packed vector — the exact same trick as your <code>skull</code> bitmap:</p>
+<pre><code>// Owner keeps occupancy the way you already keep skull.mem:
+reg [GRID_X-1:0] occ [0:GRID_Y-1];              // one bit per cell
+
+// Expose ALL rows as ONE flat output vector (legal Verilog — no array port):
+output [GRID_X*GRID_Y-1:0] occ_flat;            // 100*75 = 7500 bits
+genvar r;
+generate for (r=0; r&lt;GRID_Y; r=r+1)
+    assign occ_flat[(r+1)*GRID_X-1 -: GRID_X] = occ[r];
+endgenerate
+
+// Any consumer indexes out the single bit it cares about:
+wire on_snake = occ_flat[(YCoord&gt;&gt;3)*GRID_X + (XCoord&gt;&gt;3)];</code></pre>
+<div class="callout">
+<strong>Why not flatten the full countdown grid?</strong> A 1-bit occupancy bus is 7500 wires — fine. The full Approach-B grid is <code>100×75×13 ≈ 97 500</code> bits; flattening that makes ~97 k flip-flops instead of block RAM. Use the bus for <strong>occupancy</strong>, and the memory ports (Option ①) for the <strong>values</strong>.
+</div>
+
+<h4 style="color:#fbbf24">Three gotchas when you wire it up</h4>
+<ul>
+  <li><strong>Exactly one writer.</strong> Only Snake_Logic drives <code>we/wr_*</code>. If two modules write the same memory you get multiple-driver errors — keep all others read-only.</li>
+  <li><strong>Block-RAM read latency.</strong> If <code>a_cell</code> comes from inferred BRAM it arrives <em>one clock late</em>. Present the pixel address one cycle early (or register the color one stage) or you'll see a 1-pixel horizontal shift. The flattened bus (②) is combinational and has no such delay.</li>
+  <li><strong>The decrement sweep needs the write port.</strong> Approach B's "decrement every non-zero cell" walks all cells through the write port over many clocks (trivial inside a ~14 M-cycle tick). Give the Renderer its <em>own</em> read port (true dual-port) so it never stalls during the sweep.</li>
+</ul>
+
+<div class="callout tip">
+<strong>Bottom line.</strong> Make a single <code>Grid_Memory</code> owner written only by Snake_Logic, and connect the Renderer and the food block through <strong>address/data read ports</strong> — the Renderer already generates the address (<code>XCoord&gt;&gt;3</code>, <code>YCoord&gt;&gt;3</code>), so <code>on_snake</code> and <code>is_food</code> are a 2-wire-in / 1-wire-out hookup per consumer. That is how you "share the matrix" in pure Verilog without ever passing the matrix.
 </div>
 </section>
 
