@@ -10,17 +10,24 @@ module Pixel_Painter #(parameter GRID_X = 100, GRID_Y = 75)(
     input  wire reset,
     input  wire tick,
     input wire keyPressed,
+    input wire start_game,
+    input wire crash,
+    input wire is_food,
+    input wire on_snake,
+    input wire is_head,
     // input  wire [1:0]  dir,
     input  wire [10:0] XCoord,
     input  wire [10:0] YCoord,
     // Outputs
+    output wire [$clog2(GRID_X)-1:0] x,
+    output wire [$clog2(GRID_Y)-1:0] y,
     output reg  [11:0] pixel_color
     );
 
     wire on_grid;
     wire grid_enable;
-    wire [$clog2(GRID_X)-1:0] x = XCoord >> 3; // divide by 8
-    wire [$clog2(GRID_Y)-1:0] y = YCoord >> 3; // divide by 8
+    // wire [$clog2(GRID_X)-1:0] x = XCoord >> 3; // divide by 8 // delete me
+    // wire [$clog2(GRID_Y)-1:0] y = YCoord >> 3; // divide by 8 // delete me
     wire [11:0] block_color;
 
     GridMapper #(.GRID_X(GRID_X), .GRID_Y(GRID_Y)) grid_mapper(
@@ -28,6 +35,10 @@ module Pixel_Painter #(parameter GRID_X = 100, GRID_Y = 75)(
     .clk(clk),
     .reset(reset),
     .keyPressed(keyPressed),
+    .crash(crash),
+    .is_food(is_food),
+    .on_snake(on_snake),
+    .is_head(is_head),
     .x(x),
     .y(y),
     // Outputs
@@ -38,6 +49,8 @@ module Pixel_Painter #(parameter GRID_X = 100, GRID_Y = 75)(
     // grid lines - mask - pixel level
     assign on_grid = (XCoord[2:0] == 3'b000) || (YCoord[2:0] == 3'b000); // 8x8 grid
     assign pixel_color = (grid_enable & on_grid)? 12'h000 : block_color;
+    assign x = XCoord >> 3;
+    assign y = YCoord >> 3;
 
     // who's responsible for the pixels XCoord > 800 or YCoord > 600?
     // it the inteface as i expected so we dont need to hanke that here

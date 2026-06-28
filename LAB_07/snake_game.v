@@ -35,12 +35,14 @@ module snake_game(
     wire reset;
     wire [15:0] score;
     wire tick;
+    wire [$clog2(GRID_X)-1:0] x;
+    wire [$clog2(GRID_Y)-1:0] y;
     // Snake grid owner - shared signals
-    wire [6:0] food_x;
-    wire [6:0] food_y;
+    wire [$clog2(GRID_X)-1:0] food_x;
+    wire [$clog2(GRID_Y)-1:0] food_y;
     wire on_snake;
     wire is_head;
-    wire food_on_snake;
+    wire is_food;
     wire crash;
 
     ///////////////////////
@@ -106,7 +108,14 @@ module snake_game(
         .YCoord(YCoord),
         .tick(tick),
         // .dir(dir),
+        .start_game(keyPressed),
+        .crash(crash),
+        .is_food(is_food),
+        .on_snake(on_snake),
+        .is_head(is_head),
         // Outputs
+        .x(x),
+        .y(y),
         .pixel_color(pixel_color)
     );
 
@@ -127,17 +136,14 @@ module snake_game(
         .reset(reset),
         .tick(tick),
         .dir(dir),
-        // Inputs - food location (from farmer)
-        .food_x(food_x),
-        .food_y(food_y),
+        .keyPressed(keyPressed),
         // Inputs - pixel being scanned (read address from the renderer)
-        .XCoord(XCoord),
-        .YCoord(YCoord),
+        .x(x),
+        .y(y),
         // Outputs - grid reads (to Pixel_Painter / GridMapper)
         .on_snake(on_snake),
         .is_head(is_head),
-        // Outputs - food cell occupancy (to farmer, so food avoids the body)
-        .food_on_snake(food_on_snake),
+        .is_food(is_food),
         // Outputs - game status
         .crash(crash),
         .score(score)
