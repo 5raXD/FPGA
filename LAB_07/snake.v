@@ -50,63 +50,50 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
     reg [$clog2(GRID_X)-1:0] plant_x;
     reg [$clog2(GRID_Y)-1:0] plant_y;
 
-    // next head position (combinational) from current head + direction
-    // one extra bit so next_x can reach GRID_X (catches the wall on power-of-2 grids)
-    reg [$clog2(GRID_X):0] next_x;
-    reg [$clog2(GRID_Y):0] next_y;
-    always @(*) begin
-        next_x = head_x;
-        next_y = head_y;
-        case(dir)
-            UP:    next_y = head_y - 1;
-            DOWN:  next_y = head_y + 1;
-            LEFT:  next_x = head_x - 1;
-            RIGHT: next_x = head_x + 1;
-        endcase
-    end
+    wire is_eaten;
 
-    wire is_eaten = (next_x == plant_x) && (next_y == plant_y);
-    wire hit_wall = (next_x >= GRID_X) || (next_y >= GRID_Y);
-    wire hit_self = !hit_wall && (grid[next_y][next_x] != 0); // skip the grid read when off-board
-
-    integer i, j;
     always @(posedge clk) begin
         if(reset) begin
             length <= 1;
-            head_x <= GRID_X >> 1;
-            head_y <= GRID_Y >> 1;
-            crash  <= 0;
-            // clear the board - otherwise cells read as 'x' and crash fires
-            for(i = 0; i < GRID_Y; i = i + 1)
-                for(j = 0; j < GRID_X; j = j + 1)
-                    grid[i][j] <= 0;
-            grid[GRID_Y >> 1][GRID_X >> 1] <= 1; // stamp the starting head
+            head_x <= GRID_X >>1;
+            head_y <= GRID_Y >>1;
+            crash <= 0;
         end else if(tick && !crash) begin
-            // crash on wall or own body, checked on the NEW head cell
-            if(hit_wall || hit_self) begin
+            // move the snake in the current direction
+            case(dir)
+                UP:    head_y <= head_y - 1;
+                DOWN:  head_y <= head_y + 1;
+                LEFT:  head_x <= head_x - 1;
+                RIGHT: head_x <= head_x + 1;
+            endcase
+
+            // check for crash with walls or self
+            if(head_x >= GRID_X || head_y >= GRID_Y || grid[head_y][head_x] != 0) begin
                 crash <= 1;
             end else begin
-                head_x <= next_x;
-                head_y <= next_y;
-                if(is_eaten) begin
-                    // ate food: keep the tail (no decrement), grow, head = new length
-                    length <= length + 1;
-                    grid[next_y][next_x] <= length + 1;
-                end else begin
-                    // normal move: write head = length, then tick every cell down
-                    grid[next_y][next_x] <= length;
-                    for(i = 0; i < GRID_Y; i = i + 1)
-                        for(j = 0; j < GRID_X; j = j + 1)
-                            if(grid[i][j] != 0)
-                                grid[i][j] <= grid[i][j] - 1;
+                // check if food is eaten
+                length <= is_eaten? length + 1 : length;
+                // update the grid with the new head position
+                grid[head_y][head_x] <= length;
+
+                // decrement all non-zero cells in the grid
+                for(int i = 0; i < GRID_Y; i++) begin
+                    for(int j = 0; j < GRID_X; j++) begin
+                        if((grid[i][j] > 0) && (i != head_y && j != head_x && is_eaten)) begin
+                            grid[i][j] <= grid[i][j] - 1;
+                        end
+                    end
                 end
             end
+
         end
     end
 
+
+
     // farmer - food allocation - block level
     always @(posedge clk) begin
-        if((is_eaten && tick) || reset) begin // relocate food on eat (or at start)
+        if((is_eaten && tick) || reset) begin // if not on the snake & not eating food
             plant_x <= famer_plant_x;
             plant_y <= famer_plant_y;
         end
@@ -124,8 +111,8 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
 
     // read ports - combinational, anyone reads by giving an address
     assign on_snake = (grid[y][x] != 0);
-    assign is_head  = (grid[y][x] != 0) && (grid[y][x] == length);
-    assign is_food  = (x == plant_x) && (y == plant_y);
-    assign score    = length;
+    assign is_head =  (grid[y][x] != 0) && (grid[y][x] == length);
+    assign score = length[15:0];
+    assign is_eaten = (head_x == plant_x) && (head_y == plant_y);
 
 endmodule

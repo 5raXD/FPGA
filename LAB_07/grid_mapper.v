@@ -31,7 +31,7 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     localparam GREEN = 12'h0F0;
     localparam FOOD_COLOR = 12'hF11;
     localparam SNAKE_COLOR = 12'h333;
-    localparam SNAKE_HEAD_COLOR = 12'hCCC; // light grey - distinct from the body
+    localparam SNAKE_HEAD_COLOR = 12'h333; // give me unique color!!!
 
     reg [1:0] state = IDLE;
     reg [$clog2(GRID_X * GRID_Y)-1:0] score = 0;
@@ -39,12 +39,13 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
 
     always @(posedge clk) begin // What screen to display (IDLE, PLAY, GAME_OVER)
         if(reset) begin
-            state <= IDLE;
+            // state <= IDLE; // fix me
+            state <= GAME_OVER; // fix me
         end else begin
             case (state)
-                IDLE:      state <= keyPressed? PLAY : IDLE;
-                PLAY:      state <= crash? GAME_OVER : PLAY;
-                GAME_OVER: state <= keyPressed? IDLE : GAME_OVER;
+                IDLE: state <= keyPressed? PLAY : state <= IDLE;
+                PLAY: state <= crash? GAME_OVER : state <= PLAY;
+                GAME_OVER: state <= keyPressed? IDLE : state <= GAME_OVER;
             endcase
 
         end
@@ -65,13 +66,15 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     // block color assignment - case for display layers (background, snake, food)
     always @(*) begin
         case (state)
-            IDLE: block_color = BLACK;
+            IDLE: begin
+            end
             PLAY: begin
-                // priority order: is_head implies on_snake, so it must win first
-                if(is_food)       block_color = FOOD_COLOR;       // food
-                else if(is_head)  block_color = SNAKE_HEAD_COLOR; // head
-                else if(on_snake) block_color = SNAKE_COLOR;      // body
-                else              block_color = GREEN;            // background
+                case({on_snake, is_food, is_head})
+                    3'b001: block_color = SNAKE_HEAD_COLOR; // snake head
+                    3'b010: block_color = FOOD_COLOR; // food
+                    3'b100: block_color = SNAKE_COLOR; // snake body
+                    default: block_color = GREEN; // background
+                endcase
             end
             GAME_OVER: begin
                 block_color = on_skull? WHITE : BLACK;
