@@ -111,6 +111,16 @@ module snake_game(
         .dir(dir)
     );
 
+    Snake snake(
+        // Inputs
+        .clk(clk),
+        .reset(reset),
+        .tick(tick),
+        .dir(dir),
+        // Outputs
+        .score(score)
+    );
+
     // Game Tick - Clock Divider
     Game_Tick #(.TICK_MAX(14285714)) game_tick( // 7Hz tick for 100MHz clock
         // Inputs

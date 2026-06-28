@@ -3,5 +3,14 @@
 
 //////////////////////////////////////////////////////////////////////////////////
 
-module snake();
+module Snake(
+    // Inputs
+    input wire clk,
+    input wire reset,
+    input wire tick,
+    input wire [1:0] dir,
+    // Outputs
+    output reg [15:0] score
+    );
+    
 endmodule

@@ -86,7 +86,7 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     reg [GRID_X-1:0] skull [0:GRID_Y-1];
     initial $readmemb("skull.mem", skull);
 
-    wire in_grid  = (x < GRID_X) && (y < GRID_Y);
+    wire in_grid  = (x < GRID_X) && (y < GRID_Y); //redundent
     wire on_skull = in_grid && skull[y][GRID_X-1-x];
     wire on_snake;
     wire is_food;
