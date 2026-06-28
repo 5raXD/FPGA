@@ -23,6 +23,9 @@ module snake_game(
     output wire       dp         // decimal point
     );
 
+    parameter GRID_X = 100;
+    parameter GRID_Y = 75;
+
     wire [7:0] scancode;
     wire keyPressed;
     wire [1:0] dir;
@@ -32,6 +35,13 @@ module snake_game(
     wire reset;
     wire [15:0] score;
     wire tick;
+    // Snake grid owner - shared signals
+    wire [6:0] food_x;
+    wire [6:0] food_y;
+    wire on_snake;
+    wire is_head;
+    wire food_on_snake;
+    wire crash;
 
     ///////////////////////
     ///  IO - External  ///
@@ -87,7 +97,7 @@ module snake_game(
     ////////////////
 
     // Image Processing - Screen
-    Pixel_Painter #(.GRID_X(100), .GRID_Y(75)) painter(
+    Pixel_Painter #(.GRID_X(GRID_X), .GRID_Y(GRID_Y)) painter(
         // Inputs
         .clk(clk),
         .reset(reset),
@@ -111,13 +121,25 @@ module snake_game(
         .dir(dir)
     );
 
-    Snake snake(
+    Snake #(.GRID_X(GRID_X), .GRID_Y(GRID_Y)) snake(
         // Inputs
         .clk(clk),
         .reset(reset),
         .tick(tick),
         .dir(dir),
-        // Outputs
+        // Inputs - food location (from farmer)
+        .food_x(food_x),
+        .food_y(food_y),
+        // Inputs - pixel being scanned (read address from the renderer)
+        .XCoord(XCoord),
+        .YCoord(YCoord),
+        // Outputs - grid reads (to Pixel_Painter / GridMapper)
+        .on_snake(on_snake),
+        .is_head(is_head),
+        // Outputs - food cell occupancy (to farmer, so food avoids the body)
+        .food_on_snake(food_on_snake),
+        // Outputs - game status
+        .crash(crash),
         .score(score)
     );
 
