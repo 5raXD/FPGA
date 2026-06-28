@@ -51,8 +51,9 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
     reg [$clog2(GRID_Y)-1:0] plant_y;
 
     // next head position (combinational) from current head + direction
-    reg [$clog2(GRID_X)-1:0] next_x;
-    reg [$clog2(GRID_Y)-1:0] next_y;
+    // one extra bit so next_x can reach GRID_X (catches the wall on power-of-2 grids)
+    reg [$clog2(GRID_X):0] next_x;
+    reg [$clog2(GRID_Y):0] next_y;
     always @(*) begin
         next_x = head_x;
         next_y = head_y;
@@ -66,7 +67,7 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
 
     wire is_eaten = (next_x == plant_x) && (next_y == plant_y);
     wire hit_wall = (next_x >= GRID_X) || (next_y >= GRID_Y);
-    wire hit_self = (grid[next_y][next_x] != 0);
+    wire hit_self = !hit_wall && (grid[next_y][next_x] != 0); // skip the grid read when off-board
 
     integer i, j;
     always @(posedge clk) begin
