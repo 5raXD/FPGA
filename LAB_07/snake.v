@@ -52,7 +52,7 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
 
     wire is_eaten;
 
-    
+
     integer i, j;
     always @(posedge clk) begin
         if(reset) begin
@@ -79,8 +79,8 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
                 grid[head_y][head_x] <= length;
 
                 // decrement all non-zero cells in the grid
-                for(i = 0; i < GRID_Y; i++) begin
-                    for(j = 0; j < GRID_X; j++) begin
+                for(i = 0; i < GRID_Y; i = i + 1) begin
+                    for(j = 0; j < GRID_X; j = j + 1) begin
                         if((grid[i][j] > 0) && (i != head_y && j != head_x && is_eaten)) begin
                             grid[i][j] <= grid[i][j] - 1;
                         end
