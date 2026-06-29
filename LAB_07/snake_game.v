@@ -18,9 +18,9 @@ module snake_game(
     output wire        Hsync,
     output wire        Vsync,
     // Outputs - to 7-segment display
-    output wire [6:0] a_to_g,        // 7-segment cathodes
-    output wire [3:0] an,         // 7-segment anodes
-    output wire       dp         // decimal point
+    output wire [6:0] a_to_g,
+    output wire [3:0] an,
+    output wire       dp
     );
 
     parameter GRID_X = 100;
