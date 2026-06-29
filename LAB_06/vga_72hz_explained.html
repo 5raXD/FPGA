@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How do we know the VGA runs at 72 frames/sec?</title>
+<style>
+  :root {
+    --bg: #0f1419;
+    --panel: #1a212b;
+    --panel2: #222b38;
+    --text: #d7e0ea;
+    --muted: #8b9bb0;
+    --accent: #4fd1c5;
+    --accent2: #f6ad55;
+    --ok: #68d391;
+    --border: #2d3a4a;
+    --code: #2b3645;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 40px 22px 80px; }
+  h1 {
+    font-size: 1.9rem; line-height: 1.25; margin: 0 0 6px;
+    color: #fff;
+  }
+  .sub { color: var(--muted); margin: 0 0 32px; font-size: 1.02rem; }
+  h2 {
+    font-size: 1.25rem; margin: 40px 0 12px; color: var(--accent);
+    border-bottom: 1px solid var(--border); padding-bottom: 8px;
+  }
+  h3 { font-size: 1.05rem; margin: 24px 0 8px; color: var(--accent2); }
+  p { margin: 10px 0; }
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px 20px; margin: 16px 0;
+  }
+  .key {
+    background: linear-gradient(135deg, #1f3a3a, #1a2b33);
+    border: 1px solid #2f5a55; border-left: 4px solid var(--accent);
+    border-radius: 8px; padding: 16px 20px; margin: 18px 0;
+  }
+  .key strong { color: var(--accent); }
+  .formula {
+    background: var(--code); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px 20px; margin: 14px 0;
+    font-family: "SF Mono", "JetBrains Mono", Consolas, monospace;
+    font-size: 1.02rem; text-align: center; color: #fff;
+    overflow-x: auto;
+  }
+  .formula .res { color: var(--ok); font-weight: 700; }
+  code {
+    font-family: "SF Mono", "JetBrains Mono", Consolas, monospace;
+    background: var(--code); padding: 2px 6px; border-radius: 4px;
+    font-size: 0.9em; color: #ffd9a8;
+  }
+  pre {
+    background: var(--code); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px; overflow-x: auto;
+    font-family: "SF Mono", "JetBrains Mono", Consolas, monospace;
+    font-size: 0.86rem; line-height: 1.5;
+  }
+  pre .c { color: #6b7d92; }     /* comment */
+  pre .k { color: #f6ad55; }     /* keyword */
+  pre .s { color: #68d391; }     /* string/number */
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 9px 12px; border: 1px solid var(--border); }
+  th { background: var(--panel2); color: var(--accent); }
+  td.ok, .tick { color: var(--ok); font-weight: 600; }
+  .chain {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+    margin: 16px 0; justify-content: center;
+  }
+  .chain .box {
+    background: var(--panel2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 16px; text-align: center;
+    min-width: 120px;
+  }
+  .chain .box b { color: #fff; display: block; font-size: 1.05rem; }
+  .chain .box span { color: var(--muted); font-size: 0.8rem; }
+  .chain .arrow { color: var(--accent); font-size: 1.4rem; }
+  .line-strip { margin: 16px 0; }
+  .line-strip .row { display: flex; height: 38px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+  .seg { display: flex; align-items: center; justify-content: center; font-size: 0.78rem; color: #0f1419; font-weight: 600; }
+  .visible { background: var(--accent); }
+  .fp { background: #4a5568; color: #fff; }
+  .sync { background: var(--accent2); }
+  .bp { background: #4a5568; color: #fff; }
+  .legend { font-size: 0.8rem; color: var(--muted); margin-top: 6px; }
+  footer { margin-top: 48px; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); padding-top: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>How do we know the design writes 72 frames per second?</h1>
+  <p class="sub">VGA timing walk-through for <code>VGA_Interface.v</code> &mdash; FPGA Lab 6, BASYS3 (800&times;600 @ 72 Hz)</p>
+
+  <div class="key">
+    <strong>The one idea to remember:</strong> Vsync pulses <em>exactly once per frame</em>.
+    So &ldquo;do we write 72 frames/sec?&rdquo; is the same question as
+    &ldquo;does Vsync fire 72 times per second?&rdquo; The frame rate is just the Vsync frequency.
+  </div>
+
+  <h2>1. The clock chain</h2>
+  <p>The frame rate falls out of one division: the pixel clock divided by the number of pixel-clocks in a frame. First, the pixel clock:</p>
+
+  <div class="chain">
+    <div class="box"><b>100 MHz</b><span>board oscillator (clk)</span></div>
+    <div class="arrow">&rarr;</div>
+    <div class="box"><b>&divide; 2</b><span>pix_en toggles every cycle</span></div>
+    <div class="arrow">&rarr;</div>
+    <div class="box"><b>50 MHz</b><span>pixel clock (20 ns/pixel)</span></div>
+  </div>
+
+  <pre><span class="c">// 50 MHz pixel-clock ENABLE (a tick every other 100 MHz cycle)</span>
+<span class="k">reg</span> pix_en = <span class="s">0</span>;
+<span class="k">always</span> @(<span class="k">posedge</span> clk) pix_en &lt;= ~pix_en;</pre>
+
+  <p>Every counter and output advances only on <code>else if (pix_en)</code>, so the design effectively ticks at <strong>50 MHz &mdash; one pixel every 20 ns.</strong></p>
+
+  <h2>2. How many pixel-clocks are in one frame?</h2>
+  <p>The counters wrap with <code>`INC(x, max)</code>, which counts <code>0 &hellip; max-1</code>:</p>
+  <ul>
+    <li><strong>Horizontal:</strong> <code>h_count</code> runs <code>0&hellip;1039</code> &rarr; <strong>1040</strong> pixel-clocks per line.</li>
+    <li><strong>Vertical:</strong> <code>v_count</code> bumps once per line and runs <code>0&hellip;665</code> &rarr; <strong>666</strong> lines per frame.</li>
+  </ul>
+
+  <div class="formula">
+    1 frame = 1040 &times; 666 = <span class="res">692,640 pixel-clocks</span>
+  </div>
+
+  <p>Note these are the <em>totals</em> (visible + blanking). The refresh rate depends only on the totals and the clock &mdash; not on where the sync pulses sit inside the line.</p>
+
+  <h3>What a single line looks like</h3>
+  <div class="line-strip">
+    <div class="row">
+      <div class="seg visible" style="flex: 800">visible 800</div>
+      <div class="seg fp" style="flex: 56">FP 56</div>
+      <div class="seg sync" style="flex: 120">sync 120</div>
+      <div class="seg bp" style="flex: 64">BP 64</div>
+    </div>
+    <div class="legend">One horizontal line = 1040 pixel-clocks. (FP = front porch, BP = back porch.) The vertical frame has the same four-region structure: 600 + 37 + 6 + 23 = 666 lines.</div>
+  </div>
+
+  <h2>3. The arithmetic</h2>
+  <div class="formula">
+    T<sub>frame</sub> = 692,640 &times; 20 ns = 13,852,800 ns = <span class="res">13.85 ms</span>
+  </div>
+  <div class="formula">
+    f<sub>refresh</sub> = 50,000,000 Hz &divide; 692,640 = <span class="res">72.19 Hz &asymp; 72 fps</span>
+  </div>
+  <p>So you should see Vsync rising edges <strong>13.85 ms apart</strong>.</p>
+
+  <h2>4. Cross-check against the VESA standard</h2>
+  <p>Every constant in the design matches the official <strong>800&times;600 @ 72 Hz</strong> mode:</p>
+  <table>
+    <tr><th>Quantity</th><th>VESA spec</th><th>Your code</th><th></th></tr>
+    <tr><td>Pixel clock</td><td>50.0 MHz</td><td>100 MHz &divide; 2</td><td class="tick">&#10003;</td></tr>
+    <tr><td>H total</td><td>1040</td><td><code>H_TOTAL+1</code> = 1040</td><td class="tick">&#10003;</td></tr>
+    <tr><td>V total</td><td>666</td><td><code>V_TOTAL+1</code> = 666</td><td class="tick">&#10003;</td></tr>
+    <tr><td>Visible</td><td>800 &times; 600</td><td>799&rarr;800, 599&rarr;600</td><td class="tick">&#10003;</td></tr>
+    <tr><td>Line rate</td><td>48.08 kHz</td><td>50 MHz &divide; 1040</td><td class="tick">&#10003;</td></tr>
+    <tr><td>Refresh</td><td>72.19 Hz</td><td>72.19 Hz</td><td class="tick">&#10003;</td></tr>
+    <tr><td>Sync polarity</td><td>+H, +V (positive)</td><td>active-high</td><td class="tick">&#10003;</td></tr>
+  </table>
+
+  <h2>5. How to actually verify it</h2>
+
+  <h3>A &mdash; In simulation (Icarus): time the Vsync edges</h3>
+  <p>Instantiate the design and measure the gap between two Vsync rising edges. You should see <code>period = 13.853 ms -&gt; 72.19 Hz</code>.</p>
+  <pre><span class="k">`timescale</span> 1ns/10ps
+<span class="k">module</span> tb_framerate;
+  <span class="k">reg</span> clk = <span class="s">0</span>, rstn = <span class="s">0</span>;
+  <span class="k">wire</span> Hsync, Vsync;
+  <span class="k">wire</span> [<span class="s">3</span>:<span class="s">0</span>] r,g,b;
+  <span class="k">wire</span> [<span class="s">10</span>:<span class="s">0</span>] xc, yc;
+
+  VGA_Interface dut(
+    .clk(clk), .rstn(rstn), .pixel_color(<span class="s">12'h0</span>),
+    .vgaRed(r), .vgaGreen(g), .vgaBlue(b),
+    .Hsync(Hsync), .Vsync(Vsync), .XCoord(xc), .YCoord(yc));
+
+  <span class="k">always</span> #<span class="s">5</span> clk = ~clk;        <span class="c">// 100 MHz -> 10 ns period</span>
+  <span class="k">initial</span> #<span class="s">100</span> rstn = <span class="s">1</span>;
+
+  <span class="k">real</span> t_prev; <span class="k">integer</span> n = <span class="s">0</span>;
+  <span class="k">always</span> @(<span class="k">posedge</span> Vsync) <span class="k">begin</span>
+    <span class="k">if</span> (n &gt; <span class="s">0</span>) $display(<span class="s">"frame %0d: period = %0.3f ms -> %0.2f Hz"</span>,
+        n, ($realtime - t_prev)/<span class="s">1.0e6</span>, <span class="s">1.0e9</span>/($realtime - t_prev));
+    t_prev = $realtime; n = n + <span class="s">1</span>;
+    <span class="k">if</span> (n &gt; <span class="s">4</span>) $finish;
+  <span class="k">end</span>
+<span class="k">endmodule</span></pre>
+
+  <h3>B &mdash; Faster check: verify the two factors separately</h3>
+  <ul>
+    <li>Count <strong>Hsync pulses between two Vsync pulses</strong> &rarr; should be exactly <strong>666</strong>.</li>
+    <li>Count <strong>pixel-clock ticks between two Hsync pulses</strong> &rarr; should be exactly <strong>1040</strong>.</li>
+  </ul>
+  <p>666 &times; 1040 &times; 20 ns = 13.85 ms &rArr; 72.2 Hz. Same answer, but each piece simulates quickly.</p>
+
+  <h3>C &mdash; On real hardware</h3>
+  <ul>
+    <li>Put a <strong>scope or logic analyzer on the Vsync pin</strong> &mdash; it should read ~72 Hz.</li>
+    <li>Open the <strong>monitor's on-screen menu</strong> &mdash; it will report the detected mode, e.g. <em>&ldquo;800&times;600 @ 72 Hz.&rdquo;</em> If it locks and shows a stable image at all, your sync timing is within tolerance.</li>
+  </ul>
+
+  <div class="key">
+    <strong>Bottom line:</strong> 72 fps holds because
+    (50 MHz pixel clock) &divide; (1040 &times; 666 pixel-clocks per frame) = 72.2 Hz,
+    and those numbers are pinned by the <code>pix_en</code> divider and the
+    <code>H_TOTAL</code> / <code>V_TOTAL</code> constants. Counting Vsync pulses &mdash; in
+    simulation or with a scope &mdash; confirms it directly.
+  </div>
+
+  <footer>
+    FPGA Lab 6 &mdash; VGA &bull; Tel Aviv University &bull; Saleh Khalil &amp; Mahmood Stitia
+  </footer>
+
+</div>
+</body>
+</html>
