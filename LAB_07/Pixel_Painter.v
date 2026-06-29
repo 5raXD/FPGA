@@ -21,7 +21,7 @@ module Pixel_Painter #(parameter GRID_X = 100, GRID_Y = 75)(
     // Outputs
     output wire [$clog2(GRID_X)-1:0] x,
     output wire [$clog2(GRID_Y)-1:0] y,
-    output reg  [11:0] pixel_color
+    output wire  [11:0] pixel_color
     );
 
     wire on_grid;
