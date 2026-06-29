@@ -39,7 +39,7 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
     // Snake data
     // the grid - one value per block: 0 = empty, n = clears in n more ticks
     reg [$clog2(GRID_X*GRID_Y)-1:0] grid [0:GRID_Y-1][0:GRID_X-1];
-    reg [$clog2(GRID_X*GRID_Y)-1:0] length;
+    reg [15:0] length;
     // head position - block level
     reg [$clog2(GRID_X)-1:0] head_x;
     reg [$clog2(GRID_Y)-1:0] head_y;
