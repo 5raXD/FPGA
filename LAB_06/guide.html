@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FPGA Lab 6 — VGA — Oral Exam Study Guide</title>
+<style>
+  :root{
+    --bg:#0f172a; --panel:#1e293b; --panel2:#172033; --ink:#e2e8f0; --muted:#94a3b8;
+    --accent:#38bdf8; --accent2:#fbbf24; --good:#34d399; --bad:#f87171; --violet:#a78bfa;
+    --red:#f87171; --green:#34d399; --blue:#60a5fa;
+    --visible:#065f46; --vis-stroke:#34d399; --porch:#475569; --sync:#9d174d;
+    --code:#0b1220; --border:#334155;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--ink);line-height:1.7;
+  }
+  header{
+    background:linear-gradient(135deg,#581c87,#0ea5e9);padding:46px 20px 38px;text-align:center;
+    box-shadow:0 4px 24px rgba(0,0,0,.5);
+  }
+  header h1{margin:0;font-size:2.3rem;letter-spacing:.5px}
+  header p{margin:10px 0 0;color:#e0f2fe;font-size:1.05rem}
+  header .sub{color:#c7d2fe;font-size:.9rem;margin-top:6px}
+  main{max-width:1120px;margin:0 auto;padding:30px 20px 80px}
+  nav.toc{
+    background:var(--panel);border-radius:14px;padding:22px 26px;margin-bottom:30px;
+    border:1px solid var(--border);
+  }
+  nav.toc h2{margin:0 0 12px;color:var(--accent);font-size:1.2rem}
+  nav.toc ol{margin:0;padding-left:22px;columns:2;column-gap:40px}
+  @media (max-width:720px){nav.toc ol{columns:1}}
+  nav.toc a{color:var(--ink);text-decoration:none}
+  nav.toc a:hover{color:var(--accent);text-decoration:underline}
+  section{
+    background:var(--panel);border-radius:14px;padding:30px;margin-bottom:26px;
+    border:1px solid var(--border);box-shadow:0 2px 12px rgba(0,0,0,.3);
+  }
+  section h2{color:var(--accent);border-bottom:2px solid var(--border);padding-bottom:10px;margin-top:0;font-size:1.55rem}
+  section h3{color:var(--accent2);margin-top:30px;font-size:1.2rem}
+  section h4{color:#e9d5ff;margin:20px 0 6px;font-size:1.02rem}
+  code,pre{font-family:"JetBrains Mono",Menlo,Consolas,monospace;font-size:.88rem}
+  pre{
+    background:var(--code);padding:16px 18px;border-radius:8px;overflow-x:auto;
+    border-left:4px solid var(--accent);margin:14px 0;
+  }
+  code{background:#0b1220;padding:2px 6px;border-radius:4px;color:#fde68a}
+  pre code{background:none;padding:0;color:#dbeafe}
+  .cmt{color:#64748b}
+  .kw{color:#c084fc}
+  .num{color:#fca5a5}
+  .callout{background:rgba(56,189,248,.1);border-left:4px solid var(--accent);padding:14px 18px;border-radius:6px;margin:16px 0}
+  .callout.warn{background:rgba(248,113,113,.12);border-left-color:var(--bad)}
+  .callout.tip{background:rgba(52,211,153,.12);border-left-color:var(--good)}
+  .callout.key{background:rgba(167,139,250,.12);border-left-color:var(--violet)}
+  .callout b{color:#fff}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media (max-width:820px){.grid2{grid-template-columns:1fr}}
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.92rem}
+  th,td{border:1px solid var(--border);padding:9px 12px;text-align:left;vertical-align:top}
+  th{background:#16233a;color:var(--accent2)}
+  tr:nth-child(even){background:rgba(255,255,255,.02)}
+  .legend{display:flex;flex-wrap:wrap;gap:16px;margin:12px 0}
+  .legend span{display:inline-flex;align-items:center;gap:7px;font-size:.88rem}
+  .sw{width:15px;height:15px;border-radius:3px;display:inline-block;border:1px solid #0008}
+  .qa{margin:14px 0;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .qa summary{cursor:pointer;padding:14px 18px;background:var(--panel2);font-weight:600;color:#fde68a;list-style:none}
+  .qa summary::-webkit-details-marker{display:none}
+  .qa summary:before{content:"▸ ";color:var(--accent)}
+  .qa[open] summary:before{content:"▾ "}
+  .qa summary:hover{background:#1f2c45}
+  .qa .body{padding:6px 18px 16px}
+  .pill{display:inline-block;background:#16233a;border:1px solid var(--border);border-radius:999px;padding:2px 10px;font-size:.78rem;color:var(--muted);margin:2px}
+  .big{font-size:1.05rem}
+  .flow{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:18px 0}
+  .box{background:#16233a;border:1px solid var(--accent);border-radius:10px;padding:12px 16px;text-align:center;min-width:120px}
+  .box small{color:var(--muted);display:block}
+  .arrow{color:var(--accent);font-size:1.4rem}
+  .arrow small{display:block;color:var(--muted);font-size:.6rem}
+  hr.dot{border:0;border-top:1px dashed var(--border);margin:24px 0}
+  .tag{font-size:.72rem;background:#312e81;color:#c7d2fe;padding:2px 8px;border-radius:5px;margin-left:8px;vertical-align:middle}
+  mark{background:#fbbf24;color:#0b1220;padding:0 4px;border-radius:3px}
+  .num-badge{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#0b1220;font-weight:700;align-items:center;justify-content:center;margin-right:8px;font-size:.85rem}
+  .center{text-align:center}
+  ul.tight li{margin:4px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>FPGA Lab 6 — VGA Controller</h1>
+  <p>Oral-exam study guide: from the big picture down to every line of the Drawer & the VGA Interface</p>
+  <p class="sub">Tel Aviv University · EE3 FPGA Lab · Basys3 (XC7A35T) · 800×600 @ 72 Hz · 50 MHz pixel clock</p>
+</header>
+
+<main>
+
+<nav class="toc">
+  <h2>What you'll be able to explain</h2>
+  <ol>
+    <li><a href="#bigpic">The big picture (30-second answer)</a></li>
+    <li><a href="#vga101">How VGA works — the protocol</a></li>
+    <li><a href="#timing">The timing numbers (800×600@72)</a></li>
+    <li><a href="#arch">Architecture — the 3 modules</a></li>
+    <li><a href="#interface">VGA_Interface — line by line</a></li>
+    <li><a href="#drawer">Drawer — line by line</a></li>
+    <li><a href="#debouncer">Debouncer — how & why</a></li>
+    <li><a href="#color">Color encoding (12-bit)</a></li>
+    <li><a href="#xdc">Constraints / pins (XDC)</a></li>
+    <li><a href="#tb">The testbench</a></li>
+    <li><a href="#problems">Problems we hit & fixed</a></li>
+    <li><a href="#qa">Likely exam questions ⭐</a></li>
+  </ol>
+</nav>
+
+<!-- ============================================================ -->
+<section id="bigpic">
+  <h2>1 · The Big Picture</h2>
+  <p class="big">
+    We built a circuit that <b>draws on a computer monitor</b> through the VGA port of the Basys3 board.
+    On screen there is a <b>rectangle</b>. Its <b>size</b> is controlled by the four push-buttons
+    (up / down / left / right grow each edge), and its <b>color</b> is set by the 12 switches.
+    Everything outside the rectangle is black.
+  </p>
+
+  <div class="flow">
+    <div class="box">100 MHz clock<br><small>board oscillator</small></div>
+    <span class="arrow">→</span>
+    <div class="box">VGA_Interface<br><small>makes timing & sync</small></div>
+    <span class="arrow">↔<small>X,Y / color</small></span>
+    <div class="box">Drawer<br><small>decides each pixel's color</small></div>
+    <span class="arrow">→</span>
+    <div class="box">VGA port<br><small>monitor</small></div>
+  </div>
+
+  <div class="callout key">
+    <b>The one sentence to memorize:</b> A monitor has no memory — it just sweeps an electron-beam-style
+    cursor left-to-right, top-to-bottom, <b>continuously</b>. Our job is to feed it, in perfect time, two
+    things: <b>(1) sync pulses</b> that tell it when to jump back to the start of a line/frame, and
+    <b>(2) the RGB color</b> of whatever pixel the beam is currently on. The whole design is just a
+    <b>position counter</b> (where is the beam now?) plus logic that answers "what color goes here?".
+  </div>
+
+  <h3>Why this matters / what's new vs. previous labs</h3>
+  <p>In earlier labs the only outputs were LEDs and the 7-segment display. Here we output a real
+  <b>graphical image</b>. The hard part is <b>strict real-time timing</b>: if a sync pulse is one pixel late,
+  the picture rolls or tears. That's why timing must match the VGA standard exactly and why the sync
+  outputs are flip-flops (registered), not raw combinational logic.</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="vga101">
+  <h2>2 · How VGA Works — The Protocol</h2>
+
+  <p>VGA is an <b>analog raster</b> protocol. The image is painted as a grid of lines (a "raster").
+  A virtual cursor scans:</p>
+  <ul class="tight">
+    <li>Across one row, left → right (this is the <b>horizontal</b> scan).</li>
+    <li>At the end of a row it jumps back to the left and drops down one line.</li>
+    <li>After the last row it jumps back to the top-left (this is the <b>vertical</b> retrace), and a new <b>frame</b> begins.</li>
+  </ul>
+
+  <h3>The 4 regions of every line (and every frame)</h3>
+  <p>For both the horizontal and vertical directions, one full sweep is split into 4 parts:</p>
+  <table>
+    <tr><th>Region</th><th>What happens</th><th>Color output</th></tr>
+    <tr><td><b>Visible / Active</b></td><td>The real picture is drawn here.</td><td>Real RGB</td></tr>
+    <tr><td><b>Front porch</b></td><td>Short blank gap <i>before</i> the sync pulse.</td><td>Black (0,0,0)</td></tr>
+    <tr><td><b>Sync pulse</b></td><td>The Hsync / Vsync signal fires. Tells the monitor "retrace now".</td><td>Black (0,0,0)</td></tr>
+    <tr><td><b>Back porch</b></td><td>Short blank gap <i>after</i> the sync, before the next visible area.</td><td>Black (0,0,0)</td></tr>
+  </table>
+  <div class="callout">
+    The porches + sync together are called the <b>blanking interval</b>. They exist for historical CRT
+    reasons (the electron beam needs time to fly back), and modern monitors still require them to lock on.
+    <b>Rule:</b> outside the visible box, you must output black, otherwise you'd "paint" during retrace.
+  </div>
+
+  <h4>The regions diagram (whole frame)</h4>
+  <div class="center">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 430" width="100%" style="max-width:640px">
+      <rect x="0" y="0" width="640" height="430" fill="#0b1220"/>
+      <rect x="40" y="30" width="560" height="340" fill="#1f2937" stroke="#475569"/>
+      <!-- V sync band -->
+      <rect x="40" y="306" width="560" height="18" fill="#9d174d" opacity="0.7"/>
+      <!-- H sync band -->
+      <rect x="476" y="30" width="54" height="340" fill="#9d174d" opacity="0.7"/>
+      <!-- visible -->
+      <rect x="60" y="50" width="360" height="220" fill="#065f46" stroke="#34d399" stroke-width="2"/>
+      <text x="240" y="158" text-anchor="middle" fill="#d1fae5" font-size="16" font-weight="bold" font-family="sans-serif">VISIBLE</text>
+      <text x="240" y="182" text-anchor="middle" fill="#d1fae5" font-size="12" font-family="sans-serif">800 × 600 — real color here</text>
+      <text x="60" y="44" fill="#94a3b8" font-size="10" font-family="sans-serif">(0,0)</text>
+      <text x="420" y="44" fill="#94a3b8" font-size="10" text-anchor="end" font-family="sans-serif">hcount=799</text>
+      <text x="46" y="278" fill="#94a3b8" font-size="10" font-family="sans-serif">vcount=599</text>
+      <!-- H annotations -->
+      <text x="448" y="160" fill="#cbd5e1" font-size="9.5" text-anchor="middle" transform="rotate(-90 448 160)" font-family="sans-serif">H front porch (56)</text>
+      <text x="503" y="160" fill="#fbcfe8" font-size="9.5" text-anchor="middle" transform="rotate(-90 503 160)" font-family="sans-serif">H sync (120)</text>
+      <text x="565" y="160" fill="#cbd5e1" font-size="9.5" text-anchor="middle" transform="rotate(-90 565 160)" font-family="sans-serif">H back porch (64)</text>
+      <!-- V annotations -->
+      <text x="240" y="296" fill="#cbd5e1" font-size="9.5" text-anchor="middle" font-family="sans-serif">V front porch (37)</text>
+      <text x="240" y="319" fill="#fbcfe8" font-size="9.5" text-anchor="middle" font-family="sans-serif">V sync (6)</text>
+      <text x="240" y="352" fill="#cbd5e1" font-size="9.5" text-anchor="middle" font-family="sans-serif">V back porch (23)</text>
+      <text x="320" y="400" text-anchor="middle" fill="#94a3b8" font-size="11" font-family="sans-serif">Whole frame = 1040 × 666 pixel-clocks. Outside the green box → black.</text>
+      <text x="320" y="418" text-anchor="middle" fill="#64748b" font-size="10" font-family="sans-serif">Scan order: across a row (H), then down to next row (V).</text>
+    </svg>
+  </div>
+
+  <h4>What the monitor actually receives</h4>
+  <p>The Basys3 VGA connector has just 14 wires that matter: 4 Red + 4 Green + 4 Blue (a resistor-ladder
+  DAC turns them into analog voltage), plus <b>Hsync</b> and <b>Vsync</b> (digital). There is <b>no pixel
+  clock wire</b> — the monitor recovers timing purely from the sync pulses and the known standard. That's
+  exactly why our timing must match a real VGA mode precisely.</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="timing">
+  <h2>3 · The Timing Numbers — 800×600 @ 72 Hz</h2>
+
+  <div class="callout warn">
+    <b>Know this cold.</b> Our mode is <b>800×600 @ 72 Hz with a 50 MHz pixel clock</b>. (The assignment
+    even warns that 72 Hz may not be supported by some monitors.) Don't confuse it with 800×600@60 (40 MHz).
+  </div>
+
+  <div class="grid2">
+    <div>
+      <h4>Horizontal (per line), in pixel-clocks</h4>
+      <table>
+        <tr><th>Part</th><th>Pixels</th><th>hcount range</th></tr>
+        <tr><td>Visible</td><td>800</td><td>0 … 799</td></tr>
+        <tr><td>Front porch</td><td>56</td><td>800 … 855</td></tr>
+        <tr><td>Sync pulse</td><td>120</td><td>856 … 975</td></tr>
+        <tr><td>Back porch</td><td>64</td><td>976 … 1039</td></tr>
+        <tr><td><b>Total</b></td><td><b>1040</b></td><td>0 … 1039</td></tr>
+      </table>
+    </div>
+    <div>
+      <h4>Vertical (per frame), in lines</h4>
+      <table>
+        <tr><th>Part</th><th>Lines</th><th>vcount range</th></tr>
+        <tr><td>Visible</td><td>600</td><td>0 … 599</td></tr>
+        <tr><td>Front porch</td><td>37</td><td>600 … 636</td></tr>
+        <tr><td>Sync pulse</td><td>6</td><td>637 … 642</td></tr>
+        <tr><td>Back porch</td><td>23</td><td>643 … 665</td></tr>
+        <tr><td><b>Total</b></td><td><b>666</b></td><td>0 … 665</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <h4>Where the constants in the code come from</h4>
+  <pre><code><span class="kw">localparam</span> H_VISIBLE = <span class="num">799</span>, H_FRONT_PORCH = <span class="num">855</span>, H_SYNC_END = <span class="num">975</span>, H_TOTAL = <span class="num">1039</span>;
+<span class="kw">localparam</span> V_VISIBLE = <span class="num">599</span>, V_FRONT_PORCH = <span class="num">636</span>, V_SYNC_END = <span class="num">642</span>, V_TOTAL = <span class="num">665</span>;</code></pre>
+  <ul class="tight">
+    <li><code>H_VISIBLE = 799</code> → last visible column (counts 0–799 = 800 pixels).</li>
+    <li><code>H_FRONT_PORCH = 855</code> → Hsync starts the count <i>after</i> this, i.e. at 856.</li>
+    <li><code>H_SYNC_END = 975</code> → Hsync ends here (high for 856–975 = 120 clocks).</li>
+    <li><code>H_TOTAL = 1039</code> → last count of the line; then wrap to 0.</li>
+  </ul>
+
+  <h4>The refresh-rate sanity check (great oral answer)</h4>
+  <pre><code>pixel clock      = <span class="num">50</span> MHz
+clocks per frame = 1040 × 666 = 692,640
+frame rate       = 50,000,000 / 692,640 ≈ <span class="num">72.2</span> Hz   ✔  (that's the "72 Hz")
+line rate        = 50,000,000 / 1040    ≈ 48.1 kHz</code></pre>
+
+  <div class="callout tip">
+    <b>Sync polarity:</b> 800×600@72 uses <b>positive</b> sync for both H and V. In our code
+    <code>Hsync &lt;= (h_count &gt; H_FRONT_PORCH) &amp;&amp; (h_count &lt;= H_SYNC_END)</code> makes Hsync
+    <b>=1 during the pulse</b> → active-high → positive polarity. Matches the standard.
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="arch">
+  <h2>4 · Architecture — The Three Modules</h2>
+
+  <p>Three Verilog modules (plus the reused Debouncer):</p>
+  <div class="flow">
+    <div class="box" style="border-color:var(--accent2)">VGA_Top<br><small>wires it all together</small></div>
+  </div>
+  <div class="flow">
+    <div class="box">VGA_Interface<br><small>timing + sync<br>outputs X,Y + RGB</small></div>
+    <div class="box">Drawer<br><small>X,Y → color<br>(rectangle logic)</small></div>
+  </div>
+  <div class="flow">
+    <div class="box" style="min-width:90px">Debouncer ×4<br><small>clean buttons</small></div>
+  </div>
+
+  <h3>Data flow every pixel-clock tick</h3>
+  <ol>
+    <li><b>VGA_Interface</b> advances its counters and publishes the current beam position as
+        <code>XCoord</code> (=hcount) and <code>YCoord</code> (=vcount).</li>
+    <li><b>Drawer</b> looks at X,Y, decides <i>"is this pixel inside the rectangle?"</i>, and outputs a
+        12-bit <code>pixel_color</code> (the switches' color if inside, else black).</li>
+    <li><b>VGA_Interface</b> takes that color back, and on the visible region drives it to the RGB pins;
+        in blanking it forces black; meanwhile it generates Hsync/Vsync.</li>
+  </ol>
+
+  <h4>VGA_Top — the glue (no logic of its own)</h4>
+  <pre><code><span class="kw">wire</span> [<span class="num">10</span>:0] XCoord, YCoord;
+<span class="kw">wire</span> [<span class="num">11</span>:0] pixel_color;
+
+VGA_Interface vga_if(.clk(clk), .rstn(<span class="kw">~</span>reset), .pixel_color(pixel_color),
+                     .vgaRed(vgaRed), .vgaGreen(vgaGreen), .vgaBlue(vgaBlue),
+                     .Hsync(Hsync), .Vsync(Vsync),
+                     .XCoord(XCoord), .YCoord(YCoord));
+
+Drawer drawer(.clk(clk), .reset(reset), .sw(sw),
+              .btnu(btnu), .btnd(btnd), .btnl(btnl), .btnr(btnr),
+              .XCoord(XCoord), .YCoord(YCoord), .pixel_color(pixel_color));</code></pre>
+  <div class="callout">
+    Note <code>.rstn(~reset)</code>: the button gives <b>active-high</b> reset, but the interface wants an
+    <b>active-low</b> reset (<code>rstn</code> = "reset, n for active-low"), so we invert it. The Drawer
+    uses the active-high <code>reset</code> directly.
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="interface">
+  <h2>5 · VGA_Interface — Line by Line</h2>
+  <p class="pill">File: VGA_Interface.v</p>
+  <p>This is the <b>timing engine</b>. Three jobs: (a) make a 50 MHz tick from the 100 MHz clock,
+  (b) run the H/V position counters, (c) generate sync pulses and drive RGB.</p>
+
+  <h3>① The 50 MHz pixel-clock <i>enable</i></h3>
+  <pre><code><span class="kw">reg</span> pix_en = <span class="num">0</span>;
+<span class="kw">always @</span>(<span class="kw">posedge</span> clk) pix_en &lt;= <span class="kw">~</span>pix_en;   <span class="cmt">// toggles every 100 MHz cycle</span></code></pre>
+  <div class="callout key">
+    <b>Important design choice:</b> we do <b>not</b> create a second real clock. <code>clk</code> stays at
+    100 MHz everywhere. <code>pix_en</code> is high every <i>other</i> cycle, so it's a <b>clock-enable</b>
+    that's true at a 50 MHz rate. All the timing logic runs only <code>if (pix_en)</code>. This is the
+    recommended FPGA style: a single clock domain + an enable, instead of gating/dividing the clock
+    (which causes timing/skew problems and "non-clocked cell" warnings).
+  </div>
+
+  <h3>② The position counters</h3>
+  <pre><code><span class="kw">always @</span>(<span class="kw">posedge</span> clk) <span class="kw">begin</span>
+    <span class="kw">if</span> (!rstn) <span class="kw">begin</span> h_count &lt;= <span class="num">0</span>; v_count &lt;= <span class="num">0</span>; <span class="kw">end</span>
+    <span class="kw">else if</span> (pix_en) <span class="kw">begin</span>
+        h_count &lt;= `INC(h_count, H_TOTAL+<span class="num">1</span>);          <span class="cmt">// 0..1039, then wrap to 0</span>
+        <span class="kw">if</span> (h_count == H_TOTAL)                       <span class="cmt">// end of a line?</span>
+            v_count &lt;= `INC(v_count, V_TOTAL+<span class="num">1</span>);      <span class="cmt">// advance row, 0..665</span>
+    <span class="kw">end</span>
+<span class="kw">end</span></code></pre>
+  <p>The macro <code>`define INC(x,max) ((x==max-1)? 0 : x+1)</code> is just "increment with wrap-around".
+  <code>h_count</code> counts every visible+blank column 0→1039. Only when a line finishes
+  (<code>h_count==1039</code>) does <code>v_count</code> step to the next row. When <code>v_count</code>
+  wraps from 665→0, a whole new frame starts. Together they're a <b>2-D address generator</b> sweeping the
+  beam position.</p>
+
+  <h3>③ Sync generation + RGB output</h3>
+  <pre><code><span class="kw">always @</span>(<span class="kw">posedge</span> clk) <span class="kw">begin</span>
+    <span class="kw">if</span> (!rstn) <span class="kw">begin</span> Hsync&lt;=<span class="num">0</span>; Vsync&lt;=<span class="num">0</span>; vgaRed&lt;=<span class="num">0</span>; vgaGreen&lt;=<span class="num">0</span>; vgaBlue&lt;=<span class="num">0</span>; <span class="kw">end</span>
+    <span class="kw">else if</span> (pix_en) <span class="kw">begin</span>
+        Hsync &lt;= (h_count &gt; H_FRONT_PORCH) &amp;&amp; (h_count &lt;= H_SYNC_END);  <span class="cmt">// high 856..975</span>
+        Vsync &lt;= (v_count &gt; V_FRONT_PORCH) &amp;&amp; (v_count &lt;= V_SYNC_END);  <span class="cmt">// high 637..642</span>
+        <span class="kw">if</span> ((h_count &lt;= H_VISIBLE) &amp;&amp; (v_count &lt;= V_VISIBLE)) <span class="kw">begin</span>     <span class="cmt">// visible?</span>
+            vgaRed   &lt;= pixel_color[<span class="num">11</span>:<span class="num">8</span>];
+            vgaGreen &lt;= pixel_color[<span class="num">7</span>:<span class="num">4</span>];
+            vgaBlue  &lt;= pixel_color[<span class="num">3</span>:<span class="num">0</span>];
+        <span class="kw">end else begin</span>
+            vgaRed &lt;= <span class="num">0</span>; vgaGreen &lt;= <span class="num">0</span>; vgaBlue &lt;= <span class="num">0</span>;   <span class="cmt">// blanking → black</span>
+        <span class="kw">end</span>
+    <span class="kw">end</span>
+<span class="kw">end</span></code></pre>
+  <ul class="tight">
+    <li><b>Sync</b> is a simple range-compare on the counters → a clean pulse at the right place.</li>
+    <li><b>Visible test</b> <code>h_count≤799 &amp;&amp; v_count≤599</code>: inside → output the Drawer's color;
+        outside → forced black (this enforces the "black during blanking" rule).</li>
+    <li>Outputs are <code>reg</code> → <b>flip-flops</b>. The assignment explicitly requires Hsync, Vsync and
+        the RGB channels to be registered so no combinational glitches reach the monitor.</li>
+  </ul>
+
+  <h3>④ Exposing the position to the Drawer</h3>
+  <pre><code><span class="kw">assign</span> XCoord = h_count;   <span class="cmt">// 0..1039</span>
+<span class="kw">assign</span> YCoord = v_count;   <span class="cmt">// 0..665</span></code></pre>
+  <div class="callout tip">
+    <b>One-pixel pipeline:</b> the Drawer computes color combinationally from XCoord/YCoord, and the
+    interface <i>registers</i> it on the next <code>pix_en</code>. So the RGB shown is delayed exactly one
+    pixel-clock relative to the counter — and Hsync/Vsync are delayed the same one tick, so everything
+    stays aligned. (This is why the testbench compares against a one-tick-delayed "expected".)
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="drawer">
+  <h2>6 · Drawer — Line by Line</h2>
+  <p class="pill">File: Drawer.v</p>
+  <p>The Drawer answers one question per pixel: <b>"what color is pixel (X,Y)?"</b> It keeps the rectangle's
+  four edges in registers, grows them on button presses, and tests whether the current pixel is inside.</p>
+
+  <h3>① Downsampling to a coarse 100×75 grid</h3>
+  <pre><code><span class="kw">localparam integer</span> GRID_W = <span class="num">100</span>, GRID_H = <span class="num">75</span>;   <span class="cmt">// 800/8 , 600/8</span>
+<span class="kw">localparam integer</span> CX = GRID_W/<span class="num">2</span>; <span class="cmt">// 50</span>
+<span class="kw">localparam integer</span> CY = GRID_H/<span class="num">2</span>; <span class="cmt">// 37</span>
+...
+<span class="kw">wire</span> [<span class="num">7</span>:0] x_ds = XCoord[<span class="num">10</span>:<span class="num">3</span>];   <span class="cmt">// drop low 3 bits = divide by 8</span>
+<span class="kw">wire</span> [<span class="num">7</span>:0] y_ds = YCoord[<span class="num">10</span>:<span class="num">3</span>];   <span class="cmt">// 800×600 → 100×75 "fat pixels"</span></code></pre>
+  <div class="callout">
+    <b>Why downsample?</b> The assignment asks for it. Working on a 100×75 grid means each rectangle "cell"
+    is an 8×8 block of real pixels. The edge counters then only need to span 0–99 / 0–74 instead of
+    0–799 / 0–599 — fewer bits, simpler arithmetic, and one button press moves the edge a visible 8 pixels
+    instead of an invisible 1. <code>XCoord[10:3]</code> is literally "integer divide by 8" for free (just
+    a bit-slice, no divider).
+  </div>
+
+  <h3>② The rectangle's four edges (state)</h3>
+  <pre><code><span class="kw">reg</span> [<span class="num">7</span>:0] top, bottom, left, right;   <span class="cmt">// edges in grid units, inclusive</span>
+
+<span class="kw">always @</span>(<span class="kw">posedge</span> clk) <span class="kw">begin</span>
+    <span class="kw">if</span> (reset) <span class="kw">begin</span>
+        top &lt;= CY; bottom &lt;= CY;     <span class="cmt">// 37,37  → single cell</span>
+        left &lt;= CX; right &lt;= CX;      <span class="cmt">// 50,50  → "a dot" at center</span>
+    <span class="kw">end else begin</span>
+        <span class="kw">if</span> (btnu_pulse &amp;&amp; top    &gt; <span class="num">0</span>)          top    &lt;= top    - <span class="num">1</span>; <span class="cmt">// grow up</span>
+        <span class="kw">if</span> (btnd_pulse &amp;&amp; bottom &lt; GRID_H-<span class="num">1</span>) bottom &lt;= bottom + <span class="num">1</span>; <span class="cmt">// grow down</span>
+        <span class="kw">if</span> (btnl_pulse &amp;&amp; left   &gt; <span class="num">0</span>)          left   &lt;= left   - <span class="num">1</span>; <span class="cmt">// grow left</span>
+        <span class="kw">if</span> (btnr_pulse &amp;&amp; right  &lt; GRID_W-<span class="num">1</span>) right  &lt;= right  + <span class="num">1</span>; <span class="cmt">// grow right</span>
+    <span class="kw">end</span>
+<span class="kw">end</span></code></pre>
+  <ul class="tight">
+    <li><b>On reset:</b> all four edges collapse to the center cell (50,37) → the rectangle is a single dot.
+        This is exactly what the assignment asks for at start-up.</li>
+    <li><b>btnu</b> moves the <i>top</i> edge upward (decreasing row index) → rectangle grows up. Similarly
+        btnd/btnl/btnr push the other edges outward.</li>
+    <li>The <code>&gt;0</code> / <code>&lt;GRID-1</code> guards <b>clamp at the screen border</b> so edges
+        can't run off-screen or wrap around.</li>
+    <li>Each press uses a <b>debounced single pulse</b>, so one physical press = one cell of growth.</li>
+  </ul>
+  <div class="callout warn">
+    <b>Note this design only ever grows.</b> The buttons push edges outward; there's no shrink. To make the
+    rectangle small again you press <code>reset</code>, which snaps it back to the center dot. (Good thing
+    to be honest about if asked "can you shrink it?".)
+  </div>
+
+  <h3>③ The "is this pixel inside?" test</h3>
+  <pre><code><span class="kw">wire</span> in_rect = (x_ds &gt;= left) &amp;&amp; (x_ds &lt;= right)
+            &amp;&amp; (y_ds &gt;= top ) &amp;&amp; (y_ds &lt;= bottom);
+
+<span class="kw">assign</span> pixel_color = in_rect ? sw : <span class="num">12'h000</span>;</code></pre>
+  <p>A pure combinational compare: if the coarse coordinate lies within the four edges, output the switch
+  color <code>sw</code>; otherwise black. <code>sw[11:8]=R</code>, <code>sw[7:4]=G</code>,
+  <code>sw[3:0]=B</code>. This is a <b>continuous assign</b> (no register) — the interface does the
+  registering, so the Drawer stays a simple combinational "color function".</p>
+
+  <!-- ===================== DEEP DIVE ===================== -->
+  <hr class="dot">
+  <h3>🔬 Drawer Deep-Dive</h3>
+
+  <h4>The whole module on one page</h4>
+  <p>The Drawer is really just <b>two pieces</b>: a tiny <b>state machine</b> (4 edge registers that update
+  on button pulses) and a <b>combinational color function</b> (compare current pixel to the edges). Nothing
+  else. Here is everything it contains and how it connects:</p>
+
+  <div class="center">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 430" width="100%" style="max-width:760px">
+    <rect x="0" y="0" width="760" height="430" fill="#0b1220" rx="10"/>
+    <!-- outer drawer box -->
+    <rect x="20" y="20" width="720" height="390" fill="none" stroke="#fbbf24" stroke-dasharray="6 4" rx="10"/>
+    <text x="34" y="44" fill="#fbbf24" font-size="13" font-weight="bold" font-family="sans-serif">Drawer</text>
+
+    <!-- inputs left -->
+    <text x="34" y="90"  fill="#94a3b8" font-size="11" font-family="monospace">btnu/d/l/r</text>
+    <text x="34" y="150" fill="#94a3b8" font-size="11" font-family="monospace">reset</text>
+    <text x="34" y="250" fill="#94a3b8" font-size="11" font-family="monospace">XCoord[10:0]</text>
+    <text x="34" y="290" fill="#94a3b8" font-size="11" font-family="monospace">YCoord[10:0]</text>
+    <text x="34" y="350" fill="#94a3b8" font-size="11" font-family="monospace">sw[11:0]</text>
+
+    <!-- debouncers -->
+    <rect x="130" y="70" width="120" height="40" fill="#16233a" stroke="#a78bfa" rx="6"/>
+    <text x="190" y="86" text-anchor="middle" fill="#c4b5fd" font-size="10.5" font-family="sans-serif">Debouncer ×4</text>
+    <text x="190" y="101" text-anchor="middle" fill="#64748b" font-size="9" font-family="monospace">20-bit</text>
+    <line x1="103" y1="86" x2="130" y2="86" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#a)"/>
+
+    <!-- edge regs -->
+    <rect x="320" y="55" width="170" height="120" fill="#162a23" stroke="#34d399" rx="8"/>
+    <text x="405" y="74" text-anchor="middle" fill="#6ee7b7" font-size="11" font-weight="bold" font-family="sans-serif">Edge registers (state)</text>
+    <text x="405" y="96"  text-anchor="middle" fill="#d1fae5" font-size="10" font-family="monospace">top[7:0]   bottom[7:0]</text>
+    <text x="405" y="114" text-anchor="middle" fill="#d1fae5" font-size="10" font-family="monospace">left[7:0]  right[7:0]</text>
+    <text x="405" y="138" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="sans-serif">+1 / −1 on each pulse</text>
+    <text x="405" y="153" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="sans-serif">clamp at 0 / GRID−1</text>
+    <text x="405" y="168" text-anchor="middle" fill="#f87171" font-size="9" font-family="sans-serif">reset → center cell</text>
+    <line x1="250" y1="90" x2="320" y2="100" stroke="#34d399" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="108" y="146" fill="#94a3b8" font-size="9" font-family="sans-serif">(active-high)</text>
+    <line x1="103" y1="150" x2="320" y2="150" stroke="#f87171" stroke-width="1.2" marker-end="url(#a)"/>
+
+    <!-- downsample -->
+    <rect x="130" y="230" width="120" height="70" fill="#16233a" stroke="#38bdf8" rx="6"/>
+    <text x="190" y="252" text-anchor="middle" fill="#7dd3fc" font-size="10" font-family="sans-serif">÷8  (bit-slice)</text>
+    <text x="190" y="270" text-anchor="middle" fill="#cbd5e1" font-size="9" font-family="monospace">x_ds=XCoord[10:3]</text>
+    <text x="190" y="285" text-anchor="middle" fill="#cbd5e1" font-size="9" font-family="monospace">y_ds=YCoord[10:3]</text>
+    <line x1="120" y1="250" x2="130" y2="250" stroke="#38bdf8" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="120" y1="290" x2="130" y2="285" stroke="#38bdf8" stroke-width="1.5" marker-end="url(#a)"/>
+
+    <!-- comparator -->
+    <rect x="320" y="225" width="170" height="80" fill="#2a2333" stroke="#fbbf24" rx="8"/>
+    <text x="405" y="248" text-anchor="middle" fill="#fde68a" font-size="11" font-weight="bold" font-family="sans-serif">in_rect ?</text>
+    <text x="405" y="270" text-anchor="middle" fill="#cbd5e1" font-size="8.7" font-family="monospace">left≤x_ds≤right</text>
+    <text x="405" y="285" text-anchor="middle" fill="#cbd5e1" font-size="8.7" font-family="monospace">top ≤y_ds≤bottom</text>
+    <text x="405" y="300" text-anchor="middle" fill="#94a3b8" font-size="8.5" font-family="sans-serif">(combinational)</text>
+    <line x1="250" y1="260" x2="320" y2="255" stroke="#38bdf8" stroke-width="1.5" marker-end="url(#a)"/>
+    <line x1="405" y1="175" x2="405" y2="225" stroke="#34d399" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="470" y="200" fill="#6ee7b7" font-size="9" font-family="sans-serif">edges</text>
+
+    <!-- mux -->
+    <rect x="560" y="235" width="120" height="60" fill="#16233a" stroke="#f472b6" rx="6"/>
+    <text x="620" y="260" text-anchor="middle" fill="#f9a8d4" font-size="10" font-family="sans-serif">MUX</text>
+    <text x="620" y="277" text-anchor="middle" fill="#cbd5e1" font-size="8.6" font-family="monospace">in?sw:12'h000</text>
+    <line x1="490" y1="265" x2="560" y2="265" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#a)"/>
+    <text x="525" y="258" fill="#fde68a" font-size="9" font-family="sans-serif">in_rect</text>
+    <line x1="103" y1="350" x2="620" y2="350" stroke="#60a5fa" stroke-width="1.2"/>
+    <line x1="620" y1="350" x2="620" y2="295" stroke="#60a5fa" stroke-width="1.2" marker-end="url(#a)"/>
+    <text x="300" y="344" fill="#94a3b8" font-size="9" font-family="sans-serif">sw → color when inside</text>
+
+    <!-- output -->
+    <line x1="680" y1="265" x2="730" y2="265" stroke="#f472b6" stroke-width="1.8" marker-end="url(#a)"/>
+    <text x="700" y="255" text-anchor="middle" fill="#f9a8d4" font-size="10" font-family="monospace">pixel_color</text>
+    <text x="700" y="285" text-anchor="middle" fill="#64748b" font-size="9" font-family="monospace">[11:0]</text>
+
+    <defs>
+      <marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="#94a3b8"/>
+      </marker>
+    </defs>
+  </svg>
+  </div>
+  <div class="callout">
+    <b>Read it left-to-right:</b> buttons → debouncers → edge registers (the only memory). In parallel,
+    X/Y → ÷8 → comparator (uses the edges) → in_rect → MUX picks <code>sw</code> or black → <code>pixel_color</code>.
+    The <b>top half is sequential</b> (updates rarely, on a press); the <b>bottom half is combinational</b>
+    (recomputed for <i>every</i> pixel, ~50 M times/sec).
+  </div>
+
+  <h4>Ports & exact bit-widths</h4>
+  <table>
+    <tr><th>Port</th><th>Dir / width</th><th>Meaning</th></tr>
+    <tr><td><code>clk</code></td><td>in, 1</td><td>100 MHz; edges & debouncers run on it</td></tr>
+    <tr><td><code>reset</code></td><td>in, 1</td><td><b>active-high</b> (note: opposite of the interface's rstn)</td></tr>
+    <tr><td><code>sw</code></td><td>in, 12</td><td>color when inside the rectangle</td></tr>
+    <tr><td><code>btnu/btnd/btnl/btnr</code></td><td>in, 1 each</td><td>raw (bouncy) button levels</td></tr>
+    <tr><td><code>XCoord / YCoord</code></td><td>in, 11</td><td>beam position from the interface (0–1039 / 0–665)</td></tr>
+    <tr><td><code>pixel_color</code></td><td>out, 12</td><td>color of pixel (X,Y) — combinational</td></tr>
+    <tr><td><code>top/bottom/left/right</code></td><td>reg, 8</td><td>internal edges in <b>grid</b> units (0–99 / 0–74)</td></tr>
+    <tr><td><code>x_ds / y_ds</code></td><td>wire, 8</td><td>downsampled coord = Coord[10:3]</td></tr>
+  </table>
+  <div class="callout tip">
+    <b>Width reasoning to say out loud:</b> edges need to reach 99 (GRID_W−1) → 7 bits would only reach 127,
+    8 bits is comfortable. <code>x_ds</code> is <code>XCoord[10:3]</code> = bits 10..3 = 8 bits, max value
+    1039/8 = 129, but in the visible region X≤799 so x_ds≤99 — it lines up with the grid exactly.
+  </div>
+
+  <h4>The two processes, separated</h4>
+  <div class="grid2">
+    <div>
+      <h4 style="color:#6ee7b7">Sequential — the edge FSM</h4>
+      <pre><code><span class="kw">always @</span>(<span class="kw">posedge</span> clk)
+  <span class="kw">if</span> (reset) <span class="kw">begin</span>
+    top&lt;=CY; bottom&lt;=CY;   <span class="cmt">// 37</span>
+    left&lt;=CX; right&lt;=CX;    <span class="cmt">// 50</span>
+  <span class="kw">end else begin</span>
+    <span class="kw">if</span>(btnu_pulse &amp;&amp; top&gt;0)        top--;
+    <span class="kw">if</span>(btnd_pulse &amp;&amp; bottom&lt;74)   bottom++;
+    <span class="kw">if</span>(btnl_pulse &amp;&amp; left&gt;0)       left--;
+    <span class="kw">if</span>(btnr_pulse &amp;&amp; right&lt;99)    right++;
+  <span class="kw">end</span></code></pre>
+      <p style="font-size:.86rem;color:var(--muted)">Runs every clock but only <i>changes</i> on a pulse.
+      The four <code>if</code>s are independent → you can grow two edges "at once" if two pulses coincide.</p>
+    </div>
+    <div>
+      <h4 style="color:#fde68a">Combinational — the color</h4>
+      <pre><code><span class="kw">wire</span> x_ds = XCoord[<span class="num">10</span>:<span class="num">3</span>];
+<span class="kw">wire</span> y_ds = YCoord[<span class="num">10</span>:<span class="num">3</span>];
+
+<span class="kw">wire</span> in_rect =
+   (x_ds&gt;=left)  &amp; (x_ds&lt;=right)
+ &amp; (y_ds&gt;=top)   &amp; (y_ds&lt;=bottom);
+
+<span class="kw">assign</span> pixel_color =
+   in_rect ? sw : <span class="num">12'h000</span>;</code></pre>
+      <p style="font-size:.86rem;color:var(--muted)">No clock, no state. It's a pure function
+      <code>color = f(X, Y, edges, sw)</code> evaluated for every single pixel.</p>
+    </div>
+  </div>
+
+  <h4>Coordinate system & the "inclusive" bounds</h4>
+  <p>Edges are stored as <b>inclusive grid indices</b>. A single cell means <code>left==right</code> and
+  <code>top==bottom</code> — and because the test uses <code>&gt;=</code>/<code>&lt;=</code>, that one cell is
+  still "inside", so you get a visible dot (not an empty rectangle). Below: the grid, the center dot at
+  reset, and the same rectangle after a few presses.</p>
+
+  <div class="center">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 320" width="100%" style="max-width:720px">
+    <rect x="0" y="0" width="720" height="320" fill="#0b1220" rx="10"/>
+    <!-- grid A: reset -->
+    <text x="160" y="28" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="bold" font-family="sans-serif">At reset → single dot (50,37)</text>
+    <g transform="translate(60,40)">
+      <rect x="0" y="0" width="200" height="150" fill="#111c30" stroke="#475569"/>
+      <!-- grid lines light -->
+      <g stroke="#1f2c45" stroke-width="0.5">
+        <line x1="50" y1="0" x2="50" y2="150"/><line x1="100" y1="0" x2="100" y2="150"/><line x1="150" y1="0" x2="150" y2="150"/>
+        <line x1="0" y1="50" x2="200" y2="50"/><line x1="0" y1="100" x2="200" y2="100"/>
+      </g>
+      <!-- dot at center -->
+      <rect x="98" y="73" width="6" height="6" fill="#34d399"/>
+      <text x="100" y="170" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="sans-serif">left=right=50, top=bottom=37</text>
+      <text x="-6" y="-4" fill="#64748b" font-size="9" font-family="monospace">x:0</text>
+      <text x="190" y="-4" fill="#64748b" font-size="9" font-family="monospace">99</text>
+      <text x="-22" y="8" fill="#64748b" font-size="9" font-family="monospace">y:0</text>
+      <text x="-26" y="150" fill="#64748b" font-size="9" font-family="monospace">74</text>
+    </g>
+    <!-- grid B: after presses -->
+    <text x="500" y="28" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="bold" font-family="sans-serif">After btnr×30, btnd×20, btnl×10</text>
+    <g transform="translate(400,40)">
+      <rect x="0" y="0" width="200" height="150" fill="#111c30" stroke="#475569"/>
+      <g stroke="#1f2c45" stroke-width="0.5">
+        <line x1="50" y1="0" x2="50" y2="150"/><line x1="100" y1="0" x2="100" y2="150"/><line x1="150" y1="0" x2="150" y2="150"/>
+        <line x1="0" y1="50" x2="200" y2="50"/><line x1="0" y1="100" x2="200" y2="100"/>
+      </g>
+      <!-- rectangle: left=40,right=80,top=37,bottom=57 -> scaled /99*200, /74*150 -->
+      <rect x="80" y="75" width="82" height="40" fill="rgba(96,165,250,.45)" stroke="#60a5fa" stroke-width="1.5"/>
+      <text x="100" y="170" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="sans-serif">left=40 right=80 top=37 bottom=57</text>
+      <!-- arrows showing growth -->
+      <text x="172" y="98" fill="#fbbf24" font-size="9" font-family="sans-serif">→R</text>
+      <text x="95" y="128" fill="#fbbf24" font-size="9" font-family="sans-serif">↓D</text>
+      <text x="60" y="92" fill="#fbbf24" font-size="9" font-family="sans-serif">L←</text>
+    </g>
+  </svg>
+  </div>
+
+  <h4>Worked walkthrough — what each press does</h4>
+  <table>
+    <tr><th>Step</th><th>Action</th><th>top</th><th>bottom</th><th>left</th><th>right</th><th>On screen</th></tr>
+    <tr><td>0</td><td>reset</td><td>37</td><td>37</td><td>50</td><td>50</td><td>1 cell dot (8×8 px)</td></tr>
+    <tr><td>1</td><td>btnr pulse</td><td>37</td><td>37</td><td>50</td><td><b>51</b></td><td>1×2 cells wide</td></tr>
+    <tr><td>2</td><td>btnd pulse</td><td>37</td><td><b>38</b></td><td>50</td><td>51</td><td>2×2 cells</td></tr>
+    <tr><td>3</td><td>btnl pulse</td><td>37</td><td>38</td><td><b>49</b></td><td>51</td><td>2×3 cells</td></tr>
+    <tr><td>…</td><td>hold btnr</td><td>37</td><td>38</td><td>49</td><td><b>+1 only once</b></td><td>debounce → one step per press</td></tr>
+    <tr><td>max</td><td>btnr until clamp</td><td>37</td><td>38</td><td>49</td><td><b>99</b></td><td>stops at right border</td></tr>
+  </table>
+  <p style="font-size:.86rem;color:var(--muted)">Each cell on the coarse grid is 8×8 real pixels, so one
+  press visibly moves an edge by 8 px. The rectangle area in real pixels =
+  <code>(right−left+1)·8 × (bottom−top+1)·8</code>.</p>
+
+  <h4>Timing subtlety: edges vs. pixels</h4>
+  <div class="callout key">
+    The edge registers update on <code>posedge clk</code> (100 MHz), but a human press lasts millions of
+    cycles, so for the entire duration the beam is scanning, the edges are <b>stable</b>. That means the
+    rectangle is drawn <b>consistently across the whole frame</b> — no tearing — even though the color
+    logic is purely combinational. The only time edges change is the single clock when a debounced pulse
+    fires; that's far faster than one frame, so at most one frame could show a 1-cell transition (invisible
+    to the eye).
+  </div>
+
+  <h4>Common "gotcha" questions about the Drawer</h4>
+  <details class="qa"><summary>Why does reset give a dot and not nothing?</summary><div class="body">
+    Because the bounds are inclusive (<code>&gt;=</code>/<code>&lt;=</code>) and reset sets
+    <code>left==right</code>, <code>top==bottom</code>. So exactly one cell satisfies <code>in_rect</code>
+    → a single 8×8 dot at the center, which is what the spec asks for at start-up.
+  </div></details>
+  <details class="qa"><summary>Why store edges in grid units instead of pixel units?</summary><div class="body">
+    Smaller registers (8-bit vs 11-bit), simpler compares, and one press = one visible 8-px step. We convert
+    the incoming pixel coordinate down to grid units with a free bit-slice (<code>[10:3]</code>) and compare
+    in the same units.
+  </div></details>
+  <details class="qa"><summary>What if I press up and down at the same instant?</summary><div class="body">
+    The four <code>if</code> statements are independent, so both <code>top</code> and <code>bottom</code>
+    update on that clock — the rectangle grows in both directions simultaneously. They never conflict
+    because each button only touches its own edge register.
+  </div></details>
+  <details class="qa"><summary>Is pixel_color a register or a wire? Why does it matter?</summary><div class="body">
+    A <b>wire</b> (continuous <code>assign</code>) — combinational. The Drawer must produce the right color
+    the same cycle the interface presents (X,Y); the interface then registers it. If the Drawer also
+    registered, we'd add an extra pixel of delay and would have to account for it. Keeping it combinational
+    keeps the pipeline a clean one-stage delay.
+  </div></details>
+
+</section>
+
+<!-- ============================================================ -->
+<section id="debouncer">
+  <h2>7 · Debouncer — How & Why</h2>
+  <p class="pill">File: Debouncer.v (reused from Lab 1/4)</p>
+
+  <div class="callout">
+    <b>The problem:</b> a mechanical button doesn't switch cleanly — its contact "bounces", producing a burst
+    of fast 0/1 flickers for a few milliseconds. At 100 MHz that single press could register as hundreds of
+    presses. We'd get the rectangle jumping wildly.
+  </div>
+
+  <h4>The idea: a hysteresis up/down counter</h4>
+  <pre><code><span class="kw">always @</span>(<span class="kw">posedge</span> clk) <span class="kw">begin</span>
+    <span class="kw">if</span> (input_unstable == <span class="num">1</span>)
+        counter &lt;= (counter &lt; all_ones) ? counter+<span class="num">1</span> : counter;  <span class="cmt">// count up while pressed</span>
+    <span class="kw">else</span>
+        counter &lt;= (counter &gt; <span class="num">0</span>) ? counter-<span class="num">1</span> : counter;       <span class="cmt">// count down while released</span>
+
+    prev_msb      &lt;= counter[MSB];
+    output_stable &lt;= (~prev_msb) &amp; counter[MSB];   <span class="cmt">// 1-cycle pulse on 0→1 of MSB</span>
+<span class="kw">end</span></code></pre>
+  <ul class="tight">
+    <li>While the button reads 1, the counter climbs; while it reads 0, it falls. Brief bounces only nudge it
+        a little — it takes a <b>sustained</b> press to fill it. That's the <b>hysteresis</b> (noise immunity).</li>
+    <li>We watch the counter's <b>MSB</b>. When the MSB flips 0→1, the press is "confirmed".</li>
+    <li><code>output_stable = (~prev_msb) &amp; counter[MSB]</code> is a rising-edge detector → it emits exactly
+        <b>one clock pulse</b> per confirmed press, no matter how long you hold. That single pulse is what
+        moves the rectangle edge by one cell.</li>
+  </ul>
+  <p>We instantiate it with <code>COUNTER_BITS = 20</code>. The MSB flips after ~2<sup>19</sup> ≈ 524,288
+  cycles of "mostly pressed", i.e. about <b>5 ms</b> at 100 MHz — long enough to swallow bounce, short enough
+  to feel instant.</p>
+  <pre><code>Debouncer #(.COUNTER_BITS(<span class="num">20</span>)) db_u (.clk(clk), .input_unstable(btnu), .output_stable(btnu_pulse));
+<span class="cmt">// ...same for btnd, btnl, btnr → four independent debouncers</span></code></pre>
+  <div class="callout tip">
+    <b>Why "single pulse" matters here:</b> if the Drawer saw a level (held = 1) instead of a pulse, holding
+    the button would grow the rectangle by one cell <i>every clock</i> = instantly off-screen. The pulse
+    guarantees one-press-one-step. The parameter <code>COUNTER_BITS</code> being a parameter (not hard-coded)
+    also satisfies the lab's "modules must be parametric" rule.
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="color">
+  <h2>8 · Color Encoding (12-bit)</h2>
+  <p>Basys3 gives 4 bits per channel → <b>12-bit color = 4096 colors</b>. The switches map directly:</p>
+  <table>
+    <tr><th>Bits</th><th>Channel</th><th>Switches</th></tr>
+    <tr><td><code>pixel_color[11:8]</code></td><td><span class="sw" style="background:#f87171"></span> Red</td><td>sw[11:8]</td></tr>
+    <tr><td><code>pixel_color[7:4]</code></td><td><span class="sw" style="background:#34d399"></span> Green</td><td>sw[7:4]</td></tr>
+    <tr><td><code>pixel_color[3:0]</code></td><td><span class="sw" style="background:#60a5fa"></span> Blue</td><td>sw[3:0]</td></tr>
+  </table>
+  <p>Examples: <code>12'hF00</code> = pure red, <code>12'h0F0</code> = green, <code>12'hFFF</code> = white,
+  <code>12'h000</code> = black. The 4 bits drive a <b>resistor-ladder DAC</b> on the board that produces the
+  0–0.7 V analog level the monitor expects on each color pin.</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="xdc">
+  <h2>9 · Constraints / Pins (task2.xdc)</h2>
+  <p>The XDC maps top-level Verilog names to physical FPGA pins and sets the 100 MHz clock.</p>
+  <table>
+    <tr><th>Signal</th><th>Pin(s)</th><th>Note</th></tr>
+    <tr><td>clk</td><td>W5</td><td>100 MHz board oscillator; <code>create_clock -period 10.000</code></td></tr>
+    <tr><td>reset / btnu / btnd / btnl / btnr</td><td>U18 / T18 / U17 / W19 / T17</td><td>5 push-buttons (center = reset)</td></tr>
+    <tr><td>sw[11:0]</td><td>V17…R3</td><td>12 slide switches → color</td></tr>
+    <tr><td>vgaRed[3:0]</td><td>G19,H19,J19,N19</td><td>VGA connector</td></tr>
+    <tr><td>vgaGreen[3:0]</td><td>J17,H17,G17,D17</td><td>VGA connector</td></tr>
+    <tr><td>vgaBlue[3:0]</td><td>N18,L18,K18,J18</td><td>VGA connector</td></tr>
+    <tr><td>Hsync / Vsync</td><td>P19 / R19</td><td>sync pins</td></tr>
+  </table>
+  <div class="callout">
+    The XDC has a commented-out <code>create_generated_clock</code> for the divide-by-2 pixel clock. We
+    chose the <b>clock-enable</b> approach (<code>pix_en</code>) instead, so we don't need a real generated
+    clock — that comment documents the alternative and why those TIMING-17 warnings appear if you do gate
+    the clock. The IO standard is <code>LVCMOS33</code> (3.3 V) for everything.
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="tb">
+  <h2>10 · The Testbench</h2>
+  <p class="pill">File: VGA_Interface_tb.v</p>
+  <p>It drives a 100 MHz clock, holds reset for 20 ns, then runs <b>one full frame</b> and self-checks the
+  interface against an independent model.</p>
+  <ul class="tight">
+    <li><b>Clock:</b> <code>always #5 clk = ~clk;</code> → 10 ns period = 100 MHz.</li>
+    <li><b>Stimulus:</b> on each <code>pix_en</code> it feeds a <code>$random</code> color while in the
+        visible region (else 0), mimicking what the Drawer would send.</li>
+    <li><b>Self-check (the clever part):</b> it keeps a <b>one-tick-delayed</b> copy of the expected color and
+        coordinates (<code>x_d, y_d, expected_pixel_color</code>) because the DUT registers its outputs one
+        <code>pix_en</code> later. Then it asserts:
+      <ul>
+        <li>RGB == expected color in visible region, else == black;</li>
+        <li>Hsync high exactly when <code>x_d</code> is in the sync window;</li>
+        <li>Vsync high exactly when <code>y_d</code> is in the sync window.</li>
+      </ul>
+    </li>
+    <li><code>correct</code> accumulates with <code>&amp;</code> over the whole frame; at the end it prints
+        <b>"Test passed!!"</b> only if every pixel matched.</li>
+    <li>Frame length: <code>(H_TOTAL+1)*(V_TOTAL+1)*2</code> — the ×2 is because two 100 MHz cycles = one
+        pixel-clock tick.</li>
+  </ul>
+  <div class="callout tip">
+    Oral-ready takeaway: the bench proves the interface's <b>timing is bit-exact</b> — sync edges land on the
+    right counts and color is blanked outside the visible box — which is the whole correctness criterion for
+    a VGA controller.
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="problems">
+  <h2>11 · Problems We Hit & How We Fixed Them</h2>
+  <table>
+    <tr><th>Problem</th><th>Fix</th></tr>
+    <tr><td>Need a 50 MHz pixel clock from a 100 MHz board clock without gating the clock.</td>
+        <td>Used a <b>clock-enable</b> (<code>pix_en</code> toggling every cycle) inside one 100 MHz domain instead of a divided clock.</td></tr>
+    <tr><td>Buttons bouncing → rectangle jumping many cells per press.</td>
+        <td>20-bit <b>debouncer</b> producing a single 1-cycle pulse per press.</td></tr>
+    <tr><td>Combinational glitches on sync/RGB could distort the picture.</td>
+        <td>Made Hsync, Vsync and all RGB channels <b>registered flip-flops</b>.</td></tr>
+    <tr><td>Vivado TIMING-17 "non-clocked sequential cell" warnings if the /2 clock is used.</td>
+        <td>Avoided the generated clock entirely (enable approach); documented the alternative in the XDC.</td></tr>
+    <tr><td>Edges could run off-screen.</td>
+        <td>Added border <b>clamps</b> (<code>top&gt;0</code>, <code>right&lt;GRID_W-1</code>, …).</td></tr>
+    <tr><td>72 Hz mode not supported by some monitors (assignment warning).</td>
+        <td>Verified on a monitor that supports 800×600@72; timing matches the standard exactly.</td></tr>
+  </table>
+</section>
+
+<!-- ============================================================ -->
+<section id="qa">
+  <h2>12 · Likely Oral-Exam Questions ⭐</h2>
+  <p>Click each to reveal a crisp answer. These are the ones examiners love.</p>
+
+  <details class="qa"><summary>Explain your design in one minute.</summary><div class="body">
+    A VGA controller on the Basys3. <b>VGA_Interface</b> generates the 800×600@72 timing: it makes a 50 MHz
+    pixel-clock enable from the 100 MHz clock, runs horizontal/vertical counters that track the beam
+    position, generates Hsync/Vsync at the right counts, and drives RGB only in the visible region (black
+    elsewhere). It hands the current (X,Y) to the <b>Drawer</b>, which keeps a rectangle's four edges on a
+    coarse 100×75 grid, grows them with debounced buttons, colors inside-pixels with the switch value and
+    outside-pixels black, and returns that color to the interface. <b>VGA_Top</b> just wires the two together.
+  </div></details>
+
+  <details class="qa"><summary>What are the front porch, sync, and back porch — and why do they exist?</summary><div class="body">
+    They're the <b>blanking</b> parts of each scan. Front porch = blank gap before the sync pulse; sync pulse
+    = the Hsync/Vsync signal that tells the monitor to retrace; back porch = blank gap after sync before the
+    visible area. Historically a CRT needs time for the electron beam to fly back to the start of the next
+    line/frame; modern monitors still use these intervals to lock onto the signal. During all of them we
+    output black.
+  </div></details>
+
+  <details class="qa"><summary>Why 50 MHz? How did you get it from 100 MHz?</summary><div class="body">
+    50 MHz is the pixel clock for 800×600@72 (1040×666 clocks/frame × 72 Hz ≈ 50 MHz). I didn't divide the
+    clock; I made a <b>clock-enable</b> <code>pix_en</code> that toggles every 100 MHz cycle, so it's true
+    every other cycle = a 50 MHz rate. All timing logic runs <code>if (pix_en)</code>. Single clock domain,
+    no clock gating — the clean FPGA way.
+  </div></details>
+
+  <details class="qa"><summary>Why is the refresh rate 72 Hz? Show the math.</summary><div class="body">
+    50,000,000 pixel-clocks/s ÷ (1040 × 666 clocks/frame) = 50e6 / 692,640 ≈ <b>72.2 Hz</b>. The horizontal
+    line rate is 50e6/1040 ≈ 48.1 kHz.
+  </div></details>
+
+  <details class="qa"><summary>Why must Hsync, Vsync and RGB be registered (flip-flops)?</summary><div class="body">
+    To remove combinational <b>glitches</b>. Combinational logic settles through hazards; if those reached the
+    monitor the picture could tear or show specks. Registering the outputs makes them change cleanly once per
+    pixel-clock, perfectly aligned. The assignment explicitly requires it.
+  </div></details>
+
+  <details class="qa"><summary>Why downsample by 8 to 100×75?</summary><div class="body">
+    Simplicity and usability. Each grid cell becomes an 8×8 block, so the edge counters need only 0–99 / 0–74
+    (8-bit) instead of full 0–799 / 0–599, and a single button press moves an edge a visible 8 pixels.
+    <code>XCoord[10:3]</code> is a free divide-by-8 (just a bit-slice — no divider hardware).
+  </div></details>
+
+  <details class="qa"><summary>How does the debouncer work, and why a single pulse?</summary><div class="body">
+    A hysteresis up/down counter: counts up while the button reads 1, down while 0. Brief bounces barely move
+    it; only a sustained press fills it and flips the MSB. A rising-edge detector on the MSB
+    (<code>~prev_msb &amp; msb</code>) emits exactly one 1-cycle pulse per press. Single pulse = one press grows
+    the rectangle by one cell; a level would grow it every clock and shoot off-screen.
+  </div></details>
+
+  <details class="qa"><summary>What does the Drawer output for a pixel outside the rectangle?</summary><div class="body">
+    Black, <code>12'h000</code>. <code>pixel_color = in_rect ? sw : 12'h000</code>. And even if the Drawer
+    output something nonzero during blanking, the interface forces black outside the visible region anyway.
+  </div></details>
+
+  <details class="qa"><summary>What happens on reset?</summary><div class="body">
+    Board reset is active-high; the interface gets <code>~reset</code> (active-low <code>rstn</code>). On
+    reset the counters and outputs clear, and the Drawer collapses all four edges to the center cell (50,37)
+    → the rectangle becomes a single dot at screen center, as required at start-up.
+  </div></details>
+
+  <details class="qa"><summary>Can you shrink the rectangle?</summary><div class="body">
+    Not with the buttons — they only push edges outward (grow). To make it small again you press reset, which
+    snaps it back to the center dot. (Honest limitation; could be extended with a "shrink" mode.)
+  </div></details>
+
+  <details class="qa"><summary>How is color encoded? How many colors?</summary><div class="body">
+    12-bit: 4 bits each for R, G, B → 4096 colors. <code>sw[11:8]=R</code>, <code>sw[7:4]=G</code>,
+    <code>sw[3:0]=B</code>. The 4 bits per channel feed a resistor-ladder DAC on the board producing the
+    analog 0–0.7 V the VGA monitor expects.
+  </div></details>
+
+  <details class="qa"><summary>Why is there no pixel-clock wire to the monitor?</summary><div class="body">
+    VGA is analog and self-timed: the monitor recovers timing from the Hsync/Vsync pulses plus the known
+    standard mode. That's precisely why our counts and porches must match a real VGA mode exactly — there's
+    no clock to "tell" the monitor otherwise.
+  </div></details>
+
+  <details class="qa"><summary>What's the sync polarity, and where is it set in code?</summary><div class="body">
+    Positive (active-high) for both H and V in 800×600@72. In code
+    <code>Hsync &lt;= (h_count &gt; H_FRONT_PORCH) &amp;&amp; (h_count &lt;= H_SYNC_END)</code> drives Hsync to 1
+    during the pulse window → active-high.
+  </div></details>
+
+  <details class="qa"><summary>Why does the testbench delay the expected values by one tick?</summary><div class="body">
+    Because the interface <b>registers</b> its outputs: the RGB for a given (X,Y) appears one
+    <code>pix_en</code> later. So the bench compares the DUT against a one-tick-delayed model
+    (<code>x_d, y_d, expected_pixel_color</code>) to stay aligned. It also delays the sync checks the same way.
+  </div></details>
+
+  <details class="qa"><summary>What limits the maximum rectangle size?</summary><div class="body">
+    The border clamps: <code>top/left</code> stop at 0, <code>bottom</code> at GRID_H−1 (74),
+    <code>right</code> at GRID_W−1 (99). Fully grown it fills the whole 100×75 grid = entire 800×600 screen.
+  </div></details>
+</section>
+
+<p class="center" style="color:#64748b;font-size:.85rem;margin-top:40px">
+  Built from the actual source: VGA_Top.v · VGA_Interface.v · Drawer.v · Debouncer.v · VGA_Interface_tb.v · task2.xdc<br>
+  Saleh Khalil (213310485) &amp; Mahmood Stitia (214032682) — good luck on the oral! 🎓
+</p>
+
+</main>
+</body>
+</html>
