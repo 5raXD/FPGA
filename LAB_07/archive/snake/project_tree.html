@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<title>Project Tree — Lab 7 Snake</title>
+<style>
+  :root{--bg:#0f172a;--panel:#1e293b;--ink:#e2e8f0;--muted:#94a3b8;--accent:#38bdf8;--accent2:#fbbf24;--good:#34d399;--bad:#f87171;--code:#0b1220}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:linear-gradient(180deg,#0b1220,#0f172a);color:var(--ink);line-height:1.65}
+  header{background:linear-gradient(135deg,#14532d,#0ea5e9);padding:34px 20px;text-align:center}
+  header h1{margin:0;font-size:1.9rem}header p{margin:8px 0 0;color:#dbeafe}
+  main{max-width:1000px;margin:0 auto;padding:30px 20px}
+  section{background:var(--panel);border-radius:12px;padding:28px;margin-bottom:24px;border:1px solid #334155}
+  section h2{color:var(--accent);border-bottom:2px solid #334155;padding-bottom:8px;margin-top:0}
+  pre{background:var(--code);padding:18px;border-radius:8px;overflow-x:auto;border-left:4px solid var(--accent);font-family:Menlo,Consolas,monospace;font-size:.9rem;line-height:1.7}
+  code{font-family:Menlo,Consolas,monospace}
+  table{width:100%;border-collapse:collapse;margin:14px 0}
+  th,td{border:1px solid #334155;padding:8px 12px;text-align:left}
+  th{background:#1e293b;color:var(--accent2)}tr:nth-child(even){background:rgba(255,255,255,.02)}
+  .callout{background:rgba(56,189,248,.1);border-left:4px solid var(--accent);padding:14px 18px;border-radius:6px;margin:16px 0}
+  nav.topbar{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:2px;background:rgba(11,18,32,.97);border-bottom:1px solid #334155;padding:8px 10px}
+  nav.topbar a{color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:6px;font-size:.82rem;font-weight:600;white-space:nowrap}
+  nav.topbar a:hover{background:#1e293b;color:var(--ink)}nav.topbar a.active{background:var(--accent);color:#0f172a}nav.topbar a.home{color:var(--accent2)}
+  .badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.72rem;font-weight:800;text-transform:uppercase}
+  .badge.reuse{background:#065f46;color:#d1fae5}.badge.adapt{background:#3f3f1e;color:#fde68a}.badge.newm{background:#1e3a8a;color:#dbeafe}
+  footer{text-align:center;color:var(--muted);padding:30px;font-size:.9rem}
+</style></head><body>
+<nav class="topbar">
+  <a class="home" href="snake_concepts_guide.html">🐍 main</a>
+  <a href="mod_ps2_interface.html">PS2_Interface</a>
+  <a href="mod_direction_control.html">Direction Control</a>
+  <a href="mod_game_tick.html">Game Tick</a>
+  <a href="mod_lfsr.html">LFSR</a>
+  <a href="mod_snake_logic.html">Snake_Logic</a>
+  <a href="mod_renderer.html">Renderer</a>
+  <a href="mod_vga_interface.html">VGA_Interface</a>
+  <a href="mod_seg7_display.html">Seg7 Display</a>
+  <a class="active" href="project_tree.html">Project Tree</a>
+  <a href="tick_calc.html">Tick Calculator</a>
+  <a href="vga_color_picker.html">Color Picker</a>
+</nav>
+<header><h1>Project Tree — Module Hierarchy</h1>
+<p>Tel Aviv University · FPGA Lab · Experiment 7 — Snake</p></header>
+<main>
+<section>
+<h2>Design hierarchy — instantiated inside <code>Snake_Top</code></h2>
+<p>For the synthesizable design (what runs on the FPGA) every module is <strong>instantiated once</strong> inside <code>Snake_Top</code>. The hierarchy is <strong>mostly flat</strong> — <code>Snake_Top</code> instantiates all the blocks directly — with one exception: <code>Food_Planter</code> is itself a small <strong>subsystem</strong>, shown nested one level deeper below (and detailed in the next section).</p>
+<svg viewBox="0 0 400 560" width="400">
+  <!-- connector lines: vertical sibling spines + horizontal elbows -->
+  <g stroke="#475569" stroke-width="1.6" fill="none">
+    <!-- level-1 spine (children of Snake_Top) -->
+    <line x1="44" y1="50" x2="44" y2="530"/>
+    <line x1="44" y1="74"  x2="78" y2="74"/>
+    <line x1="44" y1="112" x2="78" y2="112"/>
+    <line x1="44" y1="150" x2="78" y2="150"/>
+    <line x1="44" y1="188" x2="78" y2="188"/>
+    <line x1="44" y1="226" x2="78" y2="226"/>
+    <line x1="44" y1="416" x2="78" y2="416"/>
+    <line x1="44" y1="454" x2="78" y2="454"/>
+    <line x1="44" y1="492" x2="78" y2="492"/>
+    <line x1="44" y1="530" x2="78" y2="530"/>
+    <!-- level-2 spine (children of Food_Planter) -->
+    <line x1="98" y1="240" x2="98" y2="378"/>
+    <line x1="98" y1="264" x2="132" y2="264"/>
+    <line x1="98" y1="302" x2="132" y2="302"/>
+    <line x1="98" y1="340" x2="132" y2="340"/>
+    <line x1="98" y1="378" x2="132" y2="378"/>
+  </g>
+
+  <g font-family="monospace">
+    <!-- L0 -->
+    <rect x="24" y="22" width="210" height="28" rx="7" fill="#4c1d95" stroke="#a78bfa" stroke-width="2"/>
+    <text x="36" y="41" fill="#ddd6fe" font-size="12" font-weight="bold">Snake_Top</text>
+    <text x="226" y="41" text-anchor="end" fill="#c4b5fd" font-size="8.5">top level</text>
+
+    <!-- L1 -->
+    <rect x="78" y="60" width="252" height="28" rx="7" fill="#064e3b" stroke="#34d399"/>
+    <text x="90" y="79" fill="#d1fae5" font-size="11.5" font-weight="bold">Ps2_Interface</text>
+    <text x="322" y="79" text-anchor="end" fill="#6ee7b7" font-size="8.5">reuse · Lab 5</text>
+
+    <rect x="78" y="98" width="252" height="28" rx="7" fill="#064e3b" stroke="#34d399"/>
+    <text x="90" y="117" fill="#d1fae5" font-size="11.5" font-weight="bold">Debouncer</text>
+    <text x="322" y="117" text-anchor="end" fill="#6ee7b7" font-size="8.5">reuse · Lab 4/6</text>
+
+    <rect x="78" y="136" width="252" height="28" rx="7" fill="#1e3a8a" stroke="#60a5fa"/>
+    <text x="90" y="155" fill="#dbeafe" font-size="11.5" font-weight="bold">Direction_Control</text>
+    <text x="322" y="155" text-anchor="end" fill="#93c5fd" font-size="8.5">new</text>
+
+    <rect x="78" y="174" width="252" height="28" rx="7" fill="#1e3a8a" stroke="#60a5fa"/>
+    <text x="90" y="193" fill="#dbeafe" font-size="11.5" font-weight="bold">Game_Tick</text>
+    <text x="322" y="193" text-anchor="end" fill="#93c5fd" font-size="8.5">new</text>
+
+    <rect x="78" y="212" width="252" height="28" rx="7" fill="#1e3a8a" stroke="#60a5fa"/>
+    <text x="90" y="231" fill="#dbeafe" font-size="11.5" font-weight="bold">Food_Planter</text>
+    <text x="322" y="231" text-anchor="end" fill="#93c5fd" font-size="8.5">subsystem ▾</text>
+
+    <!-- L2 (inside Food_Planter) -->
+    <rect x="132" y="250" width="240" height="28" rx="7" fill="#1e3a8a" stroke="#60a5fa"/>
+    <text x="144" y="269" fill="#dbeafe" font-size="11" font-weight="bold">LFSR</text>
+    <text x="364" y="269" text-anchor="end" fill="#93c5fd" font-size="8.5">pseudo-random</text>
+
+    <rect x="132" y="288" width="240" height="28" rx="7" fill="#1e3a8a" stroke="#60a5fa"/>
+    <text x="144" y="307" fill="#dbeafe" font-size="11" font-weight="bold">Cand_Gen</text>
+    <text x="364" y="307" text-anchor="end" fill="#93c5fd" font-size="8.5">→ candidate cell</text>
+
+    <rect x="132" y="326" width="240" height="28" rx="7" fill="#1e3a8a" stroke="#60a5fa"/>
+    <text x="144" y="345" fill="#dbeafe" font-size="11" font-weight="bold">Body_Check</text>
+    <text x="364" y="345" text-anchor="end" fill="#93c5fd" font-size="8.5">on snake body?</text>
+
+    <rect x="132" y="364" width="240" height="28" rx="7" fill="#1e3a8a" stroke="#60a5fa"/>
+    <text x="144" y="383" fill="#dbeafe" font-size="11" font-weight="bold">Spawn_Ctrl</text>
+    <text x="364" y="383" text-anchor="end" fill="#93c5fd" font-size="8.5">retry + latch</text>
+
+    <!-- L1 continued -->
+    <rect x="78" y="402" width="252" height="28" rx="7" fill="#1e3a8a" stroke="#60a5fa" stroke-width="3"/>
+    <text x="90" y="421" fill="#dbeafe" font-size="11.5" font-weight="bold">Snake_Logic</text>
+    <text x="322" y="421" text-anchor="end" fill="#fcd34d" font-size="8.5" font-weight="bold">new · CORE</text>
+
+    <rect x="78" y="440" width="252" height="28" rx="7" fill="#3f3f1e" stroke="#fbbf24"/>
+    <text x="90" y="459" fill="#fde68a" font-size="11.5" font-weight="bold">Renderer</text>
+    <text x="322" y="459" text-anchor="end" fill="#fbbf24" font-size="8.5">adapt · Lab 6</text>
+
+    <rect x="78" y="478" width="252" height="28" rx="7" fill="#064e3b" stroke="#34d399"/>
+    <text x="90" y="497" fill="#d1fae5" font-size="11.5" font-weight="bold">VGA_Interface</text>
+    <text x="322" y="497" text-anchor="end" fill="#6ee7b7" font-size="8.5">reuse · Lab 6</text>
+
+    <rect x="78" y="516" width="252" height="28" rx="7" fill="#064e3b" stroke="#34d399"/>
+    <text x="90" y="535" fill="#d1fae5" font-size="11.5" font-weight="bold">Seg_7_Display</text>
+    <text x="322" y="535" text-anchor="end" fill="#6ee7b7" font-size="8.5">reuse · Lab 3/4/5</text>
+  </g>
+</svg>
+
+<div class="legend" style="display:flex;gap:18px;flex-wrap:wrap;margin:6px 0 0;font-size:.85rem;color:var(--muted)">
+  <span style="display:inline-flex;align-items:center;gap:6px"><i style="width:14px;height:14px;border-radius:3px;background:#4c1d95;border:1px solid #a78bfa;display:inline-block"></i> top level</span>
+  <span style="display:inline-flex;align-items:center;gap:6px"><i style="width:14px;height:14px;border-radius:3px;background:#1e3a8a;border:1px solid #60a5fa;display:inline-block"></i> new (write it)</span>
+  <span style="display:inline-flex;align-items:center;gap:6px"><i style="width:14px;height:14px;border-radius:3px;background:#3f3f1e;border:1px solid #fbbf24;display:inline-block"></i> adapt</span>
+  <span style="display:inline-flex;align-items:center;gap:6px"><i style="width:14px;height:14px;border-radius:3px;background:#064e3b;border:1px solid #34d399;display:inline-block"></i> reuse (import)</span>
+</div>
+</section>
+
+<section>
+<h2>Inside <code>Food_Planter</code> (subsystem)</h2>
+<p><code>Food_Planter</code> is not one block — it is a small hierarchy of its own. It uses a pseudo-random generator to <strong>propose a candidate cell</strong> and rejects any candidate that lands on the snake's body, <strong>looping until it finds a free cell</strong>, then latches the food position.</p>
+
+<svg viewBox="0 0 900 235" width="900">
+  <rect x="370" y="16" width="160" height="48" rx="10" fill="#1e3a8a" stroke="#60a5fa" stroke-width="2"/>
+  <text x="450" y="40" text-anchor="middle" fill="#dbeafe" font-family="monospace" font-size="13" font-weight="bold">Food_Planter</text>
+  <text x="450" y="56" text-anchor="middle" fill="#93c5fd" font-size="9">subsystem</text>
+
+  <line x1="450" y1="64" x2="450" y2="102" stroke="#64748b" stroke-width="2"/>
+  <line x1="120" y1="102" x2="720" y2="102" stroke="#64748b" stroke-width="2"/>
+  <g stroke="#64748b" stroke-width="2">
+    <line x1="120" y1="102" x2="120" y2="138"/>
+    <line x1="320" y1="102" x2="320" y2="138"/>
+    <line x1="520" y1="102" x2="520" y2="138"/>
+    <line x1="720" y1="102" x2="720" y2="138"/>
+  </g>
+
+  <g font-family="monospace" text-anchor="middle">
+    <rect x="40" y="138" width="160" height="82" rx="8" fill="#1e3a8a" stroke="#60a5fa"/>
+    <text x="120" y="168" fill="#dbeafe" font-size="11" font-weight="bold">LFSR</text>
+    <text x="120" y="186" fill="#bfdbfe" font-size="9">pseudo-random</text>
+    <text x="120" y="201" fill="#93c5fd" font-size="8">16-bit · taps 15,13,12,10</text>
+
+    <rect x="240" y="138" width="160" height="82" rx="8" fill="#1e3a8a" stroke="#60a5fa"/>
+    <text x="320" y="168" fill="#dbeafe" font-size="11" font-weight="bold">Cand_Gen</text>
+    <text x="320" y="186" fill="#bfdbfe" font-size="9">bits → cell</text>
+    <text x="320" y="201" fill="#93c5fd" font-size="8">cand_x, cand_y</text>
+
+    <rect x="440" y="138" width="160" height="82" rx="8" fill="#1e3a8a" stroke="#60a5fa"/>
+    <text x="520" y="168" fill="#dbeafe" font-size="11" font-weight="bold">Body_Check</text>
+    <text x="520" y="186" fill="#bfdbfe" font-size="9">on snake body?</text>
+    <text x="520" y="201" fill="#93c5fd" font-size="8">→ free / occupied</text>
+
+    <rect x="640" y="138" width="160" height="82" rx="8" fill="#1e3a8a" stroke="#60a5fa"/>
+    <text x="720" y="168" fill="#dbeafe" font-size="11" font-weight="bold">Spawn_Ctrl</text>
+    <text x="720" y="186" fill="#bfdbfe" font-size="9">retry until free</text>
+    <text x="720" y="201" fill="#93c5fd" font-size="8">latch food_x/y</text>
+  </g>
+</svg>
+
+<h3>How it picks a free cell (internal dataflow)</h3>
+<svg viewBox="0 0 1040 260" width="1040">
+  <defs>
+    <marker id="fa" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#94a3b8"/></marker>
+    <marker id="fl" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#fbbf24"/></marker>
+  </defs>
+
+  <rect x="415" y="16" width="220" height="46" rx="8" fill="#064e3b" stroke="#34d399"/>
+  <text x="525" y="38" text-anchor="middle" fill="#d1fae5" font-family="monospace" font-size="11" font-weight="bold">Snake_Logic</text>
+  <text x="525" y="53" text-anchor="middle" fill="#6ee7b7" font-size="9">occupancy grid (is cell on body?)</text>
+
+  <g font-family="monospace" text-anchor="middle">
+    <rect x="30"  y="118" width="130" height="56" rx="8" fill="#1e3a8a" stroke="#60a5fa"/>
+    <text x="95"  y="143" fill="#dbeafe" font-size="11">LFSR</text>
+    <text x="95"  y="159" fill="#93c5fd" font-size="8">random bits</text>
+
+    <rect x="210" y="118" width="150" height="56" rx="8" fill="#1e3a8a" stroke="#60a5fa"/>
+    <text x="285" y="143" fill="#dbeafe" font-size="11">Cand_Gen</text>
+    <text x="285" y="159" fill="#93c5fd" font-size="8">→ cand_x, cand_y</text>
+
+    <rect x="450" y="118" width="150" height="56" rx="8" fill="#1e3a8a" stroke="#60a5fa"/>
+    <text x="525" y="143" fill="#dbeafe" font-size="11">Body_Check</text>
+    <text x="525" y="159" fill="#93c5fd" font-size="8">free? / occupied?</text>
+
+    <rect x="690" y="118" width="170" height="56" rx="8" fill="#1e3a8a" stroke="#60a5fa"/>
+    <text x="775" y="143" fill="#dbeafe" font-size="11">Spawn_Ctrl</text>
+    <text x="775" y="159" fill="#93c5fd" font-size="8">latch when free</text>
+  </g>
+
+  <g stroke="#94a3b8" stroke-width="1.8" fill="none">
+    <line x1="160" y1="146" x2="208" y2="146" marker-end="url(#fa)"/>
+    <line x1="360" y1="146" x2="448" y2="146" marker-end="url(#fa)"/>
+    <line x1="600" y1="146" x2="688" y2="146" marker-end="url(#fa)"/>
+    <line x1="860" y1="146" x2="975" y2="146" marker-end="url(#fa)"/>
+  </g>
+  <g font-family="monospace" font-size="8" fill="#64748b" text-anchor="middle">
+    <text x="184" y="140">bits</text>
+    <text x="404" y="140">cand x,y</text>
+    <text x="644" y="140">free</text>
+  </g>
+  <text x="980" y="142" fill="#64748b" font-family="monospace" font-size="8.5" text-anchor="start">food_x,</text>
+  <text x="980" y="154" fill="#64748b" font-family="monospace" font-size="8.5" text-anchor="start">food_y →</text>
+
+  <line x1="505" y1="116" x2="505" y2="64" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#fa)" fill="none"/>
+  <line x1="545" y1="62" x2="545" y2="114" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#fa)" fill="none"/>
+  <text x="468" y="92" fill="#64748b" font-family="monospace" font-size="8" text-anchor="middle">cand?</text>
+  <text x="585" y="92" fill="#64748b" font-family="monospace" font-size="8" text-anchor="middle">occupied?</text>
+
+  <line x1="775" y1="92" x2="775" y2="116" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#fa)" fill="none"/>
+  <text x="775" y="86" fill="#64748b" font-family="monospace" font-size="8" text-anchor="middle">food eaten / reset</text>
+
+  <polyline points="525,174 525,222 95,222 95,174" fill="none" stroke="#fbbf24" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#fl)"/>
+  <text x="310" y="240" fill="#fbbf24" font-family="monospace" font-size="9" text-anchor="middle">occupied → advance LFSR, try the next candidate</text>
+</svg>
+
+<p style="font-size:.85rem;color:var(--muted)">On a <strong>food-eaten</strong> (or reset) pulse, <code>Spawn_Ctrl</code> keeps pulling fresh pseudo-random candidates from the <code>LFSR</code> and rejecting any that <code>Body_Check</code> reports as on the snake — until it finds a free cell, which it latches as <code>food_x, food_y</code>. Since the LFSR runs at 100&nbsp;MHz, a free cell is found in nanoseconds. (You can split <code>LFSR</code> into per-axis <code>LFSR_X</code> / <code>LFSR_Y</code> if you prefer two generators.)</p>
+</section>
+
+<section>
+<h2>Simulation hierarchy — where each module is instantiated in a testbench</h2>
+<p>A <strong>testbench has no ports</strong>: it is the <em>top</em> of its own simulation. It generates <code>clk</code>, <code>reset</code> and stimulus, and <strong>instantiates the module under test (DUT)</strong>. You write one small unit-tb per new / tricky module, plus one full-system tb that instantiates <code>Snake_Top</code>.</p>
+
+<svg viewBox="0 0 1180 340" width="1180">
+  <defs>
+    <marker id="tin" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#94a3b8"/></marker>
+  </defs>
+
+  <!-- full-system testbench -->
+  <rect x="310" y="16" width="560" height="124" rx="10" fill="#1a2436" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="7 5"/>
+  <text x="328" y="40" fill="#cbd5e1" font-family="monospace" font-size="13" font-weight="bold">Snake_Top_tb</text>
+  <text x="328" y="56" fill="#94a3b8" font-size="9.5">no ports · drives clk, reset, simulated PS2Clk / PS2Data</text>
+  <text x="590" y="78" text-anchor="middle" fill="#64748b" font-size="9">instantiates ▼</text>
+  <rect x="350" y="86" width="480" height="44" rx="8" fill="#4c1d95" stroke="#a78bfa" stroke-width="2"/>
+  <text x="590" y="113" text-anchor="middle" fill="#ddd6fe" font-family="monospace" font-size="12" font-weight="bold">Snake_Top  =  all 9 design modules  (integration test)</text>
+
+  <text x="20" y="176" fill="#94a3b8" font-size="12" font-weight="bold">Unit testbenches — one per new / tricky module:</text>
+
+  <g font-family="monospace">
+    <!-- Snake_Logic_tb -->
+    <rect x="20" y="194" width="210" height="122" rx="9" fill="#1a2436" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="6 5"/>
+    <text x="36" y="218" fill="#cbd5e1" font-size="11" font-weight="bold">Snake_Logic_tb</text>
+    <text x="125" y="248" text-anchor="middle" fill="#64748b" font-size="8.5">instantiates ▼</text>
+    <rect x="45" y="258" width="160" height="46" rx="7" fill="#1e3a8a" stroke="#60a5fa" stroke-width="2"/>
+    <text x="125" y="286" text-anchor="middle" fill="#dbeafe" font-size="10.5" font-weight="bold">Snake_Logic</text>
+
+    <!-- Food_Planter_tb -->
+    <rect x="250" y="194" width="210" height="122" rx="9" fill="#1a2436" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="6 5"/>
+    <text x="266" y="218" fill="#cbd5e1" font-size="11" font-weight="bold">Food_Planter_tb</text>
+    <text x="355" y="248" text-anchor="middle" fill="#64748b" font-size="8.5">instantiates ▼</text>
+    <rect x="275" y="258" width="160" height="46" rx="7" fill="#1e3a8a" stroke="#60a5fa"/>
+    <text x="355" y="286" text-anchor="middle" fill="#dbeafe" font-size="10.5" font-weight="bold">Food_Planter</text>
+
+    <!-- Direction_Control_tb -->
+    <rect x="480" y="194" width="210" height="122" rx="9" fill="#1a2436" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="6 5"/>
+    <text x="496" y="218" fill="#cbd5e1" font-size="11" font-weight="bold">Direction_Control_tb</text>
+    <text x="585" y="248" text-anchor="middle" fill="#64748b" font-size="8.5">instantiates ▼</text>
+    <rect x="505" y="258" width="160" height="46" rx="7" fill="#1e3a8a" stroke="#60a5fa"/>
+    <text x="585" y="286" text-anchor="middle" fill="#dbeafe" font-size="10" font-weight="bold">Direction_Control</text>
+
+    <!-- Game_Tick_tb -->
+    <rect x="710" y="194" width="210" height="122" rx="9" fill="#1a2436" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="6 5"/>
+    <text x="726" y="218" fill="#cbd5e1" font-size="11" font-weight="bold">Game_Tick_tb</text>
+    <text x="815" y="248" text-anchor="middle" fill="#64748b" font-size="8.5">instantiates ▼</text>
+    <rect x="735" y="258" width="160" height="46" rx="7" fill="#1e3a8a" stroke="#60a5fa"/>
+    <text x="815" y="286" text-anchor="middle" fill="#dbeafe" font-size="10.5" font-weight="bold">Game_Tick</text>
+
+    <!-- Renderer_tb -->
+    <rect x="940" y="194" width="210" height="122" rx="9" fill="#1a2436" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="6 5"/>
+    <text x="956" y="218" fill="#cbd5e1" font-size="11" font-weight="bold">Renderer_tb</text>
+    <text x="1045" y="248" text-anchor="middle" fill="#64748b" font-size="8.5">instantiates ▼</text>
+    <rect x="965" y="258" width="160" height="46" rx="7" fill="#3f3f1e" stroke="#fbbf24"/>
+    <text x="1045" y="286" text-anchor="middle" fill="#fde68a" font-size="10.5" font-weight="bold">Renderer</text>
+  </g>
+</svg>
+
+<p style="font-size:.85rem;color:var(--muted)"><strong>Reused modules come with tests:</strong> <code>Ps2_Interface_tb</code> and <code>VGA_Interface_tb</code> are ready-made from Labs 5 &amp; 6; <code>Seg_7_Display</code> and <code>Debouncer</code> are already proven, so they don't need new unit testbenches.</p>
+
+<h3>Where each module gets instantiated</h3>
+<table>
+<tr><th>Module</th><th>In the design</th><th>Its own unit TB</th><th>Also exercised by</th></tr>
+<tr><td><code>Snake_Top</code></td><td>— (it <em>is</em> the top)</td><td><code>Snake_Top_tb</code></td><td>—</td></tr>
+<tr><td><code>Ps2_Interface</code></td><td>in <code>Snake_Top</code></td><td><code>Ps2_Interface_tb</code> (Lab 5)</td><td><code>Snake_Top_tb</code></td></tr>
+<tr><td><code>Debouncer</code></td><td>in <code>Snake_Top</code></td><td>— (proven)</td><td><code>Snake_Top_tb</code></td></tr>
+<tr><td><code>Direction_Control</code></td><td>in <code>Snake_Top</code></td><td><code>Direction_Control_tb</code></td><td><code>Snake_Top_tb</code></td></tr>
+<tr><td><code>Game_Tick</code></td><td>in <code>Snake_Top</code></td><td><code>Game_Tick_tb</code></td><td><code>Snake_Top_tb</code></td></tr>
+<tr><td><code>Food_Planter</code></td><td>in <code>Snake_Top</code></td><td><code>Food_Planter_tb</code></td><td><code>Snake_Top_tb</code></td></tr>
+<tr><td>&nbsp;&nbsp;↳ <code>LFSR</code></td><td>in <code>Food_Planter</code></td><td>(opt) <code>LFSR_tb</code></td><td><code>Food_Planter_tb</code></td></tr>
+<tr><td>&nbsp;&nbsp;↳ <code>Cand_Gen</code></td><td>in <code>Food_Planter</code></td><td>—</td><td><code>Food_Planter_tb</code></td></tr>
+<tr><td>&nbsp;&nbsp;↳ <code>Body_Check</code></td><td>in <code>Food_Planter</code></td><td>—</td><td><code>Food_Planter_tb</code></td></tr>
+<tr><td>&nbsp;&nbsp;↳ <code>Spawn_Ctrl</code></td><td>in <code>Food_Planter</code></td><td>—</td><td><code>Food_Planter_tb</code></td></tr>
+<tr><td><code>Snake_Logic</code></td><td>in <code>Snake_Top</code></td><td><code>Snake_Logic_tb</code></td><td><code>Snake_Top_tb</code></td></tr>
+<tr><td><code>Renderer</code></td><td>in <code>Snake_Top</code></td><td><code>Renderer_tb</code></td><td><code>Snake_Top_tb</code></td></tr>
+<tr><td><code>VGA_Interface</code></td><td>in <code>Snake_Top</code></td><td><code>VGA_Interface_tb</code> (Lab 6)</td><td><code>Snake_Top_tb</code></td></tr>
+<tr><td><code>Seg_7_Display</code></td><td>in <code>Snake_Top</code></td><td>— (proven)</td><td><code>Snake_Top_tb</code></td></tr>
+</table>
+</section>
+
+<section>
+<h2>Roles &amp; status</h2>
+<table>
+<tr><th>Module</th><th>Status</th><th>Role</th></tr>
+<tr><td><code>Snake_Top</code></td><td><span class="badge newm">new</span></td><td>top level; wires all blocks, maps to FPGA pins</td></tr>
+<tr><td><code>Ps2_Interface</code></td><td><span class="badge reuse">reuse</span></td><td>keyboard → <code>scancode</code>, <code>keyPressed</code></td></tr>
+<tr><td><code>Debouncer</code></td><td><span class="badge reuse">reuse</span></td><td>clean the start/restart button</td></tr>
+<tr><td><code>Direction_Control</code></td><td><span class="badge newm">new</span></td><td>scancode → direction, no 180° reversal</td></tr>
+<tr><td><code>Game_Tick</code></td><td><span class="badge newm">new</span></td><td>slow ~6 Hz move strobe</td></tr>
+<tr><td><code>Food_Planter</code></td><td><span class="badge newm">new</span></td><td><strong>subsystem</strong> — places food on a free cell (contains the 4 blocks below)</td></tr>
+<tr><td>&nbsp;&nbsp;↳ <code>LFSR</code></td><td><span class="badge newm">new</span></td><td>pseudo-random source (in <code>Food_Planter</code>)</td></tr>
+<tr><td>&nbsp;&nbsp;↳ <code>Cand_Gen</code></td><td><span class="badge newm">new</span></td><td>map random bits → candidate cell</td></tr>
+<tr><td>&nbsp;&nbsp;↳ <code>Body_Check</code></td><td><span class="badge newm">new</span></td><td>is the candidate on the snake body?</td></tr>
+<tr><td>&nbsp;&nbsp;↳ <code>Spawn_Ctrl</code></td><td><span class="badge newm">new</span></td><td>retry until free, then latch <code>food_x/y</code></td></tr>
+<tr><td><code>Snake_Logic</code></td><td><span class="badge newm">new</span></td><td>body memory, movement, growth, collision, score, FSM</td></tr>
+<tr><td><code>Renderer</code></td><td><span class="badge adapt">adapt</span></td><td>pixel → snake/food/grid/background color</td></tr>
+<tr><td><code>VGA_Interface</code></td><td><span class="badge reuse">reuse</span></td><td>sync + scan coords; drives RGB pins</td></tr>
+<tr><td><code>Seg_7_Display</code></td><td><span class="badge reuse">reuse</span></td><td>shows the score</td></tr>
+</table>
+<h2>Dataflow (how the blocks connect)</h2>
+<p>The hierarchy above is just "who is instantiated." This is how signals actually flow between the siblings:</p>
+<svg viewBox="0 0 1180 320" width="1180">
+  <defs>
+    <marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#94a3b8"/></marker>
+    <marker id="arf" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#a78bfa"/></marker>
+  </defs>
+
+  <!-- feeders (top) -->
+  <g font-family="monospace" text-anchor="middle">
+    <rect x="360" y="36" width="120" height="46" rx="8" fill="#3f3f1e" stroke="#fbbf24"/>
+    <text x="420" y="64" fill="#fde68a" font-size="11">Game_Tick</text>
+    <rect x="540" y="36" width="120" height="46" rx="8" fill="#3f3f1e" stroke="#fbbf24"/>
+    <text x="600" y="64" fill="#fde68a" font-size="11">Food_Planter</text>
+  </g>
+
+  <!-- main pipeline -->
+  <g font-family="monospace" text-anchor="middle">
+    <rect x="20"  y="150" width="140" height="54" rx="8" fill="#1e3a8a" stroke="#60a5fa"/>
+    <text x="90"  y="178" fill="#dbeafe" font-size="10.5">Ps2_Interface</text>
+    <text x="90"  y="194" fill="#93c5fd" font-size="8.5">keyboard in</text>
+
+    <rect x="210" y="150" width="170" height="54" rx="8" fill="#1e3a8a" stroke="#60a5fa"/>
+    <text x="295" y="181" fill="#dbeafe" font-size="10.5">Direction_Control</text>
+
+    <rect x="470" y="146" width="150" height="62" rx="8" fill="#064e3b" stroke="#34d399" stroke-width="2"/>
+    <text x="545" y="174" fill="#d1fae5" font-size="11" font-weight="bold">Snake_Logic</text>
+    <text x="545" y="190" fill="#6ee7b7" font-size="8.5">the brain</text>
+
+    <rect x="720" y="150" width="130" height="54" rx="8" fill="#3b1e5e" stroke="#a78bfa"/>
+    <text x="785" y="181" fill="#ddd6fe" font-size="11">Renderer</text>
+
+    <rect x="940" y="150" width="150" height="54" rx="8" fill="#1e3a8a" stroke="#60a5fa"/>
+    <text x="1015" y="181" fill="#dbeafe" font-size="10.5">VGA_Interface</text>
+  </g>
+
+  <!-- score output (bottom) -->
+  <rect x="485" y="252" width="120" height="46" rx="8" fill="#064e3b" stroke="#34d399"/>
+  <text x="545" y="280" text-anchor="middle" fill="#d1fae5" font-family="monospace" font-size="10.5">Seg_7_Display</text>
+
+  <!-- endpoints text -->
+  <text x="20" y="140" fill="#64748b" font-size="9">keyboard →</text>
+  <text x="1090" y="140" fill="#64748b" font-size="9" text-anchor="end">→ monitor</text>
+
+  <!-- pipeline arrows -->
+  <g stroke="#94a3b8" stroke-width="1.8" fill="none">
+    <line x1="160" y1="177" x2="208" y2="177" marker-end="url(#ar)"/>
+    <line x1="380" y1="177" x2="468" y2="177" marker-end="url(#ar)"/>
+    <line x1="620" y1="177" x2="718" y2="177" marker-end="url(#ar)"/>
+    <line x1="850" y1="177" x2="938" y2="177" marker-end="url(#ar)"/>
+  </g>
+  <g font-family="monospace" font-size="8" fill="#64748b" text-anchor="middle">
+    <text x="184" y="171">dir</text>
+    <text x="424" y="171">move</text>
+    <text x="669" y="171">color</text>
+  </g>
+
+  <!-- feeders down into Snake_Logic -->
+  <g stroke="#94a3b8" stroke-width="1.8" fill="none">
+    <line x1="420" y1="82" x2="500" y2="144" marker-end="url(#ar)"/>
+    <line x1="600" y1="82" x2="590" y2="144" marker-end="url(#ar)"/>
+  </g>
+  <text x="430" y="120" fill="#64748b" font-family="monospace" font-size="8">tick</text>
+  <text x="612" y="120" fill="#64748b" font-family="monospace" font-size="8">food x,y</text>
+
+  <!-- score arrow down -->
+  <line x1="545" y1="208" x2="545" y2="252" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#ar)" fill="none"/>
+  <text x="558" y="234" fill="#64748b" font-family="monospace" font-size="8">score</text>
+
+  <!-- feedback VGA -> Renderer -->
+  <polyline points="1015,150 1015,116 785,116 785,150" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arf)"/>
+  <text x="900" y="110" text-anchor="middle" fill="#a78bfa" font-family="monospace" font-size="8.5">XCoord / YCoord (feedback)</text>
+</svg>
+</section>
+<footer>FPGA Lab Experiment 7 · Tel Aviv University</footer>
+</main></body></html>

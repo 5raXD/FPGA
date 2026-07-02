@@ -79,8 +79,8 @@ xelab snake_game   &rarr; "Built simulation snapshot work.snake_game"  (EXIT 0)<
   <table>
     <tr><th>File</th><th>Why it changed</th></tr>
     <tr><td class="file">snake.v</td><td>Fatal part-select error; food query; collision &amp; tail logic; grid reset</td></tr>
-    <tr><td class="file">snake_game.v</td><td>Wired the 5 missing Pixel_Painter ports + Snake's <code>keyPressed</code>/<code>is_food</code></td></tr>
-    <tr><td class="file">Pixel_Painter.v</td><td>Removed unused <code>start_game</code> port (port-count mismatch)</td></tr>
+    <tr><td class="file">snake_game.v</td><td>Instantiates the new <code>game_FSM</code>, derives the <code>enter</code> pulse &amp; <code>snake_rst</code>, passes <code>game_state</code> to Pixel_Painter; wired Snake's <code>keyPressed</code>/<code>is_food</code>; tick slowed 8&rarr;7&nbsp;Hz</td></tr>
+    <tr><td class="file">Pixel_Painter.v</td><td>Port list trimmed to <code>game_state</code> + cell queries (FSM moved to top level); dropped <code>clk/reset/tick/keyPressed/crash/start_game</code></td></tr>
     <tr><td class="file">grid_mapper.v</td><td>FSM assign bug, reset state, draw-priority, IDLE latch; now a pure colour mapper that shows welcome.mem / skull.mem</td></tr>
     <tr><td class="file">Navigation_System.v</td><td><code>dir</code> was never updated &mdash; snake could only ever go right</td></tr>
     <tr><td class="file">game_FSM.v <span class="tag t-warn" style="font-size:.62rem">new</span></td><td>Top-level state machine: welcome &rarr; play &rarr; game-over, + restart (see &sect;7)</td></tr>
@@ -104,9 +104,11 @@ xelab snake_game   &rarr; "Built simulation snapshot work.snake_game"  (EXIT 0)<
     bits 13&ndash;15 that don't exist &rarr; Vivado errors and refuses to synthesize
     <code>Snake</code> (that's the <code>8-6156 failed synthesizing module 'Snake'</code> roll-up).</p>
     <pre><span class="del">- assign score = length[15:0];</span>
-<span class="add">+ assign score = length;        // 13-bit length zero-extends into 16-bit score</span></pre>
-    <p class="note">The output port is <code>[15:0] score</code>; assigning a 13-bit value
-    zero-extends it automatically &mdash; no slice needed.</p>
+<span class="add">+ assign score = length - 1'b1;  // segments beyond the initial head = food eaten</span></pre>
+    <p class="note">The output port is <code>[15:0] score</code>; the narrow <code>length</code>
+    counter zero-extends into it automatically &mdash; no slice needed. After the &sect;5 rewrite
+    <code>length</code> is <code>$clog2(MAX_LEN+1)</code> bits and counts <em>all</em> segments, so
+    the food-eaten score is <code>length - 1</code>.</p>
   </div>
 
   <!-- ========================================================= -->
@@ -115,7 +117,7 @@ xelab snake_game   &rarr; "Built simulation snapshot work.snake_game"  (EXIT 0)<
     <div class="row">
       <span class="tag t-err">Synth 8-7023</span>
       <span class="tag t-warn">Synth 8-7071</span>
-      <span class="file">snake_game.v:102 / Pixel_Painter.v</span>
+      <span class="file">snake_game.v / Pixel_Painter.v</span>
     </div>
     <p><strong>"14 connections declared, but only 9 given"</strong> and 5 &times; "port
     unconnected".</p>
@@ -124,16 +126,14 @@ xelab snake_game   &rarr; "Built simulation snapshot work.snake_game"  (EXIT 0)<
     <code>is_head</code>) were commented out, plus an unused <code>start_game</code>.
     With those inputs floating, <code>GridMapper</code> would never see the snake or food, so
     nothing would be drawn even after synthesis passed.</p>
-    <p><strong>Fix:</strong></p>
-    <ul>
-      <li><span class="file">Pixel_Painter.v</span> &mdash; removed <code>start_game</code>
-          (it is genuinely unused inside the module).</li>
-      <li><span class="file">snake_game.v</span> &mdash; declared a <code>wire is_food;</code>
-          and connected every game signal:</li>
-    </ul>
+    <p><strong>Fix:</strong> declared a <code>wire is_food;</code> in
+    <span class="file">snake_game.v</span> and connected the cell-query signals. When the FSM was
+    later hoisted to the top level (&sect;7), <span class="file">Pixel_Painter.v</span>'s clock/control
+    inputs (<code>clk, reset, tick, keyPressed, crash, start_game</code>) were dropped in favour of a
+    single <code>game_state</code> input &mdash; giving the <em>final</em> port list:</p>
     <pre>Pixel_Painter #(...) painter(
-    .clk(clk), .reset(reset), .tick(tick), .keyPressed(keyPressed),
-<span class="add">    .crash(crash), .is_food(is_food), .on_snake(on_snake), .is_head(is_head),</span>
+<span class="add">    .game_state(game_state),</span>
+<span class="add">    .is_food(is_food), .on_snake(on_snake), .is_head(is_head),</span>
     .XCoord(XCoord), .YCoord(YCoord),
     .x(x), .y(y), .pixel_color(pixel_color));</pre>
   </div>
@@ -143,19 +143,23 @@ xelab snake_game   &rarr; "Built simulation snapshot work.snake_game"  (EXIT 0)<
   <div class="card">
     <div class="row">
       <span class="tag t-warn">Synth 8-4445</span>
-      <span class="file">grid_mapper.v:57</span>
+      <span class="file">grid_mapper.v:41</span>
     </div>
     <p><strong>"could not open $readmem data file 'welcome.mem'".</strong>
-    The file doesn't exist in the project, and the <code>welcome</code> array it filled was
-    never actually used (the IDLE branch of the colour case was empty). Two problems in one:
-    a missing file <em>and</em> an inferred latch (see &sect;4).</p>
-    <pre><span class="del">- reg [GRID_X-1:0] welcome [0:GRID_Y-1];</span>
-<span class="del">- initial $readmemb("welcome.mem", welcome);</span></pre>
-    <p>Removed the dead <code>welcome</code> array entirely and gave IDLE a real solid colour
-    instead, so no <code>.mem</code> file is needed for the welcome screen.</p>
-    <p class="note">Only <code>skull.mem</code> remains (for the game-over screen) &mdash; remember
-    to add it to the Vivado project (Add Sources &rarr; Add or create design sources &rarr;
-    add files of type <em>Memory File</em>) so synthesis can find it on its search path.</p>
+    <code>grid_mapper.v</code> loads a <code>welcome</code> bitmap with
+    <code>$readmemb("welcome.mem", ...)</code>, but the file did not exist in the project and the
+    IDLE branch of the colour case did nothing with it (empty branch &rarr; inferred latch, see
+    &sect;4).</p>
+    <p><strong>Fix:</strong> the array is <em>kept</em> &mdash; the missing bitmap is now generated by
+    <span class="file">welcome.py</span>, so IDLE actually draws the welcome screen (full IDLE
+    wiring in &sect;7d):</p>
+    <pre>reg [GRID_X-1:0] welcome [0:GRID_Y-1];
+initial $readmemb("welcome.mem", welcome);
+wire on_welcome = welcome[y][GRID_X-1-x];
+... IDLE: block_color = on_welcome ? WELCOME_FG : WELCOME_BG;</pre>
+    <p class="note">Both <code>welcome.mem</code> and <code>skull.mem</code> must be added to the
+    Vivado project (Add Sources &rarr; Add or create design sources &rarr; add files of type
+    <em>Memory File</em>) so synthesis can find them on its search path.</p>
   </div>
 
   <!-- ========================================================= -->
@@ -190,7 +194,8 @@ else               block_color = GREEN;            // background</pre>
 
     <p><strong>(d) Inferred latch in IDLE.</strong> The IDLE case assigned nothing to
     <code>block_color</code> (a combinational <code>reg</code>), inferring a latch. IDLE now
-    assigns a solid welcome colour.</p>
+    always drives a colour &mdash; the welcome bitmap
+    (<code>on_welcome ? WELCOME_FG : WELCOME_BG</code>, see &sect;3 / &sect;7d).</p>
   </div>
 
   <!-- ========================================================= -->
@@ -320,8 +325,9 @@ wire on_welcome = welcome[y][GRID_X-1-x];
       <li><strong>Max length.</strong> The body list holds up to <code>MAX_LEN</code> = 100
           segments; eating beyond that stops growing the snake (it caps). Raise the parameter if
           you want a longer maximum &mdash; cost grows linearly, not as the whole grid.</li>
-      <li><code>Renderer.v</code> and <code>GSM.v</code> remain empty stubs and are not part of
-          the build.</li>
+      <li><code>Renderer.v</code> and <code>farmer_tb.v</code> from the original
+          <code>LAB_07/</code> are not carried into <code>after_C_debug/</code> &mdash; they are not
+          part of this build.</li>
     </ul>
   </div>
 

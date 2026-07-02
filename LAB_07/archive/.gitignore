@@ -1,0 +1,4 @@
+# Simulation build output (produced by `make`)
+snake_game.out
+*.out
+*.vcd
