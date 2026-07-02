@@ -9,8 +9,6 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     input  wire clk,
     input  wire reset,
     input  wire keyPressed,
-    input  wire [$clog2(GRID_X)-1:0] x,   // grid cell (XCoord>>3) - gameplay
-    input  wire [$clog2(GRID_Y)-1:0] y,
     input  wire [8:0] sx,                 // hires pixel (XCoord>>2) - screens
     input  wire [8:0] sy,                 // hires pixel (YCoord>>2) - screens
     input wire crash,
@@ -34,8 +32,8 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     localparam FOOD_COLOR       = 12'hF11;
     localparam SNAKE_COLOR      = 12'h333;
     localparam SNAKE_HEAD_COLOR = 12'hFD0; // unique head color - warm yellow
-    localparam WELCOME_FG       = 12'h3D9; // mint text (matches welcome.png)
-    localparam WELCOME_BG       = 12'h012; // dark navy
+    localparam WELCOME_FG       = 12'h6E2; // gameboy green (wc_retro_coil_v2)
+    localparam WELCOME_BG       = 12'h021; // dark gameboy background
     localparam BONE             = 12'hEEC; // skull (go_skull_youdied_2c_butcher)
     localparam BLOOD            = 12'hD11; // "YOU DIED" text
 
@@ -56,14 +54,15 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     end
 
 
-    // Idle screen - game welcome screen, 100x75, one bit per grid cell
-    reg [GRID_X-1:0] welcome [0:GRID_Y-1];
+    // 200x150 hires bitmaps ("low" tier from hires_screens/: pure LUT-ROM, no
+    // BRAM). Both screens are sampled at sx = XCoord>>2, sy = YCoord>>2.
+    localparam SW = 200, SH = 150;
+
+    // Idle screen - welcome (wc_retro_coil_v2_credits)
+    reg [SW-1:0] welcome [0:SH-1];
     initial $readmemb("welcome.mem", welcome);
 
-
-    // Game over screen - 200x150 hires bitmap (go_skull_youdied_2c_butcher,
-    // "low" tier from hires_screens/: pure LUT-ROM, no BRAM)
-    localparam SW = 200, SH = 150;
+    // Game over screen - go_skull_youdied_2c_butcher
     reg [SW-1:0] skull [0:SH-1];
     initial $readmemb("skull.mem", skull);
 
@@ -71,7 +70,7 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     // pixel_color timing path. 1 clk of latency = half a pixel, invisible.
     reg on_welcome_q, on_skull_q, blood_zone_q;
     always @(posedge clk) begin
-        on_welcome_q <= welcome[y][GRID_X-1-x];
+        on_welcome_q <= welcome[sy][SW-1-sx];
         on_skull_q   <= skull[sy][SW-1-sx];
         blood_zone_q <= (sy >= 9'd100);   // below the skull: the "YOU DIED" text
     end

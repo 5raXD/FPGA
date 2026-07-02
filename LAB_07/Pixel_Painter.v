@@ -35,8 +35,6 @@ module Pixel_Painter #(parameter GRID_X = 100, GRID_Y = 75)(
     .is_food(is_food),
     .on_snake(on_snake),
     .is_head(is_head),
-    .x(x),
-    .y(y),
     .sx(XCoord[10:2]), // pixel>>2 : 200x150 screen bitmaps
     .sy(YCoord[10:2]),
     // Outputs
