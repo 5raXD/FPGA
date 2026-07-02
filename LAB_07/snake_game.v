@@ -27,7 +27,8 @@ module snake_game(
     parameter GRID_Y = 75;
 
     wire [7:0] scancode;
-    wire keyPressed;
+    wire keyPressed_ps2;   // raw, PS2Clk domain
+    wire keyPressed;       // synchronized 1-clk pulse, clk domain
     wire [1:0] dir;
     wire [10:0] XCoord;
     wire [10:0] YCoord;
@@ -37,13 +38,17 @@ module snake_game(
     wire tick;
     wire [$clog2(GRID_X)-1:0] x;
     wire [$clog2(GRID_Y)-1:0] y;
-    // Snake grid owner - shared signals
-    wire [$clog2(GRID_X)-1:0] food_x;
-    wire [$clog2(GRID_Y)-1:0] food_y;
+    // Snake grid queries - shared signals
     wire on_snake;
     wire is_head;
-    wire food_on_snake;
+    wire is_food;
     wire crash;
+    wire game_idle;
+
+    // While the welcome screen is shown, hold the snake (and the direction
+    // register) in reset so every game starts fresh from the center, moving
+    // right. During GAME_OVER nothing is reset, so the score stays displayed.
+    wire game_reset = reset | game_idle;
 
     ///////////////////////
     ///  IO - External  ///
@@ -75,8 +80,18 @@ module snake_game(
         .PS2Data(PS2Data),
         // Outputs
         .scancode(scancode),
-        .keyPressed(keyPressed)
+        .keyPressed(keyPressed_ps2)
     );
+
+    // Clock domain crossing: keyPressed_ps2 is generated on PS2Clk (~15 kHz)
+    // and stays high for a full PS2 clock (~60 us = thousands of clk cycles).
+    // Two flip-flops synchronize it into the clk domain, the third stage
+    // turns it into a single-cycle pulse (otherwise the GridMapper FSM would
+    // race GAME_OVER -> IDLE -> PLAY on one keypress). scancode is stable
+    // long before the pulse comes out, so it is safe to sample with it.
+    reg [2:0] kp_sync = 3'b000;
+    always @(posedge clk) kp_sync <= {kp_sync[1:0], keyPressed_ps2};
+    assign keyPressed = kp_sync[1] & ~kp_sync[2];
 
     VGA_Interface vga_interface(
         // Inputs
@@ -104,13 +119,16 @@ module snake_game(
         .clk(clk),
         .reset(reset),
         .keyPressed(keyPressed),
+        .crash(crash),
+        .is_food(is_food),
+        .on_snake(on_snake),
+        .is_head(is_head),
         .XCoord(XCoord),
         .YCoord(YCoord),
-        .tick(tick),
-        // .dir(dir),
         // Outputs
         .x(x),
         .y(y),
+        .game_idle(game_idle),
         .pixel_color(pixel_color)
     );
 
@@ -118,7 +136,7 @@ module snake_game(
     Navigation_System navigation_system(
         // Inputs
         .clk(clk),
-        .reset(reset),
+        .reset(game_reset),
         .scancode(scancode),
         .keyPressed(keyPressed),
         // Outputs
@@ -128,25 +146,22 @@ module snake_game(
     Snake #(.GRID_X(GRID_X), .GRID_Y(GRID_Y)) snake(
         // Inputs
         .clk(clk),
-        .reset(reset),
+        .reset(game_reset),
         .tick(tick),
         .dir(dir),
-        // Inputs - food location (from farmer)
-        // .food_x(food_x),
-        // .food_y(food_y),
+        .keyPressed(keyPressed), // entropy for the food LFSR
         // Inputs - pixel being scanned (read address from the renderer)
         .x(x),
         .y(y),
         // Outputs - grid reads (to Pixel_Painter / GridMapper)
         .on_snake(on_snake),
         .is_head(is_head),
-        // Outputs - food cell occupancy (to farmer, so food avoids the body)
-        //.food_on_snake(food_on_snake),
+        .is_food(is_food),
         // Outputs - game status
         .crash(crash),
         .score(score)
     );
-//test
+
     // Game Tick - Clock Divider
     Game_Tick #(.TICK_MAX(12_500_000)) game_tick( // 8Hz tick for 100MHz clock
         // Inputs

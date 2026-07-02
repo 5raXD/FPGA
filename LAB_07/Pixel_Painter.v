@@ -8,26 +8,22 @@ module Pixel_Painter #(parameter GRID_X = 100, GRID_Y = 75)(
     // Inputs
     input  wire clk,
     input  wire reset,
-    input  wire tick,
     input wire keyPressed,
-    input wire start_game,
     input wire crash,
     input wire is_food,
     input wire on_snake,
     input wire is_head,
-    // input  wire [1:0]  dir,
     input  wire [10:0] XCoord,
     input  wire [10:0] YCoord,
     // Outputs
     output wire [$clog2(GRID_X)-1:0] x,
     output wire [$clog2(GRID_Y)-1:0] y,
+    output wire game_idle,
     output wire  [11:0] pixel_color
     );
 
     wire on_grid;
     wire grid_enable;
-    // wire [$clog2(GRID_X)-1:0] x = XCoord >> 3; // divide by 8 // delete me
-    // wire [$clog2(GRID_Y)-1:0] y = YCoord >> 3; // divide by 8 // delete me
     wire [11:0] block_color;
 
     GridMapper #(.GRID_X(GRID_X), .GRID_Y(GRID_Y)) grid_mapper(
@@ -41,8 +37,11 @@ module Pixel_Painter #(parameter GRID_X = 100, GRID_Y = 75)(
     .is_head(is_head),
     .x(x),
     .y(y),
+    .sx(XCoord[10:2]), // pixel>>2 : 200x150 screen bitmaps
+    .sy(YCoord[10:2]),
     // Outputs
     .grid_enable(grid_enable),
+    .in_idle(game_idle),
     .block_color(block_color)
     );
 
@@ -52,6 +51,6 @@ module Pixel_Painter #(parameter GRID_X = 100, GRID_Y = 75)(
     assign x = XCoord >> 3;
     assign y = YCoord >> 3;
 
-    // who's responsible for the pixels XCoord > 800 or YCoord > 600?
-    // it the inteface as i expected so we dont need to hanke that here
+    // pixels with XCoord > 800 or YCoord > 600 are blanked by VGA_Interface,
+    // so we don't need to handle them here
 endmodule

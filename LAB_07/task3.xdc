@@ -9,6 +9,13 @@ set_property PACKAGE_PIN W5 [get_ports clk]
 set_property IOSTANDARD LVCMOS33 [get_ports clk]
 create_clock -period 10.000 -name sys_clk_pin -waveform {0.000 5.000} -add [get_ports clk]
 
+# PS/2 keyboard clock (~10-16 kHz). Declaring it and marking the two domains
+# asynchronous stops Vivado from timing the keyboard->clk crossings against
+# the 10 ns system clock budget. The crossing itself is made safe in RTL by
+# the 2-FF synchronizer + pulse generator in snake_game.v.
+create_clock -period 60000.000 -name ps2_clk [get_ports PS2Clk]
+set_clock_groups -asynchronous -group [get_clocks sys_clk_pin] -group [get_clocks ps2_clk]
+
 # 50 MHz pixel clock: the "pclk" register in VGA_Interface divides sys_clk by 2.
 # Declaring it as a generated clock makes Vivado time the FFs it drives
 # (clears the 36 TIMING-17 "Non-clocked sequential cell" critical warnings).
