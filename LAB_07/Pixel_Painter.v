@@ -29,6 +29,8 @@ module Pixel_Painter #(parameter GRID_X = 100, GRID_Y = 75)(
     // wire [$clog2(GRID_X)-1:0] x = XCoord >> 3; // divide by 8 // delete me
     // wire [$clog2(GRID_Y)-1:0] y = YCoord >> 3; // divide by 8 // delete me
     wire [11:0] block_color;
+    wire [$clog2(2*GRID_X)-1:0] img_x;
+    wire [$clog2(2*GRID_Y)-1:0] img_y;
 
     GridMapper #(.GRID_X(GRID_X), .GRID_Y(GRID_Y)) grid_mapper(
     // Inputs
@@ -41,6 +43,8 @@ module Pixel_Painter #(parameter GRID_X = 100, GRID_Y = 75)(
     .is_head(is_head),
     .x(x),
     .y(y),
+    .img_x(img_x),
+    .img_y(img_y),
     // Outputs
     .grid_enable(grid_enable),
     .block_color(block_color)
@@ -51,6 +55,8 @@ module Pixel_Painter #(parameter GRID_X = 100, GRID_Y = 75)(
     assign pixel_color = (grid_enable & on_grid)? 12'h000 : block_color;
     assign x = XCoord >> 3;
     assign y = YCoord >> 3;
+    assign img_x = XCoord >> 2;
+    assign img_y = YCoord >> 2;
 
     // who's responsible for the pixels XCoord > 800 or YCoord > 600?
     // it the inteface as i expected so we dont need to hanke that here
