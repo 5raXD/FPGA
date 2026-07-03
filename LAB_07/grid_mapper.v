@@ -43,7 +43,7 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     reg [1:0] state = IDLE;
     reg [$clog2(GRID_X * GRID_Y)-1:0] score = 0;
 
-    wire odd_block = 1'b0;
+    wire odd_block;
 
     FA fa(
     .a(x[0]),
@@ -71,7 +71,6 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     reg [2*GRID_X-1:0] welcome [0:2*GRID_Y-1];
     initial $readmemb("welcome45_raw_200x150.mem", welcome);
     wire on_welcome = welcome[img_y][2*GRID_X-1-img_x];
-
 
     // Game over screen - skull bitmap
     reg [2*GRID_X-1:0] skull [0:2*GRID_Y-1];
