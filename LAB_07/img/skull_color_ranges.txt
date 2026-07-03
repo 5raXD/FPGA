@@ -1,0 +1,9 @@
+~/Desktop/TAU/FPGA/FPGA_git/LAB_07/img ❯❯❯ python3 png2mem_black.py size skull_you_died.png -x 200 -y 150 
+input : skull_you_died.png (800 x 600)
+resize: 200 x 150
+output: skull_you_died_200x150.mem (200 x 150, 30000 bits, 2549 non-black)
+colors (y ranges in output image rows, 0 = top):
+  #EEEECC rgb(238, 238, 204)  rows    5 ..   90  (1757 px)
+  #EE1111 rgb  (238, 17, 17)  rows  114 ..  131  (792 px)
+resized png: skull_you_died_200x150.png
+~/Desktop/TAU/FPGA/FPGA_git/LAB_07/img ❯❯❯ 

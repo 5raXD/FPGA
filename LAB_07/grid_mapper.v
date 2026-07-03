@@ -28,7 +28,8 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     // Colors
     localparam WHITE = 12'hFFF;
     localparam BLACK = 12'h000;
-    localparam GREEN = 12'h0F0;
+    localparam GREEN_EVEN = 12'h0C0; // Dark green
+    localparam GREEN_ODD = 12'h0F0; // Light green
     localparam FOOD_COLOR = 12'hF11;
     localparam SNAKE_COLOR = 12'h333;
     localparam SNAKE_HEAD_COLOR = 12'h333; // give me unique color!!!
@@ -36,11 +37,19 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     reg [1:0] state = IDLE;
     reg [$clog2(GRID_X * GRID_Y)-1:0] score = 0;
 
+    wire odd_block = 1'b0;
+
+    FA fa(
+    .a(x[0]),
+    .b(y[0]),
+    .ci(1'b0),
+    .sum(odd_block)
+    );
+
 
     always @(posedge clk) begin // What screen to display (IDLE, PLAY, GAME_OVER)
         if(reset) begin
-            // state <= IDLE; // fix me
-            state <= GAME_OVER; // fix me
+            state <= IDLE;
         end else begin
             case (state)
                 IDLE: state <= keyPressed? PLAY : state <= IDLE;
@@ -73,7 +82,7 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
                     3'b001: block_color = SNAKE_HEAD_COLOR; // snake head
                     3'b010: block_color = FOOD_COLOR; // food
                     3'b100: block_color = SNAKE_COLOR; // snake body
-                    default: block_color = GREEN; // background
+                    default: block_color = (odd_block)? GREEN_ODD : GREEN_EVEN; // background
                 endcase
             end
             GAME_OVER: begin
