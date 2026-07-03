@@ -32,7 +32,7 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     localparam GREEN_ODD = 12'h0F0; // Light green
     localparam FOOD_COLOR = 12'hF11;
     localparam SNAKE_COLOR = 12'h333;
-    localparam SNAKE_HEAD_COLOR = 12'h333; // give me unique color!!!
+    localparam SNAKE_HEAD_COLOR = 12'h222; // give me unique color!!!
 
     reg [1:0] state = IDLE;
     reg [$clog2(GRID_X * GRID_Y)-1:0] score = 0;
@@ -64,6 +64,7 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     // Idle screen - game welocome screen
     reg [GRID_X-1:0] welcome [0:GRID_Y-1];
     initial $readmemb("welcome.mem", welcome);
+    wire on_welcome = welcome[y][GRID_X-1-x];
 
 
     // Game over screen - skull bitmap
