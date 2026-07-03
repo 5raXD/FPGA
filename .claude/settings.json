@@ -23,7 +23,14 @@
       "Bash(python3 coverage.py --binary -o screen.png)",
       "Bash(cd /Users/saleh/Desktop/TAU/FPGA/saed_fpga_lab/week7 && echo \"=== final_block lines 1-20 ===\"; sed -n '1,20p' game_over_final_block.v; echo \"=== loser_block lines 1-20 ===\"; sed -n '1,20p' game_over_loser_block.v)",
       "Read(//Users/saleh/Desktop/TAU/FPGA/saed_fpga_lab/week7/**)",
-      "Bash(python3 -)"
+      "Bash(python3 -)",
+      "Bash(python3 png2mem_black.py auto skull_you_died.png)",
+      "Bash(python3 png2mem_black.py size skull_you_died.png -x 100 -y 75)",
+      "Bash(rm skull_you_died_100x75.mem skull_you_died_100x75.png)",
+      "Bash(python3 png2mem.py size welcome45_raw.png -x 200 -y 150 --bright-color 102, 238, 34 --dark-color 0, 34, 17)"
+    ],
+    "additionalDirectories": [
+      "/Users/saleh/Desktop/TAU/FPGA/FPGA_git/LAB_07/img"
     ]
   }
 }
