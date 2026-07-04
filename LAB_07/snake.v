@@ -13,13 +13,6 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
     // Inputs - (x,y) from pixel_painter - Query: is this pixel on the snake? 
     input wire [$clog2(GRID_X)-1:0] x,
     input wire [$clog2(GRID_Y)-1:0] y,
-    // Inputs - food location (from farmer)
-    // input wire plant_food,
-    // input wire [$clog2(GRID_X)-1:0] food_x,
-    // input wire [$clog2(GRID_Y)-1:0] food_y,
-    // // Inputs - pixel being scanned (read address from the renderer)
-    // input wire [10:0] XCoord,
-    // input wire [10:0] YCoord,
     // Outputs
     // Outputs - grid reads (to Pixel_Painter / GridMapper)
     output wire on_snake, // Query: is this snake block?
@@ -38,22 +31,15 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
 
     localparam MAX_LEN = 64;
 
-    // Snake data
-    // the body - one coordinate per block, body[0] is the head, body[length-1] the tail
+    // Snake 
+    // the body
     reg [$clog2(GRID_X)-1:0] body_x [0:MAX_LEN-1];
     reg [$clog2(GRID_Y)-1:0] body_y [0:MAX_LEN-1];
-    reg [$clog2(MAX_LEN+1)-1:0] length;
-    // head position - block level
+    reg [15:0] length;
+    // head position
     wire [$clog2(GRID_X)-1:0] head_x = body_x[0];
     wire [$clog2(GRID_Y)-1:0] head_y = body_y[0];
 
-    // Plant position - block level
-    wire [$clog2(GRID_X)-1:0] famer_plant_x;
-    wire [$clog2(GRID_Y)-1:0] famer_plant_y;
-    reg [$clog2(GRID_X)-1:0] plant_x;
-    reg [$clog2(GRID_Y)-1:0] plant_y;
-
-    wire is_eaten;
 
     integer k;
 
@@ -65,9 +51,9 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
         next_y = head_y;
         // move the snake in the current direction
         case(dir)
-            UP:    next_y = head_y - 1;
-            DOWN:  next_y = head_y + 1;
-            LEFT:  next_x = head_x - 1;
+            UP: next_y = head_y - 1;
+            DOWN: next_y = head_y + 1;
+            LEFT: next_x = head_x - 1;
             RIGHT: next_x = head_x + 1;
         endcase
     end
@@ -76,9 +62,11 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
     reg hit_self;
     always @(*) begin
         hit_self = 0;
-        for(k = 0; k < MAX_LEN; k = k + 1)
-            if((k < length) && (body_x[k] == next_x) && (body_y[k] == next_y))
+        for(k = 0; k < MAX_LEN; k = k + 1) begin
+            if((k < length) && (body_x[k] == next_x) && (body_y[k] == next_y)) begin
                 hit_self = 1;
+            end
+        end
     end
 
     reg [$clog2(GRID_X)-1:0] next_x_r;
@@ -86,6 +74,7 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
     reg hit_self_r;
     reg is_eaten_r;
     reg tick_d;
+    wire is_eaten;
     always @(posedge clk) begin
         next_x_r <= next_x;
         next_y_r <= next_y;
@@ -121,6 +110,11 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
 
 
 
+    // Plant position - block level
+    wire [$clog2(GRID_X)-1:0] famer_plant_x;
+    wire [$clog2(GRID_Y)-1:0] famer_plant_y;
+    reg [$clog2(GRID_X)-1:0] plant_x;
+    reg [$clog2(GRID_Y)-1:0] plant_y;
     // farmer - food allocation - block level
     always @(posedge clk) begin
         if((is_eaten_r && tick_d) || reset) begin // if not on the snake & not eating food
@@ -139,15 +133,19 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
     );
 
 
-    // read ports - combinational, anyone reads by giving an address
-    reg on_snake_r;
+    // read ports - query, anyone reads by giving an address
+    reg on_snake_q;
     always @(*) begin
-        on_snake_r = 0;
-        for(k = 0; k < MAX_LEN; k = k + 1)
-            if((k < length) && (body_x[k] == x) && (body_y[k] == y))
-                on_snake_r = 1;
+        on_snake_q = 0;
+        for(k = 0; k < MAX_LEN; k = k + 1) begin
+            if((k < length) && (body_x[k] == x) && (body_y[k] == y)) begin
+                on_snake_q = 1;
+            end
+        end
     end
-    assign on_snake = on_snake_r;
+
+    
+    assign on_snake = on_snake_q;
     assign is_head =  (body_x[0] == x) && (body_y[0] == y);
     assign is_food =  (x == plant_x) && (y == plant_y);
     assign score = length;
