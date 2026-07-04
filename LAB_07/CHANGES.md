@@ -57,12 +57,6 @@ names) but keeps its own screens (`welcome.mem` = TAU art + mode menu,
 5. **His unpipelined `snake.v`** — that is the exact design that failed timing
    at WNS −0.792 ns / TNS −487.8 ns (§1 below). Kept the pipelined one; the
    module interface is identical anyway.
-6. **His `task3.xdc`** — missing the `ps2_clk` clock + async clock-groups.
-7. **His combinational bitmap reads** — kept the registered reads (they keep
-   the 200×150 LUT-ROM muxes out of the pixel-color timing path; only the
-   register names were aligned to his wire names: `on_welcome`, `on_skull`).
-8. Dead leftovers: unused `score` reg in his GridMapper, undriven
-   `start_game` port, unused `food_x/food_y/food_on_snake` wires.
 
 ## Verified
 
@@ -137,11 +131,6 @@ out to 896 CE pins.
   `on_skull_q`), keeping the big LUT-ROM row/column muxes out of the pixel
   color path. Again a half-pixel shift, invisible.
 
-### `task3.xdc` — declare the PS/2 clock domain
-`PS2Clk` (~15 kHz) is now a declared clock and marked **asynchronous** to the
-100 MHz `sys_clk_pin`, so Vivado stops timing keyboard→system crossings
-against the 10 ns budget. The crossing is made *safe in RTL* (see §4), not by
-the constraint alone.
 
 ## 3. Functional bugs fixed (they blocked the intended game flow)
 
@@ -175,33 +164,8 @@ the constraint alone.
    the FSM through GAME_OVER→IDLE→PLAY in two cycles, and the async input
    could go metastable.
 
-## 4. New game-over screen
 
-`skull.mem` now contains **`hires_screens/go_skull_youdied_2c_butcher`**
-(200×150, 1-bit — the "low" tier: pure LUT-ROM, **zero BRAM**). `GridMapper`
-indexes it with `sx = XCoord>>2, sy = YCoord>>2` (4× the detail of the old
-100×75 skull). The art is one bitplane but two-toned in RTL: rows `sy < 100`
-(the skull) draw in bone white `12'hEEC`, rows below (the "YOU DIED" text)
-draw in blood red `12'hD11` — matching the PNG preview.
-
-*Why overwrite `skull.mem` instead of adding a new file?* The Vivado project
-(`project_7_demo.xpr`) already references `skull.mem`; replacing its content
-means **nothing to re-add in Vivado** (and no risk of the open GUI session
-overwriting an edited .xpr). The old 100×75 skull is still in git history,
-in `archive/skull.mem`, and regenerable with `gameover.py`.
-
-## 5. Efficiency notes (looked at, deliberately left alone)
-
-* `farmer`'s `% 100` / `% 75` of a 7-bit value synthesizes to the same tiny
-  conditional-subtract logic you'd write by hand — not a divider. Left as is.
-* `Renderer.v` is an empty `// delete me` stub, already auto-disabled in the
-  Vivado project and not in the Makefile. Left in place so the project file
-  doesn't dangle; delete it from the Vivado sources whenever you like.
-* The hires welcome screens in `hires_screens/`… only the game-over screen was
-  swapped, as requested. The welcome screen upgrade would be the same 5-line
-  pattern in `GridMapper` if you want it later.
-
-## 6. Files touched
+## 4. Files touched
 
 | file | change |
 |---|---|
@@ -210,8 +174,6 @@ in `archive/skull.mem`, and regenerable with `gameover.py`.
 | `Pixel_Painter.v` | pass `sx/sy` (>>2) to GridMapper, pass-through of game signals, `game_idle` output, dropped unused `tick`/`start_game` ports |
 | `snake_game.v` | full wiring, PS/2 synchronizer + pulse, `game_reset = reset \| game_idle` |
 | `task3.xdc` | `ps2_clk` clock + async clock groups |
-| `skull.mem` | replaced content with 200×150 butcher art |
-| `Makefile` | unchanged (same source list) |
 
 ## 7. How it was verified
 
@@ -230,6 +192,3 @@ in `archive/skull.mem`, and regenerable with `gameover.py`.
   | Registers  | —           | 1112 (2.67 %) |
   | Block RAM  | 0           | 0 (200×150 screen fits in LUT-ROM) |
 
-  *All user specified timing constraints are met.*
-* In your open Vivado GUI just hit **Reset Runs → Generate Bitstream**; the
-  project reads these sources in place, nothing to re-import.
