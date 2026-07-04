@@ -42,7 +42,7 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
     // the body - one coordinate per block, body[0] is the head, body[length-1] the tail
     reg [$clog2(GRID_X)-1:0] body_x [0:MAX_LEN-1];
     reg [$clog2(GRID_Y)-1:0] body_y [0:MAX_LEN-1];
-    reg [15:0] length;
+    reg [$clog2(MAX_LEN+1)-1:0] length;
     // head position - block level
     wire [$clog2(GRID_X)-1:0] head_x = body_x[0];
     wire [$clog2(GRID_Y)-1:0] head_y = body_y[0];
@@ -81,15 +81,28 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
                 hit_self = 1;
     end
 
+    reg [$clog2(GRID_X)-1:0] next_x_r;
+    reg [$clog2(GRID_Y)-1:0] next_y_r;
+    reg hit_self_r;
+    reg is_eaten_r;
+    reg tick_d;
+    always @(posedge clk) begin
+        next_x_r <= next_x;
+        next_y_r <= next_y;
+        hit_self_r <= hit_self;
+        is_eaten_r <= is_eaten;
+        tick_d <= tick;
+    end
+
     always @(posedge clk) begin
         if(reset) begin
             length <= 1;
             body_x[0] <= GRID_X >>1;
             body_y[0] <= GRID_Y >>1;
             crash <= 0;
-        end else if(tick && !crash) begin
+        end else if(tick_d && !crash) begin
             // check for crash with walls or self
-            if(next_x >= GRID_X || next_y >= GRID_Y || hit_self) begin
+            if(next_x_r >= GRID_X || next_y_r >= GRID_Y || hit_self_r) begin
                 crash <= 1;
             end else begin
                 // advance the body - each block follows the one ahead of it
@@ -97,10 +110,10 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
                     body_x[k] <= body_x[k-1];
                     body_y[k] <= body_y[k-1];
                 end
-                body_x[0] <= next_x;
-                body_y[0] <= next_y;
+                body_x[0] <= next_x_r;
+                body_y[0] <= next_y_r;
                 // grow when food is eaten
-                if(is_eaten && length < MAX_LEN)
+                if(is_eaten_r && length < MAX_LEN)
                     length <= length + 1;
             end
         end
@@ -110,7 +123,7 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
 
     // farmer - food allocation - block level
     always @(posedge clk) begin
-        if((is_eaten && tick) || reset) begin // if not on the snake & not eating food
+        if((is_eaten_r && tick_d) || reset) begin // if not on the snake & not eating food
             plant_x <= famer_plant_x;
             plant_y <= famer_plant_y;
         end
@@ -137,7 +150,7 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
     assign on_snake = on_snake_r;
     assign is_head =  (body_x[0] == x) && (body_y[0] == y);
     assign is_food =  (x == plant_x) && (y == plant_y);
-    assign score = length[15:0];
+    assign score = length;
     assign is_eaten = (next_x == plant_x) && (next_y == plant_y);
 
 endmodule
