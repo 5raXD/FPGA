@@ -19,8 +19,9 @@ SRC := \
 	game_tick.v \
 	Seg_7_Display.v \
 	grid_mapper.v \
+	FA.v \
 	farmer.v \
-	snake.v 
+	snake.v
 
 ##################################################
 # add more files here, one per line, e.g.:

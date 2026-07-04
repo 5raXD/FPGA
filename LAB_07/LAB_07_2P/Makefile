@@ -12,6 +12,7 @@ SRC = snake_game_2p.v \
       Hud.v \
       Sound_FX.v \
       grid_mapper.v \
+      FA.v \
       Pixel_Painter.v \
       VGA_Interface.v \
       Ps2_Interface.v \

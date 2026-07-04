@@ -27,6 +27,8 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     input  wire reset,
     input  wire start,                    // menu confirm: leaves the welcome screen
     input  wire key_any,                  // any key/button: leaves the game-over screen
+    input  wire [$clog2(GRID_X)-1:0] x,   // grid cell (XCoord>>3) - checkerboard
+    input  wire [$clog2(GRID_Y)-1:0] y,   // grid cell (YCoord>>3) - checkerboard
     input  wire [8:0] sx,                 // hires pixel (XCoord>>2) - screens
     input  wire [8:0] sy,                 // hires pixel (YCoord>>2) - screens
     input  wire crash,                    // either player crashed
@@ -50,7 +52,8 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
 
     // Colors
     localparam BLACK        = 12'h000;
-    localparam GREEN        = 12'h0F0;
+    localparam GREEN_EVEN   = 12'h0C0;    // dark green  - checkerboard
+    localparam GREEN_ODD    = 12'h0F0;    // light green - checkerboard
     localparam FOOD_COLOR   = 12'hF11;
     localparam BONUS_A      = 12'hF0F;    // bonus food flashes magenta/white
     localparam BONUS_B      = 12'hFFF;
@@ -64,6 +67,18 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     localparam BLOOD        = 12'hD11;    // "YOU DIED" text
 
     reg [1:0] state = IDLE;
+
+    // Chess-board background: a cell is "odd" when x+y is odd. The LSB of
+    // x+y is the sum output of a full adder with carry-in 0 (= x[0]^y[0]).
+    wire odd_block;
+
+    FA fa(
+        .a(x[0]),
+        .b(y[0]),
+        .ci(1'b0),
+        .sum(odd_block),
+        .co()                             // carry unused - only the parity matters
+    );
 
     always @(posedge clk) begin // What screen to display (IDLE, PLAY, GAME_OVER)
         if(reset) begin
@@ -117,7 +132,7 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
                 else if (is_food)   block_color = FOOD_COLOR;
                 else if (on_snake1) block_color = P1_BODY;
                 else if (on_snake2) block_color = P2_BODY;
-                else                block_color = GREEN;
+                else                block_color = odd_block ? GREEN_ODD : GREEN_EVEN;
             end
             GAME_OVER: begin
                 block_color = on_skull_q ? (blood_zone_q ? BLOOD : BONE) : BLACK;
