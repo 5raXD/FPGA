@@ -10,7 +10,6 @@ module Pixel_Painter #(parameter GRID_X = 100, GRID_Y = 75)(
     input  wire reset,
     input  wire tick,
     input wire keyPressed,
-    input wire start_game,
     input wire crash,
     input wire is_food,
     input wire on_snake,
@@ -21,7 +20,8 @@ module Pixel_Painter #(parameter GRID_X = 100, GRID_Y = 75)(
     // Outputs
     output wire [$clog2(GRID_X)-1:0] x,
     output wire [$clog2(GRID_Y)-1:0] y,
-    output wire  [11:0] pixel_color
+    output wire  [11:0] pixel_color,
+    output wire start_game
     );
 
     wire on_grid;
@@ -57,6 +57,7 @@ module Pixel_Painter #(parameter GRID_X = 100, GRID_Y = 75)(
     assign y = YCoord >> 3;
     assign img_x = XCoord >> 2;
     assign img_y = YCoord >> 2;
+    assign start_game = grid_enable;
 
     // who's responsible for the pixels XCoord > 800 or YCoord > 600?
     // it the inteface as i expected so we dont need to hanke that here

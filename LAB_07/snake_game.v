@@ -42,8 +42,10 @@ module snake_game(
     wire [$clog2(GRID_Y)-1:0] food_y;
     wire on_snake;
     wire is_head;
+    wire is_food;
     wire food_on_snake;
     wire crash;
+    wire start_game;
 
     ///////////////////////
     ///  IO - External  ///
@@ -107,11 +109,16 @@ module snake_game(
         .XCoord(XCoord),
         .YCoord(YCoord),
         .tick(tick),
+        .crash(crash),
+        .is_food(is_food),
+        .on_snake(on_snake),
+        .is_head(is_head),
         // .dir(dir),
         // Outputs
         .x(x),
         .y(y),
-        .pixel_color(pixel_color)
+        .pixel_color(pixel_color),
+        .start_game(start_game)
     );
 
     // Navigation System - Keyboard
@@ -128,9 +135,10 @@ module snake_game(
     Snake #(.GRID_X(GRID_X), .GRID_Y(GRID_Y)) snake(
         // Inputs
         .clk(clk),
-        .reset(reset),
+        .reset(reset | ~start_game),
         .tick(tick),
         .dir(dir),
+        .keyPressed(keyPressed),
         // Inputs - food location (from farmer)
         // .food_x(food_x),
         // .food_y(food_y),
@@ -140,6 +148,7 @@ module snake_game(
         // Outputs - grid reads (to Pixel_Painter / GridMapper)
         .on_snake(on_snake),
         .is_head(is_head),
+        .is_food(is_food),
         // Outputs - food cell occupancy (to farmer, so food avoids the body)
         //.food_on_snake(food_on_snake),
         // Outputs - game status

@@ -58,9 +58,9 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
             state <= IDLE;
         end else begin
             case (state)
-                IDLE: state <= keyPressed? PLAY : state <= IDLE;
-                PLAY: state <= crash? GAME_OVER : state <= PLAY;
-                GAME_OVER: state <= keyPressed? IDLE : state <= GAME_OVER;
+                IDLE: state <= keyPressed? PLAY : IDLE;
+                PLAY: state <= crash? GAME_OVER : PLAY;
+                GAME_OVER: state <= keyPressed? IDLE : GAME_OVER;
             endcase
 
         end
@@ -85,10 +85,10 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
                 block_color = on_welcome? WELCOME_BRIGHT : WELCOME_DARK;
             end
             PLAY: begin
-                case({on_snake, is_food, is_head})
-                    3'b001: block_color = SNAKE_HEAD_COLOR; // snake head
-                    3'b010: block_color = FOOD_COLOR; // food
-                    3'b100: block_color = SNAKE_COLOR; // snake body
+                casez({on_snake, is_food, is_head})
+                    3'b??1: block_color = SNAKE_HEAD_COLOR; // snake head
+                    3'b?1?: block_color = FOOD_COLOR; // food
+                    3'b1??: block_color = SNAKE_COLOR; // snake body
                     default: block_color = (odd_block)? GREEN_ODD : GREEN_EVEN; // background
                 endcase
             end
