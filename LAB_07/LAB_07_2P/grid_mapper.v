@@ -29,8 +29,8 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     input  wire key_any,                  // any key/button: leaves the game-over screen
     input  wire [$clog2(GRID_X)-1:0] x,   // grid cell (XCoord>>3) - checkerboard
     input  wire [$clog2(GRID_Y)-1:0] y,   // grid cell (YCoord>>3) - checkerboard
-    input  wire [8:0] sx,                 // hires pixel (XCoord>>2) - screens
-    input  wire [8:0] sy,                 // hires pixel (YCoord>>2) - screens
+    input  wire [$clog2(2*GRID_X)-1:0] img_x, // hires pixel (XCoord>>2) - screens
+    input  wire [$clog2(2*GRID_Y)-1:0] img_y, // hires pixel (YCoord>>2) - screens
     input  wire crash,                    // either player crashed
     input  wire is_food,
     input  wire is_bonus,
@@ -61,10 +61,10 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     localparam P1_HEAD      = 12'hFD0;    // warm yellow
     localparam P2_BODY      = 12'h139;    // deep blue
     localparam P2_HEAD      = 12'h0EF;    // cyan
-    localparam WELCOME_FG   = 12'h6E2;    // gameboy green (wc_retro_coil_v2)
-    localparam WELCOME_BG   = 12'h021;    // dark gameboy background
-    localparam BONE         = 12'hEEC;    // skull (go_skull_youdied_2c_butcher)
-    localparam BLOOD        = 12'hD11;    // "YOU DIED" text
+    localparam WELCOME_BRIGHT = 12'h6E2;  // welcome art foreground
+    localparam WELCOME_DARK   = 12'h021;  // dark welcome background
+    localparam SKULL_COLOR    = 12'hEEC;  // skull (go_skull_youdied_2c_butcher)
+    localparam DIED_COLOR     = 12'hE11;  // "YOU DIED" text
 
     reg [1:0] state = IDLE;
 
@@ -97,25 +97,22 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     reg [23:0] flash_cnt = 0;
     always @(posedge clk) flash_cnt <= flash_cnt + 1;
 
-    // 200x150 hires bitmaps ("low" tier from hires_screens/: pure LUT-ROM,
-    // no BRAM). Both screens are sampled at sx = XCoord>>2, sy = YCoord>>2.
-    localparam SW = 200, SH = 150;
-
-    // Idle screen - welcome (wc_retro_coil_v2_credits)
-    reg [SW-1:0] welcome [0:SH-1];
+    // Idle screen - game welcome screen (200x150 = 2*GRID, sampled at
+    // img_x = XCoord>>2): TAU art + the 1P/2P menu box drawn by the Hud
+    reg [2*GRID_X-1:0] welcome [0:2*GRID_Y-1];
     initial $readmemb("welcome.mem", welcome);
 
-    // Game over screen - go_skull_youdied_2c_butcher
-    reg [SW-1:0] skull [0:SH-1];
+    // Game over screen - skull bitmap (go_skull_youdied_2c_butcher)
+    reg [2*GRID_X-1:0] skull [0:2*GRID_Y-1];
     initial $readmemb("skull.mem", skull);
 
-    // ROM reads registered: keeps the big bitmap muxes out of the
+    // Bitmap reads registered: keeps the big LUT-ROM muxes out of the
     // pixel_color timing path. 1 clk of latency = half a pixel, invisible.
-    reg on_welcome_q, on_skull_q, blood_zone_q;
+    reg on_welcome, on_skull, died_zone;
     always @(posedge clk) begin
-        on_welcome_q <= welcome[sy][SW-1-sx];
-        on_skull_q   <= skull[sy][SW-1-sx];
-        blood_zone_q <= (sy >= 9'd100);   // below the skull: the "YOU DIED" text
+        on_welcome <= welcome[img_y][2*GRID_X-1-img_x];
+        on_skull   <= skull[img_y][2*GRID_X-1-img_x];
+        died_zone  <= (img_y >= 100);     // below the skull: the "YOU DIED" text
     end
 
     // block color assignment
@@ -123,7 +120,7 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
         block_color = BLACK; // default - no branch may leave it unassigned (latch!)
         case (state)
             IDLE: begin
-                block_color = on_welcome_q ? WELCOME_FG : WELCOME_BG;
+                block_color = on_welcome ? WELCOME_BRIGHT : WELCOME_DARK;
             end
             PLAY: begin
                 if      (is_head1)  block_color = P1_HEAD;
@@ -135,7 +132,7 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
                 else                block_color = odd_block ? GREEN_ODD : GREEN_EVEN;
             end
             GAME_OVER: begin
-                block_color = on_skull_q ? (blood_zone_q ? BLOOD : BONE) : BLACK;
+                block_color = on_skull ? (died_zone ? DIED_COLOR : SKULL_COLOR) : BLACK;
             end
             default: block_color = BLACK;
         endcase

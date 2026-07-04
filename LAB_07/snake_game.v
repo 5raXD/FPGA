@@ -125,6 +125,7 @@ module snake_game(
         .is_head(is_head),
         .XCoord(XCoord),
         .YCoord(YCoord),
+        .tick(tick),
         // Outputs
         .x(x),
         .y(y),

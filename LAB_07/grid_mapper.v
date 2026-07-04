@@ -9,10 +9,10 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     input  wire clk,
     input  wire reset,
     input  wire keyPressed,
-    input  wire [$clog2(GRID_X)-1:0] x,   // grid cell (XCoord>>3) - checkerboard
-    input  wire [$clog2(GRID_Y)-1:0] y,   // grid cell (YCoord>>3) - checkerboard
-    input  wire [8:0] sx,                 // hires pixel (XCoord>>2) - screens
-    input  wire [8:0] sy,                 // hires pixel (YCoord>>2) - screens
+    input  wire [$clog2(GRID_X)-1:0] x,
+    input  wire [$clog2(GRID_Y)-1:0] y,
+    input  wire [$clog2(2*GRID_X)-1:0] img_x,
+    input  wire [$clog2(2*GRID_Y)-1:0] img_y,
     input wire crash,
     input wire is_food,
     input wire on_snake,
@@ -29,16 +29,17 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     localparam GAME_OVER = 2'b10;
 
     // Colors
-    localparam BLACK            = 12'h000;
-    localparam GREEN_EVEN       = 12'h0C0; // dark green  - checkerboard
-    localparam GREEN_ODD        = 12'h0F0; // light green - checkerboard
-    localparam FOOD_COLOR       = 12'hF11;
-    localparam SNAKE_COLOR      = 12'h333;
+    localparam WHITE = 12'hFFF;
+    localparam BLACK = 12'h000;
+    localparam GREEN_EVEN = 12'h0C0; // Dark green
+    localparam GREEN_ODD = 12'h0F0; // Light green
+    localparam FOOD_COLOR = 12'hF11;
+    localparam SNAKE_COLOR = 12'h333;
     localparam SNAKE_HEAD_COLOR = 12'hFD0; // unique head color - warm yellow
-    localparam WELCOME_FG       = 12'h6E2; // gameboy green (wc_retro_coil_v2)
-    localparam WELCOME_BG       = 12'h021; // dark gameboy background
-    localparam BONE             = 12'hEEC; // skull (go_skull_youdied_2c_butcher)
-    localparam BLOOD            = 12'hD11; // "YOU DIED" text
+    localparam SKULL_COLOR = 12'hEEC;
+    localparam DIED_COLOR = 12'hE11;
+    localparam WELCOME_BRIGHT = 12'h6E2;
+    localparam WELCOME_DARK = 12'h021;
 
     reg [1:0] state = IDLE;
 
@@ -47,18 +48,22 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     wire odd_block;
 
     FA fa(
-        .a(x[0]),
-        .b(y[0]),
-        .ci(1'b0),
-        .sum(odd_block),
-        .co()                             // carry unused - only the parity matters
+    .a(x[0]),
+    .b(y[0]),
+    .ci(1'b0),
+    .sum(odd_block),
+    .co()          // carry unused - only the parity matters
     );
+
 
     always @(posedge clk) begin // What screen to display (IDLE, PLAY, GAME_OVER)
         if(reset) begin
             state <= IDLE;
         end else begin
             case (state)
+                // NOTE: keep these plain ternaries. Writing them as
+                // "state <= key ? PLAY : state <= IDLE" parses the inner <=
+                // as LESS-THAN-OR-EQUAL and the FSM can never hold a state.
                 IDLE:      state <= keyPressed ? PLAY      : IDLE;
                 PLAY:      state <= crash      ? GAME_OVER : PLAY;
                 GAME_OVER: state <= keyPressed ? IDLE      : GAME_OVER;
@@ -68,34 +73,31 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     end
 
 
-    // 200x150 hires bitmaps ("low" tier from hires_screens/: pure LUT-ROM, no
-    // BRAM). Both screens are sampled at sx = XCoord>>2, sy = YCoord>>2.
-    localparam SW = 200, SH = 150;
+    // Idle screen - game welcome screen (200x150, sampled at img_x = XCoord>>2)
+    reg [2*GRID_X-1:0] welcome [0:2*GRID_Y-1];
+    initial $readmemb("welcome45_raw_200x150.mem", welcome);
 
-    // Idle screen - welcome (wc_retro_coil_v2_credits)
-    reg [SW-1:0] welcome [0:SH-1];
-    initial $readmemb("welcome.mem", welcome);
+    // Game over screen - skull bitmap
+    reg [2*GRID_X-1:0] skull [0:2*GRID_Y-1];
+    initial $readmemb("skull_you_died_200x150.mem", skull);
 
-    // Game over screen - go_skull_youdied_2c_butcher
-    reg [SW-1:0] skull [0:SH-1];
-    initial $readmemb("skull.mem", skull);
-
-    // ROM reads registered: keeps the big bitmap muxes out of the
+    // Bitmap reads registered: keeps the big LUT-ROM muxes out of the
     // pixel_color timing path. 1 clk of latency = half a pixel, invisible.
-    reg on_welcome_q, on_skull_q, blood_zone_q;
+    reg on_welcome, on_skull, died_zone;
     always @(posedge clk) begin
-        on_welcome_q <= welcome[sy][SW-1-sx];
-        on_skull_q   <= skull[sy][SW-1-sx];
-        blood_zone_q <= (sy >= 9'd100);   // below the skull: the "YOU DIED" text
+        on_welcome <= welcome[img_y][2*GRID_X-1-img_x];
+        on_skull   <= skull[img_y][2*GRID_X-1-img_x];
+        died_zone  <= (img_y >= 100);     // below the skull: the "YOU DIED" text
     end
 
 
-    // block color assignment - priority: head > food > snake body > background
+    // block color assignment - case for display layers (background, snake, food)
+    // In PLAY the flags are NOT mutually exclusive (the head is also on_snake),
+    // so it must be a priority chain: head > food > body > background.
     always @(*) begin
-        block_color = BLACK; // default - no branch may leave it unassigned (latch!)
         case (state)
             IDLE: begin
-                block_color = on_welcome_q ? WELCOME_FG : WELCOME_BG;
+                block_color = on_welcome ? WELCOME_BRIGHT : WELCOME_DARK;
             end
             PLAY: begin
                 if      (is_head)  block_color = SNAKE_HEAD_COLOR;
@@ -104,7 +106,7 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
                 else               block_color = odd_block ? GREEN_ODD : GREEN_EVEN;
             end
             GAME_OVER: begin
-                block_color = on_skull_q ? (blood_zone_q ? BLOOD : BONE) : BLACK;
+                block_color = on_skull ? (died_zone ? DIED_COLOR : SKULL_COLOR) : BLACK;
             end
             default: block_color = BLACK;
         endcase

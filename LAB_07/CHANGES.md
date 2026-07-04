@@ -1,4 +1,80 @@
-# LAB_07 — Timing fix + integration fixes + new game-over screen
+# LAB_07 — Changes
+
+# 2026-07-04 — Merge of Saleh's branch ideas (checkerboard + his structure)
+
+Goal: make the main code follow Saleh's methodology and structure
+(`saleh` branch / `fpga-saleh/LAB_07`) as closely as possible, keeping out only
+the things that made his build misbehave on the board. His branch was **not**
+modified.
+
+## Adopted from Saleh's branch (1P **and** 2P)
+
+1. **Chess-board playfield** — his idea, taken as-is: `FA.v` (the lab-1 full
+   adder) with `a = x[0]`, `b = y[0]`, `ci = 0`; the `sum` output is the parity
+   of `x + y` (`odd_block`), and a mux picks the cell color:
+   `odd_block ? GREEN_ODD (12'h0F0, light) : GREEN_EVEN (12'h0C0, dark)`.
+   Roundabout way to get one XOR, but it costs a single LUT and reuses lab-1 IP.
+2. **His GridMapper interface** — grid-cell inputs `x`, `y` plus hires screen
+   coordinates `img_x`, `img_y` with parametric widths
+   (`[$clog2(2*GRID_X)-1:0]`), computed in `Pixel_Painter` as
+   `assign img_x = XCoord >> 2;` (replaces the old `sx/sy = XCoord[10:2]`
+   slices — same value, his naming and style).
+3. **His bitmap declaration style** — `reg [2*GRID_X-1:0] welcome
+   [0:2*GRID_Y-1];` (the 200×150 screens expressed as 2× the grid, like his).
+4. **His color table** — names and values: `WELCOME_BRIGHT/WELCOME_DARK`,
+   `SKULL_COLOR = 12'hEEC`, `DIED_COLOR = 12'hE11` (the game-over red is now
+   his E11 instead of the previous D11), `WHITE/BLACK`, `GREEN_EVEN/GREEN_ODD`.
+5. **His screen files and welcome art** (1P): `welcome45_raw_200x150.mem`
+   (SNAKE graffiti + coiled snake + "By Saleh & Mahmood") and
+   `skull_you_died_200x150.mem` (same butcher-skull content as before, his
+   filename). `project_7_demo.xpr` re-pointed to the new names; the old
+   `welcome.mem`/`skull.mem` were removed (still in git history). His `img/`
+   tooling (png2mem converters + PNG previews) copied alongside.
+6. **`tick` input restored on `Pixel_Painter`** (his interface keeps it
+   reserved for future animations), driven from the top like in his tree.
+7. `FA.v` added to the Makefiles and both Vivado projects.
+
+The 2P build got the same conventions (checkerboard, `img_x/img_y`, color
+names) but keeps its own screens (`welcome.mem` = TAU art + mode menu,
+`skull.mem`) since those don't exist on his branch.
+
+## Deliberately NOT taken (these are what broke his board)
+
+1. **FSM chained-`<=` ternary** (`state <= key ? PLAY : state <= IDLE;`) —
+   parses as *less-than-or-equal*, so IDLE self-starts and GAME_OVER/PLAY
+   flicker at 50 MHz (details in §3.1 below). A warning comment now sits on
+   the FSM so it doesn't come back.
+2. **One-hot color `case({on_snake,is_food,is_head})`** — the head is also
+   `on_snake` (`3'b101`), which matches nothing and paints the head as
+   background. Kept the priority chain head > food > body > background, and
+   kept `SNAKE_HEAD_COLOR = 12'hFD0` (his `222` next to body `333` was a
+   placeholder — his own `// give me unique color!!!` comment asks for this).
+3. **Unwired painter inputs in his top** — `crash/is_food/on_snake/is_head`
+   float in his `snake_game.v`, so nothing is ever drawn and the FSM never
+   sees a crash. Kept the full wiring.
+4. **Raw `keyPressed` into the FSM** — kept the 2-FF synchronizer + edge
+   detector (his raw level races GAME_OVER→IDLE→PLAY on one keypress).
+5. **His unpipelined `snake.v`** — that is the exact design that failed timing
+   at WNS −0.792 ns / TNS −487.8 ns (§1 below). Kept the pipelined one; the
+   module interface is identical anyway.
+6. **His `task3.xdc`** — missing the `ps2_clk` clock + async clock-groups.
+7. **His combinational bitmap reads** — kept the registered reads (they keep
+   the 200×150 LUT-ROM muxes out of the pixel-color timing path; only the
+   register names were aligned to his wire names: `on_welcome`, `on_skull`).
+8. Dead leftovers: unused `score` reg in his GridMapper, undriven
+   `start_game` port, unused `food_x/food_y/food_on_snake` wires.
+
+## Verified
+
+* `xvlog` + `xelab` clean for both tops (Vivado 2023.2).
+* 2P regression `tb_snake_2p`: **38/38 PASS** after the restructure.
+* Both bitstreams rebuilt after the full restructure (new welcome art
+  included); post-route, all constraints met:
+  1P WNS **+2.017 ns** / WHS +0.112, 2P WNS **+0.550 ns** / WHS +0.083.
+
+---
+
+# 2026-07-02 — Timing fix + integration fixes + new game-over screen
 
 Date: 2026-07-02. Baseline: post-route WNS **−0.792 ns**, TNS **−487.8 ns**, 896
 failing endpoints (Vivado project `project_7_demo`, part `xc7a35tlcpg236-2L`).
