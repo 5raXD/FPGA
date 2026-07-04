@@ -41,11 +41,8 @@ module farmer_tb();
     end
 
     always @(posedge clk) begin
-        keyPressed = ($urandom_range(999) < 1); // high ~0.1% of clocks
+        keyPressed = (({$random} % 100) < 1); // high ~1% of clocks
         $fdisplay(f, "(%d, %d)", food_x, food_y);
     end
-
-    final $fclose(f);
-
 
 endmodule
