@@ -33,7 +33,7 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     localparam GREEN_EVEN = 12'h0C0; // Dark green
     localparam GREEN_ODD = 12'h0F0; // Light green
     localparam FOOD_COLOR = 12'hF11;
-    localparam SNAKE_COLOR = 12'h333;
+    localparam SNAKE_COLOR = 12'h444;
     localparam SNAKE_HEAD_COLOR = 12'h222; // give me unique color!!!
     localparam SKULL_COLOR = 12'hEEC;
     localparam DIED_COLOR = 12'hE11;
