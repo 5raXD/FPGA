@@ -34,7 +34,11 @@
       "Bash(vvp /private/tmp/claude-501/-Users-saleh-Desktop-TAU-FPGA-FPGA-git/6705faea-fdb4-4f50-8e8c-ca2a93f64083/scratchpad/snake_tb)",
       "Bash(iverilog -g2005 -t null snake_game.v Pixel_Painter.v grid_mapper.v FA.v snake.v farmer.v Debouncer.v Seg_7_Display.v Ps2_Interface.v VGA_Interface.v Navigation_System.v game_tick.v)",
       "Bash(iverilog -g2005 -o /private/tmp/claude-501/-Users-saleh-Desktop-TAU-FPGA-FPGA-git/6705faea-fdb4-4f50-8e8c-ca2a93f64083/scratchpad/tick_tb game_tick.v /private/tmp/claude-501/-Users-saleh-Desktop-TAU-FPGA-FPGA-git/6705faea-fdb4-4f50-8e8c-ca2a93f64083/scratchpad/tick_tb.v)",
-      "Bash(vvp /private/tmp/claude-501/-Users-saleh-Desktop-TAU-FPGA-FPGA-git/6705faea-fdb4-4f50-8e8c-ca2a93f64083/scratchpad/tick_tb)"
+      "Bash(vvp /private/tmp/claude-501/-Users-saleh-Desktop-TAU-FPGA-FPGA-git/6705faea-fdb4-4f50-8e8c-ca2a93f64083/scratchpad/tick_tb)",
+      "Bash(iverilog -g2005 -o /private/tmp/claude-501/-Users-saleh-Desktop-TAU-FPGA-FPGA-git/6705faea-fdb4-4f50-8e8c-ca2a93f64083/scratchpad/user_tick_tb tick_tb.v game_tick.v)",
+      "Bash(vvp /private/tmp/claude-501/-Users-saleh-Desktop-TAU-FPGA-FPGA-git/6705faea-fdb4-4f50-8e8c-ca2a93f64083/scratchpad/user_tick_tb)",
+      "Bash(iverilog -g2005 -o /private/tmp/claude-501/-Users-saleh-Desktop-TAU-FPGA-FPGA-git/6705faea-fdb4-4f50-8e8c-ca2a93f64083/scratchpad/speed_check game_tick.v /private/tmp/claude-501/-Users-saleh-Desktop-TAU-FPGA-FPGA-git/6705faea-fdb4-4f50-8e8c-ca2a93f64083/scratchpad/speed_check_tb.v)",
+      "Bash(vvp /private/tmp/claude-501/-Users-saleh-Desktop-TAU-FPGA-FPGA-git/6705faea-fdb4-4f50-8e8c-ca2a93f64083/scratchpad/speed_check)"
     ],
     "additionalDirectories": [
       "/Users/saleh/Desktop/TAU/FPGA/FPGA_git/LAB_07/img"

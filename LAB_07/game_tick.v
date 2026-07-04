@@ -3,7 +3,7 @@
 
 //////////////////////////////////////////////////////////////////////////////////
 
-module Game_Tick #(parameter TICK_MAX = 14285714)( // 7Hz tick for 100MHz clock
+module Game_Tick #(parameter TICK_MAX = 14_285_714)( // 7Hz tick for 100MHz clock
     // Inputs
     input  wire clk,
     input  wire reset,
@@ -12,16 +12,17 @@ module Game_Tick #(parameter TICK_MAX = 14285714)( // 7Hz tick for 100MHz clock
     output reg  tick
     );
 
-    localparam TICK_INC = 184_151;
+    localparam TICK_INC = 262_144;
+    localparam MAX_STEPS = (TICK_MAX-1)/TICK_INC;
 
-    reg [$clog2(TICK_MAX + 64*TICK_INC)-1:0] cnt;
-    reg [$clog2(TICK_MAX + 64*TICK_INC)-1:0] tick_speed = TICK_MAX + 63*TICK_INC; // 7Hz tick for 100MHz clock
+    reg [$clog2(TICK_MAX)-1:0] cnt;
+    reg [$clog2(TICK_MAX)-1:0] tick_speed = TICK_MAX; // starts from 7Hz tick
 
     always @(posedge clk) begin
-        if (score < 64)
-            tick_speed <= TICK_MAX + (64 - score) * TICK_INC;
+        if (score < MAX_STEPS)
+            tick_speed <= TICK_MAX - score * TICK_INC;
         else
-            tick_speed <= TICK_MAX;
+            tick_speed <= TICK_MAX - MAX_STEPS * TICK_INC;
     end
 
     always @(posedge clk) begin
