@@ -20,7 +20,8 @@ SRC := \
 	Seg_7_Display.v \
 	grid_mapper.v \
 	farmer.v \
-	snake.v 
+	snake.v \
+	FA.v
 
 ##################################################
 # add more files here, one per line, e.g.:
