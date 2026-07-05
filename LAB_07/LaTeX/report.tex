@@ -13,6 +13,7 @@
 
 \newcommand{\IDone}{\texttt{[ID1]}}   % <-- Saleh Khalil, ID
 \newcommand{\IDtwo}{\texttt{[ID2]}}   % <-- Mahmood Isteteh, ID
+\newcommand{\youtubelink}{https://youtu.be/REPLACE-ME}  % <-- paste your YouTube demo URL here
 
 \usepackage[margin=2.4cm]{geometry}
 \usepackage{graphicx}
@@ -24,7 +25,7 @@
 \usepackage{fancyhdr}
 \usepackage[colorlinks=true, linkcolor=blue!50!black, urlcolor=blue!50!black]{hyperref}
 
-\graphicspath{{./}{figures/}}
+\graphicspath{{./}}
 
 % ------------- header / footer -------------
 \pagestyle{fancy}
@@ -711,6 +712,27 @@ monitor, and of the welcome splash.}
 
 \placeholderbox{4.6cm}{Photo of the Basys3 board during a game: score on
 the 7-segment display, VGA and PS/2 cables connected.}
+
+\subsection{Working game}
+% -----------------------------------------------------------------
+% When the photo/screenshot is ready, copy it next to report.tex
+% (e.g. working_game.png) and replace the placeholder box below with:
+%     \begin{figure}[H]\centering
+%       \includegraphics[width=0.85\textwidth]{working_game.png}
+%       \caption{The Snake game running on the monitor.}
+%     \end{figure}
+% -----------------------------------------------------------------
+\placeholderbox{6.5cm}{Image of the working game --- photo/screenshot of
+the monitor running the game. Drop the image (e.g.\ \texttt{working\_game.png})
+into this folder and replace this box with an \texttt{includegraphics} of it.}
+
+\subsection{Demonstration video}
+A video of the game running on the Basys3 board is available on YouTube:
+\begin{center}
+  \large\href{\youtubelink}{\texttt{\youtubelink}}\\[4pt]
+  \normalsize\textcolor{red!60!black}{[REPLACE THE LINK ABOVE --- set
+  \texttt{\textbackslash youtubelink} at the top of this file to your YouTube URL]}
+\end{center}
 
 % =====================================================================
 \section{Problems Encountered and Solutions}\label{sec:problems}

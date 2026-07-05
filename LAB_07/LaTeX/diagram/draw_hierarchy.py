@@ -6,15 +6,16 @@ hierarchy.json next to this script -- edit that file to change anything.
 
 Usage:
     python3 draw_hierarchy.py all
-        -> figures/hierarchy_all.png       (every file in its role colour)
+        -> ../hierarchy_all.png            (every file in its role colour)
 
     python3 draw_hierarchy.py farmer.v snake.v
-        -> figures/hierarchy_farmer_snake.png
+        -> ../hierarchy_farmer_snake.png
            Same layout; only the named files keep their colour, every other
            file is greyed out. Any number of file names may be given
            (the .v suffix is optional, matching is case-insensitive).
 
-Output goes to ../figures/ relative to this script (created if missing).
+Output goes to the parent folder of this script (../), i.e.\ next to
+report.tex, so the report can embed the images with plain file names.
 """
 
 import json
@@ -28,7 +29,7 @@ OUT_SCALE = 2   # final image = canvas size x OUT_SCALE
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 JSON_PATH = SCRIPT_DIR / "hierarchy.json"
-OUT_DIR = SCRIPT_DIR.parent / "figures"
+OUT_DIR = SCRIPT_DIR.parent
 
 EDGE_COLOR = "#94a3b8"
 PLAIN_COLOR = "#475569"
@@ -177,7 +178,7 @@ def draw_legend(draw, cfg, roles, grayed, subset_mode):
                                radius=int(3 * SS), fill=style["fill"],
                                outline=style["border"], width=int(1.2 * SS))
         x += chip + s(8)
-        draw.text((x, y), label, font=font, fill="#94a3b8", anchor="lm")
+        draw.text((x, y), label, font=font, fill="#475569", anchor="lm")
         x += font.getlength(label) + s(26)
 
 
@@ -209,12 +210,10 @@ def main():
         selected = {n["file"] for n in nodes}
         out_name = "hierarchy_all.png"
         subset_mode = False
-        subtitle = "all files coloured by block role"
     else:
         selected, stems = resolve_selection(args, nodes)
         out_name = "hierarchy_" + "_".join(stems) + ".png"
         subset_mode = True
-        subtitle = "highlighted: " + ", ".join(sorted(selected)) + "  (others greyed out)"
 
     canvas = data["canvas"]
     W, H = s(canvas["width"]), s(canvas["height"])
@@ -246,7 +245,6 @@ def main():
         draw.text((s(t["pos"][0]), s(t["pos"][1])), t["text"],
                   font=get_font(t.get("size", 11), bold=t.get("bold", False)),
                   fill=t.get("color", "#94a3b8"), anchor=t.get("anchor", "lm"))
-    draw.text((s(40), s(64)), subtitle, font=get_font(11), fill="#7d8aa0", anchor="lm")
 
     if "legend" in data:
         draw_legend(draw, data["legend"], roles, grayed, subset_mode)

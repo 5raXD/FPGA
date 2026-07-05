@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.5.9)  5 JUL 2026 12:31
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.5.9)  5 JUL 2026 14:33
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -328,24 +328,24 @@ File: l3backend-pdftex.def 2025-10-09 L3 backend support: PDF output (pdfTeX)
 (./report.aux)
 \openout1 = `report.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 71.
-LaTeX Font Info:    ... okay on input line 71.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 71.
-LaTeX Font Info:    ... okay on input line 71.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 71.
-LaTeX Font Info:    ... okay on input line 71.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 71.
-LaTeX Font Info:    ... okay on input line 71.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 71.
-LaTeX Font Info:    ... okay on input line 71.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 71.
-LaTeX Font Info:    ... okay on input line 71.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 71.
-LaTeX Font Info:    ... okay on input line 71.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 71.
-LaTeX Font Info:    ... okay on input line 71.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 71.
-LaTeX Font Info:    ... okay on input line 71.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 72.
+LaTeX Font Info:    ... okay on input line 72.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 72.
+LaTeX Font Info:    ... okay on input line 72.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 72.
+LaTeX Font Info:    ... okay on input line 72.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 72.
+LaTeX Font Info:    ... okay on input line 72.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 72.
+LaTeX Font Info:    ... okay on input line 72.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 72.
+LaTeX Font Info:    ... okay on input line 72.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 72.
+LaTeX Font Info:    ... okay on input line 72.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 72.
+LaTeX Font Info:    ... okay on input line 72.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 72.
+LaTeX Font Info:    ... okay on input line 72.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -409,23 +409,23 @@ Package caption Info: hyperref package is loaded.
 Package caption Info: listings package is loaded.
 Package caption Info: End \AtBeginDocument code.
 \c@lstlisting=\count320
-Package hyperref Info: Link coloring ON on input line 71.
+Package hyperref Info: Link coloring ON on input line 72.
 
 (./report.out) (./report.out)
 \@outlinefile=\write3
 \openout3 = `report.out'.
 
-<tau.png, id=128, 448.67625pt x 448.67625pt>
+<tau.png, id=136, 448.67625pt x 448.67625pt>
 File: tau.png Graphic file (type png)
 <use tau.png>
-Package pdftex.def Info: tau.png  used on input line 78.
+Package pdftex.def Info: tau.png  used on input line 79.
 (pdftex.def)             Requested size: 175.15755pt x 175.15419pt.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <10.95> on input line 90.
+(Font)              <10.95> on input line 91.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 90.
+(Font)              <8> on input line 91.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 90.
+(Font)              <6> on input line 91.
  [1
 
 {/usr/local/texlive/2026/texmf-var/fonts/map/pdftex/updmap/pdftex.map} <./tau.p
@@ -438,139 +438,148 @@ pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has
 been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.107 \newpage
+l.108 \newpage
                [1]
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 139.
+(Font)              <7> on input line 140.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 139.
+(Font)              <5> on input line 140.
 
-Underfull \hbox (badness 1308) in paragraph at lines 147--150
+Underfull \hbox (badness 1308) in paragraph at lines 148--151
 \OT1/cmr/m/n/10 food (\OT1/cmtt/m/n/10 0xF11\OT1/cmr/m/n/10 ) on a two-tone gre
 en checker-board
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 156--156
+Underfull \hbox (badness 10000) in paragraph at lines 157--157
 []\OT1/cmr/m/n/10 3a. Key-board con-trol, 4/6/8/5 =
  []
 
-<figures/hierarchy_all.png, id=178, 2810.5pt x 1766.6pt>
-File: figures/hierarchy_all.png Graphic file (type png)
-<use figures/hierarchy_all.png>
-Package pdftex.def Info: figures/hierarchy_all.png  used on input line 179.
+<hierarchy_all.png, id=188, 2810.5pt x 1766.6pt>
+File: hierarchy_all.png Graphic file (type png)
+<use hierarchy_all.png>
+Package pdftex.def Info: hierarchy_all.png  used on input line 180.
 (pdftex.def)             Requested size: 460.935pt x 289.72427pt.
 [2]
-Underfull \hbox (badness 3179) in paragraph at lines 207--211
+Underfull \hbox (badness 3179) in paragraph at lines 208--212
 []\OT1/cmtt/m/n/10.95 VGA[]Interface \OT1/cmr/m/n/10.95 gen-er-ates sync and sc
 an co-or-di-nates and drives the RGB pins;
  []
 
-[3 <./figures/hierarchy_all.png (PNG copy)>]
-<figures/hierarchy_snake_game_snake_game_tb.png, id=198, 2810.5pt x 1766.6pt>
-File: figures/hierarchy_snake_game_snake_game_tb.png Graphic file (type png)
-<use figures/hierarchy_snake_game_snake_game_tb.png>
-Package pdftex.def Info: figures/hierarchy_snake_game_snake_game_tb.png  used o
-n input line 247.
+[3 <./hierarchy_all.png (PNG copy)>]
+<hierarchy_snake_game_snake_game_tb.png, id=208, 2810.5pt x 1766.6pt>
+File: hierarchy_snake_game_snake_game_tb.png Graphic file (type png)
+<use hierarchy_snake_game_snake_game_tb.png>
+Package pdftex.def Info: hierarchy_snake_game_snake_game_tb.png  used on input 
+line 248.
 (pdftex.def)             Requested size: 460.935pt x 289.72427pt.
 LaTeX Font Info:    Font shape `OT1/cmtt/bx/n' in size <12> not available
-(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 252.
- [4 <./figures/hierarchy_snake_game_snake_game_tb.png (PNG copy)>]
+(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 253.
+ [4 <./hierarchy_snake_game_snake_game_tb.png (PNG copy)>]
 LaTeX Font Info:    Font shape `OT1/cmtt/bx/n' in size <10.95> not available
-(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 285.
-<figures/hierarchy_Ps2_Interface_Debouncer_Navigation_System.png, id=206, 2810.
-5pt x 1766.6pt>
-File: figures/hierarchy_Ps2_Interface_Debouncer_Navigation_System.png Graphic f
-ile (type png)
-<use figures/hierarchy_Ps2_Interface_Debouncer_Navigation_System.png>
-Package pdftex.def Info: figures/hierarchy_Ps2_Interface_Debouncer_Navigation_S
-ystem.png  used on input line 313.
+(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 286.
+<hierarchy_Ps2_Interface_Debouncer_Navigation_System.png, id=216, 2810.5pt x 17
+66.6pt>
+File: hierarchy_Ps2_Interface_Debouncer_Navigation_System.png Graphic file (typ
+e png)
+<use hierarchy_Ps2_Interface_Debouncer_Navigation_System.png>
+Package pdftex.def Info: hierarchy_Ps2_Interface_Debouncer_Navigation_System.pn
+g  used on input line 314.
 (pdftex.def)             Requested size: 460.935pt x 289.72427pt.
- [5] [6 <./figures/hierarchy_Ps2_Interface_Debouncer_Navigation_System.png (PNG
- copy)>]
-<figures/hierarchy_farmer_snake_farmer_tb.png, id=220, 2810.5pt x 1766.6pt>
-File: figures/hierarchy_farmer_snake_farmer_tb.png Graphic file (type png)
-<use figures/hierarchy_farmer_snake_farmer_tb.png>
-Package pdftex.def Info: figures/hierarchy_farmer_snake_farmer_tb.png  used on 
-input line 399.
+ [5] [6 <./hierarchy_Ps2_Interface_Debouncer_Navigation_System.png (PNG copy)>]
+<hierarchy_farmer_snake_farmer_tb.png, id=230, 2810.5pt x 1766.6pt>
+File: hierarchy_farmer_snake_farmer_tb.png Graphic file (type png)
+<use hierarchy_farmer_snake_farmer_tb.png>
+Package pdftex.def Info: hierarchy_farmer_snake_farmer_tb.png  used on input li
+ne 400.
 (pdftex.def)             Requested size: 460.935pt x 289.72427pt.
- [7 <./figures/hierarchy_farmer_snake_farmer_tb.png (PNG copy)>]
-Underfull \hbox (badness 10000) in paragraph at lines 428--442
+ [7 <./hierarchy_farmer_snake_farmer_tb.png (PNG copy)>]
+Underfull \hbox (badness 10000) in paragraph at lines 429--443
 []\OT1/cmr/bx/n/10.95 Internal de-sign. \OT1/cmr/m/n/10.95 The body is stored a
 s two co-or-di-nate reg-is-ter ar-rays
  []
 
-<figures/food_coverage.png, id=228, 803.0pt x 602.25pt>
-File: figures/food_coverage.png Graphic file (type png)
-<use figures/food_coverage.png>
-Package pdftex.def Info: figures/food_coverage.png  used on input line 469.
+<food_coverage.png, id=238, 803.0pt x 602.25pt>
+File: food_coverage.png Graphic file (type png)
+<use food_coverage.png>
+Package pdftex.def Info: food_coverage.png  used on input line 470.
 (pdftex.def)             Requested size: 368.74939pt x 276.56969pt.
 [8]
-<figures/hierarchy_game_tick_tick_tb.png, id=236, 2810.5pt x 1766.6pt>
-File: figures/hierarchy_game_tick_tick_tb.png Graphic file (type png)
-<use figures/hierarchy_game_tick_tick_tb.png>
-Package pdftex.def Info: figures/hierarchy_game_tick_tick_tb.png  used on input
- line 488.
+<hierarchy_game_tick_tick_tb.png, id=246, 2810.5pt x 1766.6pt>
+File: hierarchy_game_tick_tick_tb.png Graphic file (type png)
+<use hierarchy_game_tick_tick_tb.png>
+Package pdftex.def Info: hierarchy_game_tick_tick_tb.png  used on input line 48
+9.
 (pdftex.def)             Requested size: 460.935pt x 289.72427pt.
- [9 <./figures/food_coverage.png (PNG copy)>] [10 <./figures/hierarchy_game_tic
-k_tick_tb.png (PNG copy)>]
-<figures/hierarchy_Pixel_Painter_grid_mapper_FA.png, id=248, 2810.5pt x 1766.6p
-t>
-File: figures/hierarchy_Pixel_Painter_grid_mapper_FA.png Graphic file (type png
-)
-<use figures/hierarchy_Pixel_Painter_grid_mapper_FA.png>
-Package pdftex.def Info: figures/hierarchy_Pixel_Painter_grid_mapper_FA.png  us
-ed on input line 536.
+ [9 <./food_coverage.png (PNG copy)>] [10 <./hierarchy_game_tick_tick_tb.png (P
+NG copy)>]
+<hierarchy_Pixel_Painter_grid_mapper_FA.png, id=258, 2810.5pt x 1766.6pt>
+File: hierarchy_Pixel_Painter_grid_mapper_FA.png Graphic file (type png)
+<use hierarchy_Pixel_Painter_grid_mapper_FA.png>
+Package pdftex.def Info: hierarchy_Pixel_Painter_grid_mapper_FA.png  used on in
+put line 537.
 (pdftex.def)             Requested size: 460.935pt x 289.72427pt.
- [11 <./figures/hierarchy_Pixel_Painter_grid_mapper_FA.png (PNG copy)>]
-<figures/welcome_screen.png, id=255, 200.75pt x 150.5625pt>
-File: figures/welcome_screen.png Graphic file (type png)
-<use figures/welcome_screen.png>
-Package pdftex.def Info: figures/welcome_screen.png  used on input line 585.
+ [11 <./hierarchy_Pixel_Painter_grid_mapper_FA.png (PNG copy)>]
+<welcome_screen.png, id=265, 200.75pt x 150.5625pt>
+File: welcome_screen.png Graphic file (type png)
+<use welcome_screen.png>
+Package pdftex.def Info: welcome_screen.png  used on input line 586.
 (pdftex.def)             Requested size: 212.03319pt x 159.03491pt.
-<figures/gameover_screen.png, id=256, 200.75pt x 150.5625pt>
-File: figures/gameover_screen.png Graphic file (type png)
-<use figures/gameover_screen.png>
-Package pdftex.def Info: figures/gameover_screen.png  used on input line 586.
+<gameover_screen.png, id=266, 200.75pt x 150.5625pt>
+File: gameover_screen.png Graphic file (type png)
+<use gameover_screen.png>
+Package pdftex.def Info: gameover_screen.png  used on input line 587.
 (pdftex.def)             Requested size: 212.03319pt x 159.03491pt.
-<figures/hierarchy_VGA_Interface_Seg_7_Display.png, id=257, 2810.5pt x 1766.6pt
->
-File: figures/hierarchy_VGA_Interface_Seg_7_Display.png Graphic file (type png)
+<hierarchy_VGA_Interface_Seg_7_Display.png, id=267, 2810.5pt x 1766.6pt>
+File: hierarchy_VGA_Interface_Seg_7_Display.png Graphic file (type png)
+<use hierarchy_VGA_Interface_Seg_7_Display.png>
+Package pdftex.def Info: hierarchy_VGA_Interface_Seg_7_Display.png  used on inp
+ut line 609.
+(pdftex.def)             Requested size: 460.935pt x 289.72427pt.
 
-<use figures/hierarchy_VGA_Interface_Seg_7_Display.png>
-Package pdftex.def Info: figures/hierarchy_VGA_Interface_Seg_7_Display.png  use
-d on input line 608.
-(pdftex.def)             Requested size: 460.935pt x 289.72427pt.
- [12{/usr/local/texlive/2026/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.e
-nc} <./figures/welcome_screen.png (PNG copy)> <./figures/gameover_screen.png (P
-NG copy)>] [13 <./figures/hierarchy_VGA_Interface_Seg_7_Display.png (PNG copy)>
-]
-Underfull \hbox (badness 10000) in paragraph at lines 678--682
+[12{/usr/local/texlive/2026/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.en
+c} <./welcome_screen.png (PNG copy)> <./gameover_screen.png (PNG copy)>]
+[13 <./hierarchy_VGA_Interface_Seg_7_Display.png (PNG copy)>]
+Underfull \hbox (badness 10000) in paragraph at lines 679--683
 []\OT1/cmr/m/n/10 Adapted: the colour is now an in-put
  []
 
 
-Underfull \hbox (badness 6910) in paragraph at lines 678--682
+Underfull \hbox (badness 6910) in paragraph at lines 679--683
 \OT1/cmr/m/n/10 (\OT1/cmtt/m/n/10 pixel[]color\OT1/cmr/m/n/10 ) com-puted by th
 e new ren-
  []
 
-[14] [15] [16] (./report.aux)
+[14]
+LaTeX Font Info:    Trying to load font information for OMS+cmtt on input line 
+734.
+LaTeX Font Info:    No file OMScmtt.fd. on input line 734.
+
+
+LaTeX Font Warning: Font shape `OMS/cmtt/m/n' undefined
+(Font)              using `OMS/cmsy/m/n' instead
+(Font)              for symbol `textbackslash' on input line 734.
+
+[15] [16] (./report.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
  ***********
+
+
+LaTeX Font Warning: Some font shapes were not available, defaults substituted.
+
 Package rerunfilecheck Info: File `report.out' has not changed.
-(rerunfilecheck)             Checksum: 8394827A1EE1B74281203B1E1B7D1AE7;4483.
+(rerunfilecheck)             Checksum: 92F928C286D3D61A71B942027ECD6BFF;4764.
  ) 
 Here is how much of TeX's memory you used:
- 12785 strings out of 467525
- 204671 string characters out of 5418983
- 814077 words of memory out of 5000000
- 41491 multiletter control sequences out of 15000+600000
+ 12778 strings out of 467525
+ 203557 string characters out of 5418983
+ 813096 words of memory out of 5000000
+ 41482 multiletter control sequences out of 15000+600000
  634041 words of font info for 62 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,12n,79p,347b,566s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,12n,79p,347b,532s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
 </usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><
@@ -584,10 +593,10 @@ exlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/te
 xlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/tex
 live/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb></usr/local/texl
 ive/2026/texmf-dist/fonts/type1/public/cm-super/sftt1095.pfb>
-Output written on report.pdf (17 pages, 2362481 bytes).
+Output written on report.pdf (17 pages, 2213767 bytes).
 PDF statistics:
- 374 PDF objects out of 1000 (max. 8388607)
- 313 compressed objects within 4 object streams
- 81 named destinations out of 1000 (max. 500000)
- 304 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 385 PDF objects out of 1000 (max. 8388607)
+ 324 compressed objects within 4 object streams
+ 83 named destinations out of 1000 (max. 500000)
+ 320 words of extra memory for PDF output out of 10000 (max. 10000000)
 
