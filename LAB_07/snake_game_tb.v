@@ -13,8 +13,7 @@ module snake_game_tb();
     localparam RIGHT_KEY = 8'h74;
     localparam UP_KEY = 8'h75;
     localparam DOWN_KEY = 8'h73;
-    localparam START_KEY = 8'h29; // space - starts the game without picking a direction
-
+    localparam ZERO_KEY = 8'h70; // zero key
     reg clk;
     reg rst;
     reg PS2Clk;
@@ -27,15 +26,19 @@ module snake_game_tb();
     wire dp;
 
     snake_game dut(
+        // inputs
         .clk(clk),
         .rst(rst),
         .PS2Clk(PS2Clk),
         .PS2Data(PS2Data),
+        // outputs
+        // Outputs - to VGA pins
         .vgaRed(vgaRed),
         .vgaGreen(vgaGreen),
         .vgaBlue(vgaBlue),
         .Hsync(Hsync),
         .Vsync(Vsync),
+        // Outputs - to 7-segment display
         .a_to_g(a_to_g),
         .an(an),
         .dp(dp)
@@ -49,8 +52,14 @@ module snake_game_tb();
     reg tb_tick = 0;
     integer tcnt = 0;
     always @(posedge clk) begin
-        if (tcnt == TICK_PERIOD-1) begin tcnt <= 0;        tb_tick <= 1'b1; end
-        else                       begin tcnt <= tcnt + 1; tb_tick <= 1'b0; end
+        if (tcnt == TICK_PERIOD-1) begin 
+            tcnt <= 0;        
+            tb_tick <= 1'b1; 
+        end
+        else begin 
+            tcnt <= tcnt + 1; 
+            tb_tick <= 1'b0; 
+        end
     end
 
     // ---- PS/2 device -> host frame ----
@@ -94,29 +103,27 @@ module snake_game_tb();
         end
     endtask
 
+    reg go_x;
+    reg go_y;
+
     initial begin
         if ($test$plusargs("vcd")) begin
             $dumpfile("snake_game_tb.vcd");
             $dumpvars(0, snake_game_tb);
         end
 
-        clk = 0; rst = 0; PS2Clk = 1; PS2Data = 1;
+        clk = 0; 
+        rst = 0; 
+        PS2Clk = 1; 
+        PS2Data = 1;
         force dut.tick = tb_tick; // drive the game from our fast tick
 
         pulse_reset;
         repeat (50) @(posedge clk);
 
-        ps2_tap(START_KEY);   // IDLE -> PLAY, snake starts moving RIGHT
+        ps2_tap(ZERO_KEY);   // IDLE -> PLAY, snake starts moving RIGHT
         #40_000;              // let it run a few ticks
 
-        ps2_tap(UP_KEY);      // steer up
-        #40_000;
-
-        ps2_tap(LEFT_KEY);    // steer left
-        #300_000;             // run until it hits a wall -> GAME_OVER
-
-        ps2_tap(START_KEY);   // GAME_OVER -> IDLE
-        #40_000;
 
         $finish;
     end
