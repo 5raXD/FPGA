@@ -158,7 +158,7 @@ module snake_game(
         .length(length),
         .score(score)
     );
-//test
+
     // Game Tick - Clock Divider
     Game_Tick #(.TICK_MAX(TICK_MAX)) game_tick( // 7Hz tick for 100MHz clock
         // Inputs
