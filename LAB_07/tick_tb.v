@@ -44,7 +44,8 @@ module tick_tb();
 
         for (i=1; i<65; i=i+1) begin
             score = i;
-            @(posedge clk);
+            @(posedge tick);
+            repeat(3) @(posedge clk);
         end
 
         $finish;
