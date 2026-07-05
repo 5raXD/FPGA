@@ -87,26 +87,20 @@ module snake_game_tb();
         end
     endtask
 
-    reg go_x;
-    reg go_y;
-
     initial begin
         if ($test$plusargs("vcd")) begin
             $dumpfile("snake_game_tb.vcd");
             $dumpvars(0, snake_game_tb);
         end
 
-        clk = 0; 
-        rst = 0; 
-        PS2Clk = 1; 
+        clk = 0;
+        rst = 0;
+        PS2Clk = 1;
         PS2Data = 1;
-        go_x = 0;
-        go_y = 0;
-
-        pulse_reset;
-        repeat (50) @(posedge clk);
 
         // Scenario 1: snake crashes into wall
+        pulse_reset;
+        repeat (50) @(posedge clk);
 
         ps2_tap(ZERO_KEY);   // IDLE -> PLAY, snake starts moving RIGHT
         #40_000;              // let it run a few ticks
@@ -116,21 +110,16 @@ module snake_game_tb();
 
 
         // Scenario 2: eat one bite of food and die
-        ps2_tap(UP_KEY);     // change direction to UP
-        repeat (2) #40_000;
-        
-        go_x = (dut.snake.plant_x <= dut.snake.head_x)? 1'b0 : 1'b1; // 1 = move right, 0 = move left
-        go_y = (dut.snake.plant_y <= dut.snake.head_y)? 1'b0 : 1'b1; // 1 = move down, 0 = move up
+        pulse_reset;
+        repeat (50) @(posedge clk);
 
-        if(go_x) ps2_tap(RIGHT_KEY);
-        else ps2_tap(UP_KEY);
-        wait(dut.snake.plant_x == dut.snake.head_x);
+        // food on the start row (50,37): snake eats it moving RIGHT, then hits the wall
+        force dut.snake.plant_x = 60;
+        force dut.snake.plant_y = 37;
 
-        if(go_y) ps2_tap(DOWN_KEY);
-        else ps2_tap(UP_KEY);
-        wait(dut.snake.plant_y == dut.snake.head_y);
-
-        repeat (5) #40_000; // let it run a few ticks
+        ps2_tap(ZERO_KEY);   // IDLE -> PLAY, snake starts moving RIGHT
+        wait(dut.crash);     // eats at (60,37) on the way, then crashes into the right wall
+        #40_000;
 
 
         $finish;
