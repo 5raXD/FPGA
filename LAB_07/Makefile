@@ -5,8 +5,8 @@ IVERILOG ?= iverilog
 VVP      ?= vvp
 IVFLAGS  ?= -g2012
 
-TOP := snake_game
-OUT := snake_game.out
+TOP := snake_game_tb
+OUT := snake_game_tb.out
 
 # snake_game + every module it instantiates (and their submodules)
 SRC := \
@@ -19,9 +19,10 @@ SRC := \
 	game_tick.v \
 	Seg_7_Display.v \
 	grid_mapper.v \
-	FA.v \
 	farmer.v \
-	snake.v
+	snake.v \
+	FA.v \
+	snake_game_tb.v
 
 ##################################################
 # add more files here, one per line, e.g.:

@@ -3,7 +3,7 @@
 
 //////////////////////////////////////////////////////////////////////////////////
 
-module farmer #(GRID_X = 100, GRID_Y = 75)(
+module farmer #(parameter GRID_X = 100, GRID_Y = 75)(
     input clk,
     // input from keyboard to be used to enhance Randomness
     input keyPressed,

@@ -1,0 +1,136 @@
+{
+  "_readme": [
+    "Hand-editable description of the LAB_07 Verilog file map.",
+    "roles      : one colour set per block role. Change hex values freely.",
+    "grayed     : the colour set used for files that are NOT selected.",
+    "nodes      : one entry per .v file. 'parent' records the real design",
+    "             hierarchy (who instantiates whom); 'dut' records which file",
+    "             a testbench drives. x/y/w/h are canvas coordinates.",
+    "             'container: true' draws the node as a big enclosing box.",
+    "edges      : arrows. style = solid | dashed | plain (plain = thin line,",
+    "             no arrowhead, used for 'contains' links).",
+    "texts      : free-floating annotations.",
+    "legend     : colour legend drawn at the bottom of the canvas."
+  ],
+  "canvas": { "width": 1400, "height": 880, "background": "#ffffff" },
+  "roles": {
+    "top":       { "fill": "#f5f3ff", "border": "#8b5cf6", "text": "#5b21b6", "sub": "#7c3aed" },
+    "interface": { "fill": "#2563eb", "border": "#1e40af", "text": "#ffffff", "sub": "#dbeafe" },
+    "core":      { "fill": "#059669", "border": "#065f46", "text": "#ffffff", "sub": "#d1fae5" },
+    "generator": { "fill": "#eab308", "border": "#a16207", "text": "#422006", "sub": "#713f12" },
+    "render":    { "fill": "#9333ea", "border": "#6b21a8", "text": "#ffffff", "sub": "#f3e8ff" },
+    "tb":        { "fill": "#f1f5f9", "border": "#94a3b8", "text": "#475569", "sub": "#64748b", "dashed": true }
+  },
+  "grayed": { "fill": "#f3f4f6", "border": "#cbd5e1", "text": "#9ca3af", "sub": "#aab2bd" },
+  "nodes": [
+    { "file": "snake_game.v", "label": "snake_game.v", "sub": "top level - wires all blocks - Basys3 pins",
+      "role": "top", "parent": null, "container": true,
+      "x": 30, "y": 112, "w": 1340, "h": 690 },
+
+    { "file": "tick_tb.v", "label": "tick_tb.v", "sub": "tests game_tick.v",
+      "role": "tb", "parent": null, "dut": "game_tick.v",
+      "x": 470, "y": 18, "w": 200, "h": 60 },
+    { "file": "farmer_tb.v", "label": "farmer_tb.v", "sub": "tests farmer.v - coverage",
+      "role": "tb", "parent": null, "dut": "farmer.v",
+      "x": 790, "y": 18, "w": 200, "h": 60 },
+    { "file": "snake_game_tb.v", "label": "snake_game_tb.v", "sub": "full-game integration",
+      "role": "tb", "parent": null, "dut": "snake_game.v",
+      "x": 1110, "y": 18, "w": 240, "h": 60 },
+
+    { "file": "game_tick.v", "label": "game_tick.v", "sub": "move strobe (speeds up)",
+      "role": "generator", "parent": "snake_game.v",
+      "x": 480, "y": 168, "w": 180, "h": 72 },
+    { "file": "farmer.v", "label": "farmer.v", "sub": "LFSR food planter",
+      "role": "generator", "parent": "snake.v",
+      "x": 800, "y": 168, "w": 180, "h": 72 },
+
+    { "file": "Ps2_Interface.v", "label": "Ps2_Interface.v", "sub": "keyboard -> scancode",
+      "role": "interface", "parent": "snake_game.v",
+      "x": 60, "y": 360, "w": 190, "h": 84 },
+    { "file": "Navigation_System.v", "label": "Navigation_System.v", "sub": "scancode -> dir (no 180)",
+      "role": "generator", "parent": "snake_game.v",
+      "x": 300, "y": 360, "w": 212, "h": 84 },
+    { "file": "snake.v", "label": "snake.v", "sub": "the brain: body - crash - score",
+      "role": "core", "parent": "snake_game.v",
+      "x": 582, "y": 352, "w": 200, "h": 100 },
+    { "file": "Pixel_Painter.v", "label": "Pixel_Painter.v", "sub": "cell -> pixel colour",
+      "role": "render", "parent": "snake_game.v",
+      "x": 852, "y": 360, "w": 190, "h": 84 },
+    { "file": "VGA_Interface.v", "label": "VGA_Interface.v", "sub": "sync + scan - 72 Hz",
+      "role": "interface", "parent": "snake_game.v",
+      "x": 1118, "y": 360, "w": 204, "h": 84 },
+
+    { "file": "grid_mapper.v", "label": "grid_mapper.v", "sub": "FSM - screens - colours",
+      "role": "render", "parent": "Pixel_Painter.v",
+      "x": 852, "y": 540, "w": 190, "h": 66 },
+    { "file": "FA.v", "label": "FA.v", "sub": "full adder (parity)",
+      "role": "render", "parent": "grid_mapper.v",
+      "x": 852, "y": 664, "w": 190, "h": 60 },
+
+    { "file": "Debouncer.v", "label": "Debouncer.v", "sub": "clean start button",
+      "role": "interface", "parent": "snake_game.v",
+      "x": 60, "y": 560, "w": 190, "h": 72 },
+    { "file": "Seg_7_Display.v", "label": "Seg_7_Display.v", "sub": "score on 7-seg",
+      "role": "interface", "parent": "snake_game.v",
+      "x": 582, "y": 560, "w": 200, "h": 72 }
+  ],
+  "edges": [
+    { "points": [[250, 402], [300, 402]], "style": "solid",
+      "label": "scancode", "label_pos": [275, 344], "label_anchor": "mm" },
+    { "points": [[512, 402], [582, 402]], "style": "solid",
+      "label": "dir", "label_pos": [547, 344], "label_anchor": "mm" },
+    { "points": [[782, 384], [852, 384]], "style": "solid",
+      "label": "cell status", "label_pos": [817, 344], "label_anchor": "mm" },
+    { "points": [[852, 420], [782, 420]], "style": "dashed",
+      "label": "x,y query", "label_pos": [817, 464], "label_anchor": "mm" },
+    { "points": [[1042, 402], [1118, 402]], "style": "solid",
+      "label": "pixel colour", "label_pos": [1080, 344], "label_anchor": "mm" },
+
+    { "points": [[570, 240], [655, 352]], "style": "solid",
+      "label": "tick", "label_pos": [668, 322], "label_anchor": "lm" },
+    { "points": [[612, 352], [528, 240]], "style": "dashed",
+      "label": "score", "label_pos": [516, 322], "label_anchor": "rm" },
+    { "points": [[890, 240], [722, 352]], "style": "solid",
+      "label": "food x,y", "label_pos": [838, 286], "label_anchor": "lm" },
+
+    { "points": [[1220, 360], [1220, 302], [947, 302], [947, 360]], "style": "dashed",
+      "color": "#7c3aed",
+      "label": "XCoord / YCoord (feedback)", "label_pos": [1084, 290],
+      "label_anchor": "mm", "label_color": "#7c3aed" },
+
+    { "points": [[682, 452], [682, 560]], "style": "solid",
+      "label": "score", "label_pos": [694, 506], "label_anchor": "lm" },
+
+    { "points": [[947, 444], [947, 540]], "style": "plain",
+      "label": "contains", "label_pos": [955, 492], "label_anchor": "lm", "label_size": 9 },
+    { "points": [[947, 606], [947, 664]], "style": "plain",
+      "label": "contains", "label_pos": [955, 635], "label_anchor": "lm", "label_size": 9 },
+
+    { "points": [[570, 78], [570, 168]], "style": "dashed",
+      "label": "unit tb", "label_pos": [578, 120], "label_anchor": "lm", "label_size": 9 },
+    { "points": [[890, 78], [890, 168]], "style": "dashed",
+      "label": "unit tb", "label_pos": [898, 120], "label_anchor": "lm", "label_size": 9 },
+    { "points": [[1230, 78], [1230, 112]], "style": "dashed",
+      "label": "integration tb", "label_pos": [1238, 95], "label_anchor": "lm", "label_size": 9 },
+
+    { "points": [[30, 596], [60, 596]], "style": "solid",
+      "label": "btnC", "label_pos": [36, 578], "label_anchor": "lm", "label_size": 9 },
+    { "points": [[250, 596], [292, 596]], "style": "solid" }
+  ],
+  "texts": [
+    { "text": "keyboard ->", "pos": [60, 338], "anchor": "lm", "size": 11, "color": "#64748b" },
+    { "text": "-> monitor", "pos": [1322, 338], "anchor": "rm", "size": 11, "color": "#64748b" },
+    { "text": "reset -> all blocks", "pos": [300, 596], "anchor": "lm", "size": 10, "color": "#64748b" }
+  ],
+  "legend": {
+    "pos": [40, 838], "size": 11,
+    "entries": [
+      { "role": "top",       "label": "top level" },
+      { "role": "interface", "label": "interface / IO" },
+      { "role": "core",      "label": "core logic" },
+      { "role": "generator", "label": "generators" },
+      { "role": "render",    "label": "rendering" },
+      { "role": "tb",        "label": "testbench" }
+    ]
+  }
+}
