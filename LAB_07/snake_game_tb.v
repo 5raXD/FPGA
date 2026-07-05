@@ -100,6 +100,8 @@ module snake_game_tb();
         rst = 0; 
         PS2Clk = 1; 
         PS2Data = 1;
+        go_x = 0;
+        go_y = 0;
 
         pulse_reset;
         repeat (50) @(posedge clk);
