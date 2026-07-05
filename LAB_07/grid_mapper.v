@@ -60,7 +60,7 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
             case (state)
                 IDLE: state <= keyPressed? PLAY : IDLE;
                 PLAY: state <= crash? GAME_OVER : PLAY;
-                GAME_OVER: state <= keyPressed? IDLE : GAME_OVER;
+                GAME_OVER: state <= keyPressed? PLAY : GAME_OVER;
             endcase
 
         end
