@@ -19,6 +19,7 @@
     "core":      { "fill": "#059669", "border": "#065f46", "text": "#ffffff", "sub": "#d1fae5" },
     "generator": { "fill": "#eab308", "border": "#a16207", "text": "#422006", "sub": "#713f12" },
     "render":    { "fill": "#9333ea", "border": "#6b21a8", "text": "#ffffff", "sub": "#f3e8ff" },
+    "arith":     { "fill": "#ea580c", "border": "#9a3412", "text": "#ffffff", "sub": "#ffedd5" },
     "tb":        { "fill": "#f1f5f9", "border": "#94a3b8", "text": "#475569", "sub": "#64748b", "dashed": true }
   },
   "grayed": { "fill": "#f3f4f6", "border": "#cbd5e1", "text": "#9ca3af", "sub": "#aab2bd" },
@@ -63,9 +64,16 @@
     { "file": "grid_mapper.v", "label": "grid_mapper.v", "sub": "FSM - screens - colours",
       "role": "render", "parent": "Pixel_Painter.v",
       "x": 852, "y": 540, "w": 190, "h": 66 },
-    { "file": "FA.v", "label": "FA.v", "sub": "full adder (parity)",
-      "role": "render", "parent": "grid_mapper.v",
-      "x": 852, "y": 664, "w": 190, "h": 60 },
+    { "file": "FA.v", "label": "FA.v", "sub": "1-bit full adder",
+      "role": "arith", "parent": "grid_mapper.v",
+      "x": 852, "y": 690, "w": 190, "h": 62 },
+
+    { "file": "Lim_Inc.v", "label": "Lim_Inc.v", "sub": "limited incrementer (mod L)",
+      "role": "arith", "parent": "snake.v",
+      "x": 330, "y": 690, "w": 190, "h": 62 },
+    { "file": "CSA.v", "label": "CSA.v", "sub": "conditional-sum adder",
+      "role": "arith", "parent": "Lim_Inc.v",
+      "x": 570, "y": 690, "w": 160, "h": 62 },
 
     { "file": "Debouncer.v", "label": "Debouncer.v", "sub": "clean start button",
       "role": "interface", "parent": "snake_game.v",
@@ -103,8 +111,15 @@
 
     { "points": [[947, 444], [947, 540]], "style": "plain",
       "label": "contains", "label_pos": [955, 492], "label_anchor": "lm", "label_size": 9 },
-    { "points": [[947, 606], [947, 664]], "style": "plain",
-      "label": "contains", "label_pos": [955, 635], "label_anchor": "lm", "label_size": 9 },
+    { "points": [[947, 606], [947, 690]], "style": "plain",
+      "label": "contains", "label_pos": [955, 646], "label_anchor": "lm", "label_size": 9 },
+
+    { "points": [[600, 452], [600, 505], [425, 505], [425, 690]], "style": "plain",
+      "label": "uses", "label_pos": [437, 600], "label_anchor": "lm", "label_size": 9 },
+    { "points": [[520, 721], [570, 721]], "style": "plain",
+      "label": "contains", "label_pos": [545, 707], "label_anchor": "mm", "label_size": 9 },
+    { "points": [[730, 721], [852, 721]], "style": "plain",
+      "label": "contains", "label_pos": [791, 709], "label_anchor": "mm", "label_size": 9 },
 
     { "points": [[570, 78], [570, 168]], "style": "dashed",
       "label": "unit tb", "label_pos": [578, 120], "label_anchor": "lm", "label_size": 9 },
@@ -120,7 +135,8 @@
   "texts": [
     { "text": "keyboard ->", "pos": [60, 338], "anchor": "lm", "size": 11, "color": "#64748b" },
     { "text": "-> monitor", "pos": [1322, 338], "anchor": "rm", "size": 11, "color": "#64748b" },
-    { "text": "reset -> all blocks", "pos": [300, 596], "anchor": "lm", "size": 10, "color": "#64748b" }
+    { "text": "reset -> all blocks", "pos": [300, 596], "anchor": "lm", "size": 10, "color": "#64748b" },
+    { "text": "reused arithmetic - also used by game_tick.v", "pos": [335, 770], "anchor": "lm", "size": 9, "color": "#64748b" }
   ],
   "legend": {
     "pos": [40, 838], "size": 11,
@@ -130,6 +146,7 @@
       { "role": "core",      "label": "core logic" },
       { "role": "generator", "label": "generators" },
       { "role": "render",    "label": "rendering" },
+      { "role": "arith",     "label": "Math · Stopwatch Lab" },
       { "role": "tb",        "label": "testbench" }
     ]
   }
