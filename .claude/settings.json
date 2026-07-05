@@ -42,7 +42,22 @@
       "Bash(make clean *)",
       "Bash(make)",
       "Bash(make run *)",
-      "Bash(awk 'NR<=12 || /crash=1/ || /state=2/ || /state=0/')"
+      "Bash(awk 'NR<=12 || /crash=1/ || /state=2/ || /state=0/')",
+      "Bash(python3 -c \"import sys; print\\(sys.version\\)\")",
+      "Bash(python3 -c \"import matplotlib; print\\('matplotlib', matplotlib.__version__\\)\")",
+      "Bash(python3 -c \"import PIL; print\\('PIL', PIL.__version__\\)\")",
+      "Bash(python3 draw_hierarchy.py all)",
+      "Bash(python3 draw_hierarchy.py farmer.v snake.v)",
+      "Bash(python3 draw_hierarchy.py farmer.v snake.v farmer_tb.v)",
+      "Bash(python3 draw_hierarchy.py snake_game.v snake_game_tb.v)",
+      "Bash(python3 draw_hierarchy.py Ps2_Interface.v Debouncer.v Navigation_System.v)",
+      "Bash(python3 draw_hierarchy.py game_tick.v tick_tb.v)",
+      "Bash(python3 draw_hierarchy.py Pixel_Painter.v grid_mapper.v FA.v)",
+      "Bash(python3 draw_hierarchy.py VGA_Interface.v Seg_7_Display.v)",
+      "Bash(pdflatex --version)",
+      "Bash(pdflatex -interaction=nonstopmode -halt-on-error report.tex)",
+      "Bash(echo \"exit: $?\")",
+      "Read(//tmp/**)"
     ],
     "additionalDirectories": [
       "/Users/saleh/Desktop/TAU/FPGA/FPGA_git/LAB_07/img"
