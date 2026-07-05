@@ -22,6 +22,8 @@ SRC := \
 	farmer.v \
 	snake.v \
 	FA.v \
+	Lim_Inc.v \
+	CSA.v \
 	snake_game_tb.v
 
 ##################################################

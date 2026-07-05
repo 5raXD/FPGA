@@ -21,6 +21,7 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
     output wire is_food, // Query: is this food block?
     // Outputs - game status
     output reg crash,
+    output reg [15:0] length,
     output wire [15:0] score
     );
 
@@ -35,7 +36,7 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
     // the body
     reg [$clog2(GRID_X)-1:0] body_x [0:MAX_LEN-1];
     reg [$clog2(GRID_Y)-1:0] body_y [0:MAX_LEN-1];
-    reg [15:0] length;
+    // reg [15:0] length;
     // head position
     wire [$clog2(GRID_X)-1:0] head_x = body_x[0];
     wire [$clog2(GRID_Y)-1:0] head_y = body_y[0];
@@ -83,12 +84,34 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
         tick_d <= tick;
     end
 
+    localparam MAX_DIGIT = 10;
+
+    reg  [3:0] digit_0;
+    reg  [3:0] digit_1;
+    wire [3:0] digit_0_next;
+    wire [3:0] digit_1_next;
+    wire co0;
+    Lim_Inc #(.L(MAX_DIGIT)) dig_0 (
+        .a(digit_0),
+        .ci(1'b1),
+        .sum(digit_0_next),
+        .co(co0)
+    );
+    Lim_Inc #(.L(MAX_DIGIT)) dig_1 (
+        .a(digit_1),
+        .ci(co0),
+        .sum(digit_1_next),
+        .co()
+    );
+
     always @(posedge clk) begin
         if(reset) begin
             length <= 1;
             body_x[0] <= GRID_X >>1;
             body_y[0] <= GRID_Y >>1;
             crash <= 0;
+            digit_0 <= 0;
+            digit_1 <= 0;
         end else if(tick_d && !crash) begin
             // check for crash with walls or self
             if(next_x_r >= GRID_X || next_y_r >= GRID_Y || hit_self_r) begin
@@ -102,8 +125,11 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
                 body_x[0] <= next_x_r;
                 body_y[0] <= next_y_r;
                 // grow when food is eaten
-                if(is_eaten_r && length < MAX_LEN)
+                if(is_eaten_r && length < MAX_LEN) begin
                     length <= length + 1;
+                    digit_0 <= digit_0_next;
+                    digit_1 <= digit_1_next;
+                end
             end
         end
     end
@@ -144,11 +170,11 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
         end
     end
 
-    
+
     assign on_snake = on_snake_q;
     assign is_head =  (body_x[0] == x) && (body_y[0] == y);
     assign is_food =  (x == plant_x) && (y == plant_y);
-    assign score = length;
+    assign score = {8'b0, digit_1, digit_0};
     assign is_eaten = (next_x == plant_x) && (next_y == plant_y);
 
 endmodule

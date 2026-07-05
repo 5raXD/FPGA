@@ -34,6 +34,7 @@ module snake_game(
     wire [11:0] pixel_color;
     wire reset;
     wire [15:0] score;
+    wire [15:0] length;
     wire tick;
     wire [$clog2(GRID_X)-1:0] x;
     wire [$clog2(GRID_Y)-1:0] y;
@@ -153,6 +154,7 @@ module snake_game(
         //.food_on_snake(food_on_snake),
         // Outputs - game status
         .crash(crash),
+        .length(length),
         .score(score)
     );
 //test
@@ -161,7 +163,7 @@ module snake_game(
         // Inputs
         .clk(clk),
         .reset(reset),
-        .score(score),
+        .score(length),
         // Outputs
         .tick(tick)
     );
