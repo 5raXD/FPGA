@@ -25,7 +25,7 @@ module snake_game_tb();
     wire [3:0] an;
     wire dp;
 
-    snake_game dut(
+    snake_game #(.TICK_MAX(500)) dut(
         // inputs
         .clk(clk),
         .rst(rst),
@@ -45,22 +45,6 @@ module snake_game_tb();
     );
 
     always #5 clk = ~clk; // 100MHz clk
-
-    // The real Game_Tick is 7Hz (~14.3M clks/move) - far too slow to see in sim.
-    // Generate a fast tick here and force it onto the game's tick net.
-    localparam TICK_PERIOD = 500; // clks between ticks -> 5us
-    reg tb_tick = 0;
-    integer tcnt = 0;
-    always @(posedge clk) begin
-        if (tcnt == TICK_PERIOD-1) begin 
-            tcnt <= 0;        
-            tb_tick <= 1'b1; 
-        end
-        else begin 
-            tcnt <= tcnt + 1; 
-            tb_tick <= 1'b0; 
-        end
-    end
 
     // ---- PS/2 device -> host frame ----
     task ps2_bit(input v);
@@ -116,13 +100,35 @@ module snake_game_tb();
         rst = 0; 
         PS2Clk = 1; 
         PS2Data = 1;
-        force dut.tick = tb_tick; // drive the game from our fast tick
 
         pulse_reset;
         repeat (50) @(posedge clk);
 
+        // Scenario 1: snake crashes into wall
+
         ps2_tap(ZERO_KEY);   // IDLE -> PLAY, snake starts moving RIGHT
         #40_000;              // let it run a few ticks
+
+        ps2_tap(UP_KEY);     // change direction to UP
+        repeat (5) #40_000;              // let it run a few ticks
+
+
+        // Scenario 2: eat one bite of food and die
+        ps2_tap(UP_KEY);     // change direction to UP
+        repeat (2) #40_000;
+        
+        go_x = (dut.snake.plant_x <= dut.snake.head_x)? 1'b0 : 1'b1; // 1 = move right, 0 = move left
+        go_y = (dut.snake.plant_y <= dut.snake.head_y)? 1'b0 : 1'b1; // 1 = move down, 0 = move up
+
+        if(go_x) ps2_tap(RIGHT_KEY);
+        else ps2_tap(UP_KEY);
+        wait(dut.snake.plant_x == dut.snake.head_x);
+
+        if(go_y) ps2_tap(DOWN_KEY);
+        else ps2_tap(UP_KEY);
+        wait(dut.snake.plant_y == dut.snake.head_y);
+
+        repeat (5) #40_000; // let it run a few ticks
 
 
         $finish;
@@ -139,7 +145,7 @@ module snake_game_tb();
 
     // Safety timeout
     initial begin
-        #2_000_000;
+        #100_000_000;
         $display("timeout");
         $finish;
     end
