@@ -36,7 +36,7 @@ module farmer_tb();
 
         clk = 0;
         keyPressed = 0;
-        repeat(2*GRID_X*GRID_Y) #5 clk = ~clk; // Almost 2 hit per block
+        repeat(2*GRID_X*GRID_Y) @(posedge clk); // Almost 2 hit per block
         $finish;
     end
 
