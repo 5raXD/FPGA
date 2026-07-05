@@ -104,6 +104,15 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
         .co()
     );
 
+    localparam LEN_BITS = $clog2(MAX_LEN+1);
+    wire [LEN_BITS-1:0] length_inc;
+    Lim_Inc #(.L(MAX_LEN+1)) len_incrementer (
+        .a(length[LEN_BITS-1:0]),
+        .ci(1'b1),
+        .sum(length_inc),
+        .co()
+    );
+
     always @(posedge clk) begin
         if(reset) begin
             length <= 1;
@@ -126,7 +135,7 @@ module Snake #(parameter GRID_X = 100, GRID_Y = 75)(
                 body_y[0] <= next_y_r;
                 // grow when food is eaten
                 if(is_eaten_r && length < MAX_LEN) begin
-                    length <= length + 1;
+                    length <= {{(16-LEN_BITS){1'b0}}, length_inc};
                     digit_0 <= digit_0_next;
                     digit_1 <= digit_1_next;
                 end
