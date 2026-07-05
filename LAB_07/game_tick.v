@@ -12,7 +12,7 @@ module Game_Tick #(parameter TICK_MAX = 14_285_714)( // 7Hz tick for 100MHz cloc
     output reg  tick
     );
 
-    localparam TICK_INC = 262_144;
+    localparam TICK_INC = 184_152;
     localparam MAX_STEPS = (TICK_MAX-1)/TICK_INC;
 
     reg [$clog2(TICK_MAX)-1:0] cnt;
