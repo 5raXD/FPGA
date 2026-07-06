@@ -93,6 +93,8 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     wire in_tens    = (img_x >= 8'd92)  && (img_x <= 8'd99);
     wire in_ones    = (img_x >= 8'd100) && (img_x <= 8'd107);
     wire score_region = (state == GAME_OVER) && in_score_y && (in_tens || in_ones);
+    //img_y 0..7 (YCoord 0..31); final_score tracks score_in while palying
+    wire hud_region = (state == PLAY) && (img_y <= 8'd7) && (in_tens || in_ones);
 
     wire [3:0] sc_digit = in_tens ? final_score[7:4] : final_score[3:0];
     reg  [63:0] dglyph;
@@ -137,7 +139,7 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
             default: block_color = BLACK;
         endcase
         // assignment overrides the case above wherever a digit pixel is lit
-        if (score_region && score_pix)
+        if ((score_region || hud_region) && score_pix)
             block_color = SCORE_COLOR;
     end
 
