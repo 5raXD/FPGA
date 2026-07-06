@@ -92,8 +92,8 @@
     \toprule
     \textbf{Name} & \textbf{ID} \\
     \midrule
-    Saleh Khalil    & \IDone \\
-    Mahmood Isteteh & \IDtwo \\
+    Saleh Khalil    & \ 213310485 \\
+    Mahmood Isteteh & \ 214032682 \\
     \bottomrule
   \end{tabular}\\[2.2cm]
 
@@ -243,12 +243,13 @@ two ``generator'' blocks feeding the core:
 % =====================================================================
 \section{Top-Level Integration}
 % =====================================================================
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{hierarchy_snake_game_snake_game_tb.png}
-  \caption{The top-level block and its integration testbench highlighted.}
-  \label{fig:hier-top}
-\end{figure}
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=\textwidth]{hierarchy_snake_game_snake_game_tb.png}
+%   \caption{The top-level block and its integration testbench highlighted.}
+%   \label{fig:hier-top}
+% \end{figure}
+\placeholderbox{5cm}{The top-level block and its integration testbench highlighted.}
 
 \subsection{\texttt{snake\_game.v} -- top level}
 \textbf{Purpose.} Wires all blocks together and maps the design to the
@@ -309,11 +310,12 @@ This block turns the physical inputs (keyboard, push-button) into clean
 internal signals: \texttt{scancode}/\texttt{keyPressed}, the snake
 direction \texttt{dir}, and the global \texttt{reset}.
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{hierarchy_Ps2_Interface_Debouncer_Navigation_System.png}
-  \caption{Input and control block highlighted.}
-\end{figure}
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=\textwidth]{hierarchy_Ps2_Interface_Debouncer_Navigation_System.png}
+%   \caption{Input and control block highlighted.}
+% \end{figure}
+\placeholderbox{5cm}{Input and control block highlighted.}
 
 \subsection{\texttt{Ps2\_Interface.v}}
 \textbf{Purpose.} Receives PS/2 keyboard frames and outputs the make
@@ -395,12 +397,14 @@ accordingly; a reversal attempt is visible as an ignored key.
 % =====================================================================
 \section{Game Logic Block}
 % =====================================================================
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{hierarchy_farmer_snake_farmer_tb.png}
-  \caption{Game-logic block highlighted: the snake core, its food
-  generator and the food-coverage testbench.}
-\end{figure}
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=\textwidth]{hierarchy_farmer_snake_farmer_tb.png}
+%   \caption{Game-logic block highlighted: the snake core, its food
+%   generator and the food-coverage testbench.}
+% \end{figure}
+\placeholderbox{5cm}{Game-logic block highlighted: the snake core, its food
+generator and the food-coverage testbench.}
 
 \subsection{\texttt{snake.v} -- the game core}
 \textbf{Purpose.} Owns the snake body, movement, growth, collision
@@ -532,11 +536,12 @@ steps up, and on \texttt{tick\_speed} saturating once the clamp
 % =====================================================================
 \section{Rendering Block}
 % =====================================================================
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{hierarchy_Pixel_Painter_grid_mapper_FA.png}
-  \caption{Rendering block highlighted.}
-\end{figure}
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=\textwidth]{hierarchy_Pixel_Painter_grid_mapper_FA.png}
+%   \caption{Rendering block highlighted.}
+% \end{figure}
+\placeholderbox{5cm}{Rendering block highlighted.}
 
 \subsection{\texttt{Pixel\_Painter.v}}
 \textbf{Purpose.} Bridges between the pixel domain (VGA scan
@@ -604,11 +609,12 @@ visible checkerboard in every gameplay screenshot.
 % =====================================================================
 \section{Output Block}
 % =====================================================================
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{hierarchy_VGA_Interface_Seg_7_Display.png}
-  \caption{Output block highlighted.}
-\end{figure}
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=\textwidth]{hierarchy_VGA_Interface_Seg_7_Display.png}
+%   \caption{Output block highlighted.}
+% \end{figure}
+\placeholderbox{5cm}{Output block highlighted.}
 
 \subsection{\texttt{VGA\_Interface.v}}
 \textbf{Purpose.} Generates VESA $800\times600$ @ 72\,Hz timing, drives
