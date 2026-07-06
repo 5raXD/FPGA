@@ -111,14 +111,10 @@
 \section{Introduction}
 % =====================================================================
 In this experiment we designed and implemented a complete \emph{Snake}
-game on the Digilent Basys3 board (Xilinx Artix-7, XC7A35T). The game is
+game on the Digilent Basys3 board. The game is
 displayed on a computer monitor through the VGA interface, the current
 score is shown on the on-board 4-digit 7-segment display, and the player
-steers the snake with a PS/2 keyboard. Unlike previous experiments, no
-skeleton code was supplied for the game itself: the game modules were
-designed from scratch, while proven building blocks from previous labs
-(PS/2 interface, VGA interface, 7-segment driver, debouncer, full adder)
-were reused and adapted.
+steers the snake with a PS/2 keyboard.
 
 \subsection{Game rules}
 The playing field is a $100\times75$ grid of $8\times8$-pixel cells on an
@@ -127,120 +123,130 @@ the current direction; eating the red food cell makes it grow by one cell
 and increments the score, and every food item also makes the game tick
 slightly faster. The game ends when the snake hits a wall or its own
 body, after which a game-over screen is shown and the game can be
-restarted with a key press.
+restarted by pressing any key on the keyboard.
 
-\subsection{Requirement coverage}
-Table~\ref{tab:reqs} maps every requirement of the assignment to the
-place in the design where it is fulfilled.
+% \subsection{Requirements}
+% Table~\ref{tab:reqs} maps every requirement of the assignment to the
+% place in the design where it is fulfilled.
 
-\begin{table}[H]
-  \centering\small
-  \caption{Assignment requirements and where they are implemented.}
-  \label{tab:reqs}
-  \begin{tabular}{p{0.42\textwidth}p{0.50\textwidth}}
-    \toprule
-    \textbf{Requirement} & \textbf{Implementation} \\
-    \midrule
-    1a. Visualize the game via VGA &
-      \texttt{VGA\_Interface.v} (sync/scan) + \texttt{Pixel\_Painter.v}
-      (per-pixel colour), $800\times600$. \\
-    1b. Snake and food clearly distinguishable &
-      Dark grey body (\texttt{0x444}), darker head (\texttt{0x222}), red
-      food (\texttt{0xF11}) on a two-tone green checkerboard
-      (\texttt{grid\_mapper.v}). \\
-    1c. Sufficient refresh rate &
-      VESA $800\times600$ @ 72\,Hz (50\,MHz pixel clock). \\
-    2a. Score on the 7-segment display &
-      \texttt{Seg\_7\_Display.v} driven by the snake length. \\
-    2b. Score increments when food is eaten &
-      \texttt{score = length} in \texttt{snake.v}; length grows on eat. \\
-    3a. Keyboard control, 4/6/8/5 = left/right/up/down &
-      \texttt{Navigation\_System.v}, scancodes \texttt{6B/74/75/73}. \\
-    3b. No immediate direction reversal &
-      Guarded direction update (e.g.\ LEFT forbidden while RIGHT). \\
-    4a. Game-over on wall / self collision &
-      \texttt{crash} logic in \texttt{snake.v}. \\
-    4b. \textbf{Bonus}: game-over screen &
-      Skull ``YOU DIED'' bitmap screen in \texttt{grid\_mapper.v}; a
-      welcome splash screen was added as well. \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+% \begin{table}[H]
+%   \centering\small
+%   \caption{Assignment requirements and where they are implemented.}
+%   \label{tab:reqs}
+%   \begin{tabular}{p{0.42\textwidth}p{0.50\textwidth}}
+%     \toprule
+%     \textbf{Requirement} & \textbf{Implementation} \\
+%     \midrule
+%     1a. Visualize the game via VGA &
+%       \texttt{VGA\_Interface.v} (sync/scan) + \texttt{Pixel\_Painter.v}
+%       (per-pixel colour), $800\times600$. \\
+%     1b. Snake and food clearly distinguishable &
+%       Dark grey body (\texttt{0x444}), darker head (\texttt{0x222}), red
+%       food (\texttt{0xF11}) on a two-tone green checkerboard
+%       (\texttt{grid\_mapper.v}). \\
+%     1c. Sufficient refresh rate &
+%       VESA $800\times600$ @ 72\,Hz (50\,MHz pixel clock). \\
+%     2a. Score on the 7-segment display &
+%       \texttt{Seg\_7\_Display.v} driven by the snake length. \\
+%     2b. Score increments when food is eaten &
+%       \texttt{score = length} in \texttt{snake.v}; length grows on eat. \\
+%     3a. Keyboard control, 4/6/8/5 = left/right/up/down &
+%       \texttt{Navigation\_System.v}, scancodes \texttt{6B/74/75/73}. \\
+%     3b. No immediate direction reversal &
+%       Guarded direction update (e.g.\ LEFT forbidden while RIGHT). \\
+%     4a. Game-over on wall / self collision &
+%       \texttt{crash} logic in \texttt{snake.v}. \\
+%     4b. \textbf{Bonus}: game-over screen &
+%       Skull ``YOU DIED'' bitmap screen in \texttt{grid\_mapper.v}; a
+%       welcome splash screen was added as well. \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
 
 % =====================================================================
+% \newpage
+\vspace{1cm}
 \section{Design Overview}
 % =====================================================================
 \subsection{High-level block diagram}
-Figure~\ref{fig:hier-all} shows the complete design: every Verilog file,
-the hierarchy (who instantiates whom), the dataflow between the blocks,
-and the three testbenches. Colours indicate the role of each block.
+Figure~\ref{fig:hier-all} shows the complete desig, dataflow between the blocks and the three testbenches.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{hierarchy_all.png}
-  \caption{Full design map: file hierarchy, dataflow and testbenches.
-  Blue = interface/IO, green = core logic, yellow = generators,
-  purple = rendering, dashed = testbenches.}
+  \caption{Full design map}
   \label{fig:hier-all}
 \end{figure}
 
-\subsection{How the modules interact}
-The design is a single pipeline from the keyboard to the monitor, with
-two ``generator'' blocks feeding the core:
 
-\begin{enumerate}
-  \item \texttt{Ps2\_Interface} deserializes PS/2 frames from the
-        keyboard into a \texttt{scancode} plus a one-clock
-        \texttt{keyPressed} pulse.
-  \item \texttt{Navigation\_System} translates scancodes into a 2-bit
-        direction \texttt{dir}, rejecting $180^{\circ}$ reversals.
-  \item \texttt{Game\_Tick} produces the movement strobe \texttt{tick}
-        ($\approx$7\,Hz at reset) and shortens the period as the score
-        grows -- the game gets faster the longer the snake is.
-  \item \texttt{snake} (the core) keeps the body coordinates, advances
-        the head on every tick, detects wall/self collisions, grows when
-        food is eaten and outputs the score. Internally it instantiates
-        \texttt{farmer}, the LFSR-based food generator.
-  \item \texttt{Pixel\_Painter} + \texttt{GridMapper} convert the VGA
-        scan coordinates into a grid-cell query towards \texttt{snake}
-        (``is this cell body / head / food?'') and answer with the pixel
-        colour for the current screen (welcome / play / game over).
-  \item \texttt{VGA\_Interface} generates sync and scan coordinates and
-        drives the RGB pins; \texttt{Seg\_7\_Display} shows the score;
-        \texttt{Debouncer} cleans the centre push-button into a reset
-        pulse.
-\end{enumerate}
-
+\newpage
 \subsection{File inventory}
 \begin{table}[H]
   \centering\small
-  \caption{All Verilog files, their modules and origin.}
+  \caption{All files and their modules}
   \label{tab:files}
   \begin{tabular}{llll}
     \toprule
     \textbf{File} & \textbf{Module} & \textbf{Role} & \textbf{Origin} \\
     \midrule
-    \texttt{snake\_game.v}        & \texttt{snake\_game}        & top level            & new \\
+    \texttt{FA.v}                 & \texttt{FA}                 & 1-bit full adder           & reuse (Lab 1) \\
+    \texttt{CSA.v}                & \texttt{CSA}                & conditional sum adder & reuse (Lab 1) \\
+    \texttt{Debouncer.v}          & \texttt{Debouncer}          & signal debounce      & reuse (Lab 1) \\
+    \texttt{Seg\_7\_Display.v}    & \texttt{Seg\_7\_Display}    & score display        & reuse (Lab 1) \\
+    \texttt{Lim\_Inc.v}           & \texttt{Lim\_Inc}           & limited incrementer  & reuse (Lab 2) \\
     \texttt{Ps2\_Interface.v}     & \texttt{Ps2\_Interface}     & keyboard interface   & reuse (Lab 5) \\
-    \texttt{Navigation\_System.v} & \texttt{Navigation\_System} & direction control    & new \\
-    \texttt{Debouncer.v}          & \texttt{Debouncer}          & button conditioning  & reuse (Lab 1) \\
-    \texttt{game\_tick.v}         & \texttt{Game\_Tick}         & movement strobe      & new \\
+    \texttt{VGA\_Interface.v}     & \texttt{VGA\_Interface}     & VGA interface        & reuse (Lab 6) \\
+    \midrule
+    \texttt{game\_tick.v}         & \texttt{Game\_Tick}         & movement speed      & new \\
     \texttt{snake.v}              & \texttt{Snake}              & game core            & new \\
     \texttt{farmer.v}             & \texttt{farmer}             & food generator       & new \\
     \texttt{Pixel\_Painter.v}     & \texttt{Pixel\_Painter}     & rendering            & new \\
-    \texttt{grid\_mapper.v}       & \texttt{GridMapper}         & rendering FSM        & new \\
-    \texttt{FA.v}                 & \texttt{FA}                 & full adder           & reuse (Lab 1) \\
-    \texttt{VGA\_Interface.v}     & \texttt{VGA\_Interface}     & VGA sync/scan        & reuse (Lab 6) \\
-    \texttt{Seg\_7\_Display.v}    & \texttt{Seg\_7\_Display}    & score display        & reuse (Lab 1) \\
-    \midrule
+    \texttt{grid\_mapper.v}       & \texttt{GridMapper}         & grid rendering         & new \\
     \texttt{snake\_game\_tb.v}    & \texttt{snake\_game\_tb}    & integration testbench & new \\
-    \texttt{farmer\_tb.v}         & \texttt{farmer\_tb}         & unit testbench        & new \\
-    \texttt{tick\_tb.v}           & \texttt{tick\_tb}           & unit testbench        & new \\
+    \texttt{farmer\_tb.v}         & \texttt{farmer\_tb}         & farmer testbench        & new \\
+    \texttt{tick\_tb.v}           & \texttt{tick\_tb}           & dynamic tick testbench        & new \\
+    \texttt{Navigation\_System.v} & \texttt{Navigation\_System} & direction control    & new \\
+    \texttt{snake\_game.v}        & \texttt{snake\_game}        & top level            & new \\
+    \midrule
+    \texttt{task3.xdc}        & \texttt{-}        & Constraints            & new \\
     \bottomrule
   \end{tabular}
 \end{table}
 
+
+
+
+% \subsection{How the modules interact}
+% The design is a single pipeline from the keyboard to the monitor, with
+% two ``generator'' blocks feeding the core:
+
+% \begin{enumerate}
+%   \item \texttt{Ps2\_Interface} deserializes PS/2 frames from the
+%         keyboard into a \texttt{scancode} plus a one-clock
+%         \texttt{keyPressed} pulse.
+%   \item \texttt{Navigation\_System} translates scancodes into a 2-bit
+%         direction \texttt{dir}, rejecting $180^{\circ}$ reversals.
+%   \item \texttt{Game\_Tick} produces the movement strobe \texttt{tick}
+%         ($\approx$7\,Hz at reset) and shortens the period as the score
+%         grows -- the game gets faster the longer the snake is.
+%   \item \texttt{snake} (the core) keeps the body coordinates, advances
+%         the head on every tick, detects wall/self collisions, grows when
+%         food is eaten and outputs the score. Internally it instantiates
+%         \texttt{farmer}, the LFSR-based food generator.
+%   \item \texttt{Pixel\_Painter} + \texttt{GridMapper} convert the VGA
+%         scan coordinates into a grid-cell query towards \texttt{snake}
+%         (``is this cell body / head / food?'') and answer with the pixel
+%         colour for the current screen (welcome / play / game over).
+%   \item \texttt{VGA\_Interface} generates sync and scan coordinates and
+%         drives the RGB pins; \texttt{Seg\_7\_Display} shows the score;
+%         \texttt{Debouncer} cleans the centre push-button into a reset
+%         pulse.
+% \end{enumerate}
+
+
+
 % =====================================================================
+\vspace{1cm}
 \section{Top-Level Integration}
 % =====================================================================
 % \begin{figure}[H]
@@ -249,18 +255,16 @@ two ``generator'' blocks feeding the core:
 %   \caption{The top-level block and its integration testbench highlighted.}
 %   \label{fig:hier-top}
 % \end{figure}
-\placeholderbox{5cm}{The top-level block and its integration testbench highlighted.}
+% \placeholderbox{5cm}{The top-level block and its integration testbench highlighted.}
 
 \subsection{\texttt{snake\_game.v} -- top level}
 \textbf{Purpose.} Wires all blocks together and maps the design to the
-Basys3 pins (constraints in \texttt{task3.xdc}). It contains no game
-logic of its own -- only instantiations and the shared nets
-(\texttt{dir}, \texttt{tick}, \texttt{score}, cell-query signals,
-\texttt{pixel\_color}).
+Basys3 pins (constraints in \texttt{task3.xdc}). It does not contain any game
+logic of its own, only instantiations and connect modules together.
 
 \begin{table}[H]
   \centering\small
-  \caption{\texttt{snake\_game} interface.}
+  \caption{\texttt{snake\_game} ports}
   \begin{tabular}{lllp{0.45\textwidth}}
     \toprule
     \textbf{Port} & \textbf{Dir} & \textbf{Width} & \textbf{Description} \\
@@ -275,6 +279,27 @@ logic of its own -- only instantiations and the shared nets
     \bottomrule
   \end{tabular}
 \end{table}
+
+some of the instantiated modules are for IO purposes and the reset are handle internal logic of the game 
+
+subsubsection{IO modules}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{hierarchy_IO.png}
+  \caption{}
+  \label{fig:hier-top}
+\end{figure}
+
+subsubsection{Internal logic modules}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{hierarchy_IO.png}
+  \caption{}
+  \label{fig:hier-top}
+\end{figure}
+
 
 \textbf{Internal design.} The grid size is parameterised
 (\texttt{GRID\_X}$\,=100$, \texttt{GRID\_Y}$\,=75$) and forwarded to all
