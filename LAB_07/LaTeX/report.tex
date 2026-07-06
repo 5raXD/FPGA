@@ -139,7 +139,7 @@ restarted by pressing any key on the keyboard.
 %     \midrule
 %     1a. Visualize the game via VGA &
 %       \texttt{VGA\_Interface.v} (sync/scan) + \texttt{Pixel\_Painter.v}
-%       (per-pixel colour), $800\times600$. \\
+%       (per-pixel color), $800\times600$. \\
 %     1b. Snake and food clearly distinguishable &
 %       Dark grey body (\texttt{0x444}), darker head (\texttt{0x222}), red
 %       food (\texttt{0xF11}) on a two-tone green checkerboard
@@ -236,7 +236,7 @@ Figure~\ref{fig:hier-all} shows the complete desig, dataflow between the blocks 
 %   \item \texttt{Pixel\_Painter} + \texttt{GridMapper} convert the VGA
 %         scan coordinates into a grid-cell query towards \texttt{snake}
 %         (``is this cell body / head / food?'') and answer with the pixel
-%         colour for the current screen (welcome / play / game over).
+%         color for the current screen (welcome / play / game over).
 %   \item \texttt{VGA\_Interface} generates sync and scan coordinates and
 %         drives the RGB pins; \texttt{Seg\_7\_Display} shows the score;
 %         \texttt{Debouncer} cleans the centre push-button into a reset
@@ -271,7 +271,7 @@ only the module instantiations and the wires all modules together.
     \texttt{rst}      & in  & 1 & Centre button, active high (U18). \\
     \texttt{PS2Clk}   & in  & 1 & Keyboard clock (C17). \\
     \texttt{PS2Data}  & in  & 1 & Keyboard data (B17). \\
-    \texttt{vgaRed/Green/Blue} & out & $3\times4$ & VGA colour channels. \\
+    \texttt{vgaRed/Green/Blue} & out & $3\times4$ & VGA color channels. \\
     \texttt{Hsync}, \texttt{Vsync} & out & 1 & VGA synchronisation. \\
     \texttt{a\_to\_g}, \texttt{an}, \texttt{dp} & out & 7/4/1 & 7-segment display. \\
     \bottomrule
@@ -333,29 +333,36 @@ are covered in the next subsection.
 % $\rightarrow$ GAME\_OVER, key $\rightarrow$ back to IDLE. One log line is
 % printed per tick with the head position, length, direction, crash flag
 % and FSM state.
-\subsection{ \texttt{snake\_game.v} Testbench - \texttt{snake\_game\_tb.v}}
 
 
+\newpage
+\subsection{\texttt{snake\_game\_tb.v} -- integration testbench}
 
 \begin{itemize}
-  \item \textbf{\texttt{Ps2\_Interface.v}} -- Receives PS/2 keyboard frames
-    and outputs the make scancode with a single-clock \texttt{keyPressed}.
-  \item \textbf{\texttt{Debouncer.v}} -- Converts the bouncy centre
-    push-button into a single one-clock reset pulse.
-  \item \textbf{\texttt{VGA\_Interface.v}} -- Generates VGA signals for
-    $800\times600$ @ 72\,Hz display, drives the RGB pins with the color
-    supplied by the \texttt{Pixel\_Painter.v} module, and exports the scan coordinates.
-  \item \textbf{\texttt{Seg\_7\_Display.v}} -- Shows the 2-digit score supplied by the \texttt{Snake.v} module on the 7-segment display.
+  \item \textbf{Scenario 1 -- crash without eating.} The snake drives
+    straight into a wall without eating any food. The FSM transitions
+    correctly (IDLE $\rightarrow$ PLAY $\rightarrow$ GAME\_OVER) and the
+    length stays at 1 throughout.
+  \placeholderbox{5.2cm}{Annotated waveform of \texttt{snake\_game\_tb}
+    Scenario 1: \texttt{keyPressed} pulses, \texttt{dir} changes,
+    \texttt{tick} strobes, head coordinates advancing straight into a
+    wall, \texttt{crash} rising, and the \texttt{state} transition to
+    GAME\_OVER with \texttt{length} fixed at 1.}
+  \item \textbf{Scenario 2 -- eat then crash.} The snake eats one food
+    item, growing to length 2 and confirming that \texttt{snake.v}'s
+    growth logic works, then crashes into a wall.
+  \placeholderbox{5.2cm}{Annotated waveform of \texttt{snake\_game\_tb}
+    Scenario 2: \texttt{keyPressed} pulses, \texttt{dir} changes,
+    \texttt{tick} strobes, the food being eaten and \texttt{length}
+    incrementing to 2, head coordinates advancing into a wall,
+    \texttt{crash} rising, and the \texttt{state} transition to
+    GAME\_OVER.}
 \end{itemize}
 
 
 
 
-\placeholderbox{5.2cm}{Annotated waveform of \texttt{snake\_game\_tb}
-(IDLE $\rightarrow$ PLAY $\rightarrow$ GAME\_OVER). Annotate with arrows:
-\texttt{keyPressed} pulses, \texttt{dir} changes, \texttt{tick} strobes,
-head coordinates advancing, \texttt{crash} rising at the wall, and the
-\texttt{state} transition to GAME\_OVER.}
+
 
 % % =====================================================================
 % \section{Input and Control Block}
@@ -600,19 +607,19 @@ steps up, and on \texttt{tick\_speed} saturating once the clamp
 \subsection{\texttt{Pixel\_Painter.v}}
 \textbf{Purpose.} Bridges between the pixel domain (VGA scan
 coordinates) and the cell domain (game grid), and composes the final
-pixel colour.
+pixel color.
 
 \textbf{Internal design.} The scan position is divided by 8
 (\texttt{XCoord >> 3}) to obtain the queried grid cell $(x,y)$, and by 4
 to obtain the $200\times150$ bitmap coordinates used by the splash
-screens. The cell colour returned by \texttt{GridMapper} is overlaid
+screens. The cell color returned by \texttt{GridMapper} is overlaid
 with black 1-pixel grid lines (every 8th row/column) while the game is
 in PLAY; \texttt{start\_game} (i.e.\ ``the game is on the PLAY screen'')
 is exported to the top level, where it releases the snake core from
 reset.
 
 \subsection{\texttt{grid\_mapper.v}}
-\textbf{Purpose.} The screen FSM and colour oracle: decides \emph{what
+\textbf{Purpose.} The screen FSM and color oracle: decides \emph{what
 is shown} for every cell in each game phase.
 
 \textbf{Internal design.} A three-state FSM -- IDLE (welcome screen),
@@ -626,10 +633,10 @@ checkerboard, whose odd/even parity is computed by the reused full adder
 
 \begin{table}[H]
   \centering\small
-  \caption{Colour palette (12-bit RGB) in \texttt{grid\_mapper.v}.}
+  \caption{Color palette (12-bit RGB) in \texttt{grid\_mapper.v}.}
   \begin{tabular}{llll}
     \toprule
-    \textbf{Element} & \textbf{Colour} & \textbf{Element} & \textbf{Colour} \\
+    \textbf{Element} & \textbf{Color} & \textbf{Element} & \textbf{Color} \\
     \midrule
     Snake head & \texttt{0x222} & Background even & \texttt{0x0C0} \\
     Snake body & \texttt{0x444} & Background odd  & \texttt{0x0F0} \\
@@ -672,7 +679,7 @@ visible checkerboard in every gameplay screenshot.
 
 \subsection{\texttt{VGA\_Interface.v}}
 \textbf{Purpose.} Generates VESA $800\times600$ @ 72\,Hz timing, drives
-the RGB pins with the colour supplied by the renderer, and exports the
+the RGB pins with the color supplied by the renderer, and exports the
 scan coordinates.
 
 \begin{table}[H]
@@ -736,10 +743,10 @@ Table~\ref{tab:reuse} summarises what was taken and how it was adapted.
     \texttt{Ps2\_Interface.v} & Lab 5 & Unchanged reuse of the keyboard
       receiver, including break-code handling -- the game only consumes
       \texttt{scancode}/\texttt{keyPressed}. \\
-    \texttt{VGA\_Interface.v} & Lab 6 & Adapted: the colour is now an
+    \texttt{VGA\_Interface.v} & Lab 6 & Adapted: the color is now an
       input (\texttt{pixel\_color}) computed by the new renderer, and the
       scan coordinates are exported so the renderer can answer
-      ``what colour is this pixel?'' on the fly. \\
+      ``what color is this pixel?'' on the fly. \\
     \bottomrule
   \end{tabular}
 \end{table}
