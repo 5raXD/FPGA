@@ -127,6 +127,7 @@ module snake_game(
         // Inputs
         .clk(clk),
         .reset(reset),
+        .tick(tick),
         .scancode(scancode),
         .keyPressed(keyPressed),
         // Outputs
