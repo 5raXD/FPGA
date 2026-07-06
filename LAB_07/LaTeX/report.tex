@@ -258,10 +258,8 @@ Figure~\ref{fig:hier-all} shows the complete desig, dataflow between the blocks 
 % \placeholderbox{5cm}{The top-level block and its integration testbench highlighted.}
 
 \subsection{\texttt{snake\_game.v} -- top level}
-\textbf{Purpose.} Wires all blocks together and maps the design to the
-Basys3 pins (constraints in \texttt{task3.xdc}). It does not contain any game
-logic of its own, only instantiations and connect modules together.
-
+\textbf{Purpose.} Top module file: it holds no logic of its own, 
+only the module instantiations and the wires all modules together.
 \begin{table}[H]
   \centering\small
   \caption{\texttt{snake\_game} ports}
@@ -280,47 +278,78 @@ logic of its own, only instantiations and connect modules together.
   \end{tabular}
 \end{table}
 
-some of the instantiated modules are for IO purposes and the reset are handle internal logic of the game 
-
-subsubsection{IO modules}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{hierarchy_IO.png}
-  \caption{}
-  \label{fig:hier-top}
-\end{figure}
-
-subsubsection{Internal logic modules}
+\newpage
+\subsection{IO modules - under \texttt{snake\_game.v}}
+Of the eight instantiated modules, four are dedicated to moving data on
+and off the board: the keyboard, the VGA monitor, the 7-segment display
+and the reset button. The remaining four hold the actual game logic and
+are covered in the next subsection.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{hierarchy_IO.png}
-  \caption{}
-  \label{fig:hier-top}
+  \caption{IO modules highlighted.}
+  \label{fig:hier-io}
 \end{figure}
 
+\begin{itemize}
+  \item \textbf{\texttt{Ps2\_Interface.v}} -- Receives PS/2 keyboard frames
+    and outputs the make scancode with a single-clock \texttt{keyPressed}.
+  \item \textbf{\texttt{Debouncer.v}} -- Converts the bouncy centre
+    push-button into a single one-clock reset pulse.
+  \item \textbf{\texttt{VGA\_Interface.v}} -- Generates VGA signals for
+    $800\times600$ @ 72\,Hz display, drives the RGB pins with the color
+    supplied by the \texttt{Pixel\_Painter.v} module, and exports the scan coordinates.
+  \item \textbf{\texttt{Seg\_7\_Display.v}} -- Shows the 2-digit score supplied by the \texttt{Snake.v} module on the 7-segment display.
+\end{itemize}
 
-\textbf{Internal design.} The grid size is parameterised
-(\texttt{GRID\_X}$\,=100$, \texttt{GRID\_Y}$\,=75$) and forwarded to all
-parametric sub-modules, so a different grid granularity only requires
-changing these two parameters. The raw button is cleaned by
-\texttt{Debouncer} into the internal \texttt{reset}; the snake core is
-additionally held in reset until the welcome screen is dismissed
-(\texttt{reset | \textasciitilde start\_game}).
+% \subsubsection{Internal logic modules}
 
-\textbf{Verification -- \texttt{snake\_game\_tb.v}.} The integration
-testbench has no ports; it drives \texttt{clk}, \texttt{rst} and a
-behavioural PS/2 \emph{device} model that shifts real 11-bit frames
-(start bit, 8 data bits LSB-first, odd parity, stop bit) on
-\texttt{PS2Clk}/\texttt{PS2Data}, including the \texttt{F0} break codes.
-Because the real movement tick is $\approx$7\,Hz (14.3M clocks), the
-testbench forces a fast tick (one per 500 clocks) onto the internal
-\texttt{tick} net, then walks the game through a full scenario:
-start key $\rightarrow$ PLAY, steer up, steer left, run into the wall
-$\rightarrow$ GAME\_OVER, key $\rightarrow$ back to IDLE. One log line is
-printed per tick with the head position, length, direction, crash flag
-and FSM state.
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=\textwidth]{hierarchy_internal.png}
+%   \caption{Internal logic modules highlighted.}
+%   \label{fig:hier-internal}
+% \end{figure}
+
+
+% \textbf{Internal design.} The grid size is parameterised
+% (\texttt{GRID\_X}$\,=100$, \texttt{GRID\_Y}$\,=75$) and forwarded to all
+% parametric sub-modules, so a different grid granularity only requires
+% changing these two parameters. The raw button is cleaned by
+% \texttt{Debouncer} into the internal \texttt{reset}; the snake core is
+% additionally held in reset until the welcome screen is dismissed
+% (\texttt{reset | \textasciitilde start\_game}).
+
+% \textbf{Verification -- \texttt{snake\_game\_tb.v}.} The integration
+% testbench has no ports; it drives \texttt{clk}, \texttt{rst} and a
+% behavioural PS/2 \emph{device} model that shifts real 11-bit frames
+% (start bit, 8 data bits LSB-first, odd parity, stop bit) on
+% \texttt{PS2Clk}/\texttt{PS2Data}, including the \texttt{F0} break codes.
+% Because the real movement tick is $\approx$7\,Hz (14.3M clocks), the
+% testbench forces a fast tick (one per 500 clocks) onto the internal
+% \texttt{tick} net, then walks the game through a full scenario:
+% start key $\rightarrow$ PLAY, steer up, steer left, run into the wall
+% $\rightarrow$ GAME\_OVER, key $\rightarrow$ back to IDLE. One log line is
+% printed per tick with the head position, length, direction, crash flag
+% and FSM state.
+\subsection{ \texttt{snake\_game.v} Testbench - \texttt{snake\_game\_tb.v}}
+
+
+
+\begin{itemize}
+  \item \textbf{\texttt{Ps2\_Interface.v}} -- Receives PS/2 keyboard frames
+    and outputs the make scancode with a single-clock \texttt{keyPressed}.
+  \item \textbf{\texttt{Debouncer.v}} -- Converts the bouncy centre
+    push-button into a single one-clock reset pulse.
+  \item \textbf{\texttt{VGA\_Interface.v}} -- Generates VGA signals for
+    $800\times600$ @ 72\,Hz display, drives the RGB pins with the color
+    supplied by the \texttt{Pixel\_Painter.v} module, and exports the scan coordinates.
+  \item \textbf{\texttt{Seg\_7\_Display.v}} -- Shows the 2-digit score supplied by the \texttt{Snake.v} module on the 7-segment display.
+\end{itemize}
+
+
+
 
 \placeholderbox{5.2cm}{Annotated waveform of \texttt{snake\_game\_tb}
 (IDLE $\rightarrow$ PLAY $\rightarrow$ GAME\_OVER). Annotate with arrows:
@@ -328,106 +357,106 @@ and FSM state.
 head coordinates advancing, \texttt{crash} rising at the wall, and the
 \texttt{state} transition to GAME\_OVER.}
 
-% =====================================================================
-\section{Input and Control Block}
-% =====================================================================
-This block turns the physical inputs (keyboard, push-button) into clean
-internal signals: \texttt{scancode}/\texttt{keyPressed}, the snake
-direction \texttt{dir}, and the global \texttt{reset}.
+% % =====================================================================
+% \section{Input and Control Block}
+% % =====================================================================
+% This block turns the physical inputs (keyboard, push-button) into clean
+% internal signals: \texttt{scancode}/\texttt{keyPressed}, the snake
+% direction \texttt{dir}, and the global \texttt{reset}.
 
-% \begin{figure}[H]
-%   \centering
-%   \includegraphics[width=\textwidth]{hierarchy_Ps2_Interface_Debouncer_Navigation_System.png}
-%   \caption{Input and control block highlighted.}
-% \end{figure}
-\placeholderbox{5cm}{Input and control block highlighted.}
+% % \begin{figure}[H]
+% %   \centering
+% %   \includegraphics[width=\textwidth]{hierarchy_Ps2_Interface_Debouncer_Navigation_System.png}
+% %   \caption{Input and control block highlighted.}
+% % \end{figure}
+% \placeholderbox{5cm}{Input and control block highlighted.}
 
-\subsection{\texttt{Ps2\_Interface.v}}
-\textbf{Purpose.} Receives PS/2 keyboard frames and outputs the make
-scancode with a single-clock \texttt{keyPressed} strobe.
+% \subsection{\texttt{Ps2\_Interface.v}}
+% \textbf{Purpose.} Receives PS/2 keyboard frames and outputs the make
+% scancode with a single-clock \texttt{keyPressed} strobe.
 
-\begin{table}[H]
-  \centering\small
-  \caption{\texttt{Ps2\_Interface} interface.}
-  \begin{tabular}{lllp{0.45\textwidth}}
-    \toprule
-    \textbf{Port} & \textbf{Dir} & \textbf{Width} & \textbf{Description} \\
-    \midrule
-    \texttt{PS2Clk}  & in  & 1 & Keyboard-generated clock; data sampled on its falling edge. \\
-    \texttt{PS2Data} & in  & 1 & Serial data line. \\
-    \texttt{rstn}    & in  & 1 & Active-low reset. \\
-    \texttt{scancode} & out & 8 & Last accepted make code. \\
-    \texttt{keyPressed} & out & 1 & One-clock pulse per accepted key press. \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+% \begin{table}[H]
+%   \centering\small
+%   \caption{\texttt{Ps2\_Interface} interface.}
+%   \begin{tabular}{lllp{0.45\textwidth}}
+%     \toprule
+%     \textbf{Port} & \textbf{Dir} & \textbf{Width} & \textbf{Description} \\
+%     \midrule
+%     \texttt{PS2Clk}  & in  & 1 & Keyboard-generated clock; data sampled on its falling edge. \\
+%     \texttt{PS2Data} & in  & 1 & Serial data line. \\
+%     \texttt{rstn}    & in  & 1 & Active-low reset. \\
+%     \texttt{scancode} & out & 8 & Last accepted make code. \\
+%     \texttt{keyPressed} & out & 1 & One-clock pulse per accepted key press. \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
 
-\textbf{Internal design.} A 22-bit shift register keeps the last two
-frames. Every 11 bits the current byte is examined: \texttt{E0}
-(extended) and \texttt{F0} (break prefix) are skipped, a byte following
-\texttt{F0} re-arms the receiver, and any other byte is latched as
-\texttt{scancode}. \texttt{keyPressed} fires only if odd parity checks
-out and the receiver is armed, so holding a key does not re-trigger
-until its break code arrives.
+% \textbf{Internal design.} A 22-bit shift register keeps the last two
+% frames. Every 11 bits the current byte is examined: \texttt{E0}
+% (extended) and \texttt{F0} (break prefix) are skipped, a byte following
+% \texttt{F0} re-arms the receiver, and any other byte is latched as
+% \texttt{scancode}. \texttt{keyPressed} fires only if odd parity checks
+% out and the receiver is armed, so holding a key does not re-trigger
+% until its break code arrives.
 
-\textbf{Verification.} Carried over from Lab 5, where it was verified
-with a dedicated testbench; in this lab it is exercised end-to-end by
-\texttt{snake\_game\_tb}, whose PS/2 device model sends full
-make/break sequences.
+% \textbf{Verification.} Carried over from Lab 5, where it was verified
+% with a dedicated testbench; in this lab it is exercised end-to-end by
+% \texttt{snake\_game\_tb}, whose PS/2 device model sends full
+% make/break sequences.
 
-\subsection{\texttt{Debouncer.v}}
-\textbf{Purpose.} Converts the bouncy centre push-button into a single
-one-clock reset pulse.
+% \subsection{\texttt{Debouncer.v}}
+% \textbf{Purpose.} Converts the bouncy centre push-button into a single
+% one-clock reset pulse.
 
-\textbf{Internal design.} A saturating up/down hysteresis counter
-(parameter \texttt{COUNTER\_BITS}$\,=7$) counts towards all-ones while
-the input is high and back down while low; a pulse is emitted on the
-rising edge of the counter MSB. Genuinely parametric: the noise immunity
-grows exponentially with \texttt{COUNTER\_BITS}.
+% \textbf{Internal design.} A saturating up/down hysteresis counter
+% (parameter \texttt{COUNTER\_BITS}$\,=7$) counts towards all-ones while
+% the input is high and back down while low; a pulse is emitted on the
+% rising edge of the counter MSB. Genuinely parametric: the noise immunity
+% grows exponentially with \texttt{COUNTER\_BITS}.
 
-\textbf{Verification.} Proven in earlier labs; exercised here through
-the integration testbench (see also Section~\ref{sec:problems} about its
-simulation-only X-propagation caveat).
+% \textbf{Verification.} Proven in earlier labs; exercised here through
+% the integration testbench (see also Section~\ref{sec:problems} about its
+% simulation-only X-propagation caveat).
 
-\subsection{\texttt{Navigation\_System.v}}
-\textbf{Purpose.} Maps scancodes to the 2-bit direction and blocks
-immediate reversals.
+% \subsection{\texttt{Navigation\_System.v}}
+% \textbf{Purpose.} Maps scancodes to the 2-bit direction and blocks
+% immediate reversals.
 
-\begin{table}[H]
-  \centering\small
-  \caption{Key mapping in \texttt{Navigation\_System}.}
-  \begin{tabular}{llll}
-    \toprule
-    \textbf{Key (numpad)} & \textbf{Scancode} & \textbf{Direction} & \textbf{Blocked while} \\
-    \midrule
-    4 & \texttt{0x6B} & LEFT  & RIGHT \\
-    6 & \texttt{0x74} & RIGHT & LEFT  \\
-    8 & \texttt{0x75} & UP    & DOWN  \\
-    5 & \texttt{0x73} & DOWN  & UP    \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+% \begin{table}[H]
+%   \centering\small
+%   \caption{Key mapping in \texttt{Navigation\_System}.}
+%   \begin{tabular}{llll}
+%     \toprule
+%     \textbf{Key (numpad)} & \textbf{Scancode} & \textbf{Direction} & \textbf{Blocked while} \\
+%     \midrule
+%     4 & \texttt{0x6B} & LEFT  & RIGHT \\
+%     6 & \texttt{0x74} & RIGHT & LEFT  \\
+%     8 & \texttt{0x75} & UP    & DOWN  \\
+%     5 & \texttt{0x73} & DOWN  & UP    \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
 
-\textbf{Internal design.} A clocked \texttt{case} on \texttt{scancode},
-qualified by \texttt{keyPressed}. Each assignment is guarded by
-``\texttt{if (dir != opposite)}'', which implements requirement 3b
-directly in hardware. On reset the direction defaults to RIGHT. Any
-other key leaves \texttt{dir} unchanged (but still wakes the game from
-the welcome screen through \texttt{keyPressed}).
+% \textbf{Internal design.} A clocked \texttt{case} on \texttt{scancode},
+% qualified by \texttt{keyPressed}. Each assignment is guarded by
+% ``\texttt{if (dir != opposite)}'', which implements requirement 3b
+% directly in hardware. On reset the direction defaults to RIGHT. Any
+% other key leaves \texttt{dir} unchanged (but still wakes the game from
+% the welcome screen through \texttt{keyPressed}).
 
-\textbf{Verification.} Exercised by \texttt{snake\_game\_tb}: the
-scenario steers UP then LEFT and the log shows the head turning
-accordingly; a reversal attempt is visible as an ignored key.
+% \textbf{Verification.} Exercised by \texttt{snake\_game\_tb}: the
+% scenario steers UP then LEFT and the log shows the head turning
+% accordingly; a reversal attempt is visible as an ignored key.
 
 % =====================================================================
 \section{Game Logic Block}
 % =====================================================================
-% \begin{figure}[H]
-%   \centering
-%   \includegraphics[width=\textwidth]{hierarchy_farmer_snake_farmer_tb.png}
-%   \caption{Game-logic block highlighted: the snake core, its food
-%   generator and the food-coverage testbench.}
-% \end{figure}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{hierarchy_internal.png}
+  \caption{Internal logic modules highlighted.}
+  \label{fig:hier-internal}
+\end{figure}
 \placeholderbox{5cm}{Game-logic block highlighted: the snake core, its food
 generator and the food-coverage testbench.}
 
