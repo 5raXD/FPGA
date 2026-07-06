@@ -115,6 +115,7 @@ module snake_game(
         .is_food(is_food),
         .on_snake(on_snake),
         .is_head(is_head),
+        .score(score),
         // .dir(dir),
         // Outputs
         .x(x),
