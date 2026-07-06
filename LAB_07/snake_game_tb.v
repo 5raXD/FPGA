@@ -13,8 +13,7 @@ module snake_game_tb();
     localparam RIGHT_KEY = 8'h74;
     localparam UP_KEY = 8'h75;
     localparam DOWN_KEY = 8'h73;
-    localparam START_KEY = 8'h29; // space - starts the game without picking a direction
-
+    localparam ZERO_KEY = 8'h70; // zero key
     reg clk;
     reg rst;
     reg PS2Clk;
@@ -26,32 +25,26 @@ module snake_game_tb();
     wire [3:0] an;
     wire dp;
 
-    snake_game dut(
+    snake_game #(.TICK_MAX(500)) dut(
+        // inputs
         .clk(clk),
         .rst(rst),
         .PS2Clk(PS2Clk),
         .PS2Data(PS2Data),
+        // outputs
+        // Outputs - to VGA pins
         .vgaRed(vgaRed),
         .vgaGreen(vgaGreen),
         .vgaBlue(vgaBlue),
         .Hsync(Hsync),
         .Vsync(Vsync),
+        // Outputs - to 7-segment display
         .a_to_g(a_to_g),
         .an(an),
         .dp(dp)
     );
 
     always #5 clk = ~clk; // 100MHz clk
-
-    // The real Game_Tick is 7Hz (~14.3M clks/move) - far too slow to see in sim.
-    // Generate a fast tick here and force it onto the game's tick net.
-    localparam TICK_PERIOD = 500; // clks between ticks -> 5us
-    reg tb_tick = 0;
-    integer tcnt = 0;
-    always @(posedge clk) begin
-        if (tcnt == TICK_PERIOD-1) begin tcnt <= 0;        tb_tick <= 1'b1; end
-        else                       begin tcnt <= tcnt + 1; tb_tick <= 1'b0; end
-    end
 
     // ---- PS/2 device -> host frame ----
     task ps2_bit(input v);
@@ -100,23 +93,34 @@ module snake_game_tb();
             $dumpvars(0, snake_game_tb);
         end
 
-        clk = 0; rst = 0; PS2Clk = 1; PS2Data = 1;
-        force dut.tick = tb_tick; // drive the game from our fast tick
+        clk = 0;
+        rst = 0;
+        PS2Clk = 1;
+        PS2Data = 1;
 
+        // Scenario 1: snake crashes into wall
         pulse_reset;
         repeat (50) @(posedge clk);
 
-        ps2_tap(START_KEY);   // IDLE -> PLAY, snake starts moving RIGHT
+        ps2_tap(ZERO_KEY);   // IDLE -> PLAY, snake starts moving RIGHT
         #40_000;              // let it run a few ticks
 
-        ps2_tap(UP_KEY);      // steer up
+        ps2_tap(UP_KEY);     // change direction to UP
+        repeat (5) #40_000;              // let it run a few ticks
+
+
+        // Scenario 2: eat one bite of food and die
+        pulse_reset;
+        repeat (50) @(posedge clk);
+
+        // food on the start row (50,37): snake eats it moving RIGHT, then hits the wall
+        force dut.snake.plant_x = 60;
+        force dut.snake.plant_y = 37;
+
+        ps2_tap(ZERO_KEY);   // IDLE -> PLAY, snake starts moving RIGHT
+        wait(dut.crash);     // eats at (60,37) on the way, then crashes into the right wall
         #40_000;
 
-        ps2_tap(LEFT_KEY);    // steer left
-        #300_000;             // run until it hits a wall -> GAME_OVER
-
-        ps2_tap(START_KEY);   // GAME_OVER -> IDLE
-        #40_000;
 
         $finish;
     end
@@ -132,7 +136,7 @@ module snake_game_tb();
 
     // Safety timeout
     initial begin
-        #2_000_000;
+        #100_000_000;
         $display("timeout");
         $finish;
     end

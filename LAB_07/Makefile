@@ -6,7 +6,7 @@ VVP      ?= vvp
 IVFLAGS  ?= -g2012
 
 TOP := snake_game_tb
-OUT := snake_game_tb.out
+OUT := sim
 
 # snake_game + every module it instantiates (and their submodules)
 SRC := \

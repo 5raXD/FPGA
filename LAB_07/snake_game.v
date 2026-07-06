@@ -25,6 +25,7 @@ module snake_game(
 
     parameter GRID_X = 100;
     parameter GRID_Y = 75;
+    parameter TICK_MAX = 14_285_714; // 7Hz tick for 100MHz clock
 
     wire [7:0] scancode;
     wire keyPressed;
@@ -157,9 +158,9 @@ module snake_game(
         .length(length),
         .score(score)
     );
-//test
+
     // Game Tick - Clock Divider
-    Game_Tick #(.TICK_MAX(14_285_714)) game_tick( // 7Hz tick for 100MHz clock
+    Game_Tick #(.TICK_MAX(TICK_MAX)) game_tick( // 7Hz tick for 100MHz clock
         // Inputs
         .clk(clk),
         .reset(reset),

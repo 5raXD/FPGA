@@ -28,6 +28,7 @@ module tick_tb();
 
     always #5 clk = ~clk; // 100MHz clock
 
+    integer i;
     initial begin
 
         if($test$plusargs("vcd")) begin
@@ -41,27 +42,11 @@ module tick_tb();
         #10;
         reset = 0;
 
-        #1000; // Wait for some time to observe the tick signal
-
-        // Test case 1: Score < 64
-        score = 16'd10;
-        #1000; // Wait for some time to observe the tick signal
-
-        // Test case 2: Score >= 64
-        score = 16'd50;
-        #1000; // Wait for some time to observe the tick signal
-
-        score = 16'd50;
-        #1000; // Wait for some time to observe the tick signal
-
-        score = 16'd60;
-        #1000; // Wait for some time to observe the tick signal
-
-        score = 16'd64;
-        #1000; // Wait for some time to observe the tick signal
-
-        score = 16'd80;
-        #1000; // Wait for some time to observe the tick signal
+        for (i=1; i<65; i=i+1) begin
+            score = i;
+            @(posedge tick);
+            repeat(3) @(posedge clk);
+        end
 
         $finish;
     end
