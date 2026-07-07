@@ -759,6 +759,61 @@ logging, VCD dumps, plusargs) follow the flow used throughout the
 course.
 
 % =====================================================================
+\section{Vivado Synthesis and Implementation Results}
+% =====================================================================
+The design was synthesised and implemented in Vivado for the Basys~3
+board (Artix-7 \texttt{xc7a35tlcpg236-2L}). Synthesis and implementation
+complete with no errors, no DRC violations, and all timing constraints
+met. The Vivado reports are reproduced below.
+
+\subsection{Design summary}
+\begin{figure}[H]\centering
+  \includegraphics[width=\textwidth]{sum.png}
+  \caption{Project dashboard: device, synthesis/implementation status,
+  timing, utilization and power at a glance.}
+\end{figure}
+
+\subsection{Resource utilization}
+\begin{figure}[H]\centering
+  \includegraphics[width=0.85\textwidth]{utilizition.png}
+  \caption{Post-implementation utilization on the \texttt{xc7a35t}.}
+\end{figure}
+
+\subsection{Timing}
+\begin{figure}[H]\centering
+  \includegraphics[width=\textwidth]{timing.png}
+  \caption{Design timing summary --- WNS $=0.717$\,ns, all constraints met.}
+\end{figure}
+
+\begin{figure}[H]\centering
+  \includegraphics[width=\textwidth]{Critical.png}
+  \caption{Worst (critical) paths report.}
+\end{figure}
+
+\subsection{Power}
+\begin{figure}[H]\centering
+  \includegraphics[width=0.8\textwidth]{power.png}
+  \caption{On-chip power estimate --- total $0.092$\,W.}
+\end{figure}
+
+\subsection{Device view}
+\begin{figure}[H]\centering
+  \includegraphics[height=9.5cm]{device.png}
+  \caption{Implemented design placed and routed on the device.}
+\end{figure}
+
+\subsection{Schematics}
+\begin{figure}[H]\centering
+  \includegraphics[width=\textwidth]{rtl_schematic.png}
+  \caption{Elaborated RTL schematic (module-level view).}
+\end{figure}
+
+\begin{figure}[H]\centering
+  \includegraphics[width=\textwidth]{netlist_schematic_flip.pdf}
+  \caption{Synthesised netlist schematic (full design).}
+\end{figure}
+
+% =====================================================================
 \section{Results}
 % =====================================================================
 \subsection{Final state of the game}
@@ -771,27 +826,32 @@ from which a key press returns to the welcome screen. The simulated
 scenario in \texttt{snake\_game\_tb} reproduces this full lifecycle.
 
 \subsection{Photos of the game in action}
-\placeholderbox{4.6cm}{Photo of the monitor during PLAY: snake, red
-food, checkerboard background and grid lines visible.}
+A full round on the monitor, from start to game over, is shown in
+Figure~\ref{fig:sequence}.
 
-\placeholderbox{4.6cm}{Photo of the game-over (skull) screen on the
-monitor, and of the welcome splash.}
+\begin{figure}[H]\centering
+  \begin{minipage}{0.485\textwidth}\centering
+    \includegraphics[width=\linewidth]{photo_welcome.png}\\[3pt]
+    \small (a) Welcome / start screen
+  \end{minipage}\hfill
+  \begin{minipage}{0.485\textwidth}\centering
+    \includegraphics[width=\linewidth]{photo_play1.png}\\[3pt]
+    \small (b) Playing --- snake and red food
+  \end{minipage}
 
-\placeholderbox{4.6cm}{Photo of the Basys3 board during a game: score on
-the 7-segment display, VGA and PS/2 cables connected.}
-
-\subsection{Working game}
-% -----------------------------------------------------------------
-% When the photo/screenshot is ready, copy it next to report.tex
-% (e.g. working_game.png) and replace the placeholder box below with:
-%     \begin{figure}[H]\centering
-%       \includegraphics[width=0.85\textwidth]{working_game.png}
-%       \caption{The Snake game running on the monitor.}
-%     \end{figure}
-% -----------------------------------------------------------------
-\placeholderbox{6.5cm}{Image of the working game --- photo/screenshot of
-the monitor running the game. Drop the image (e.g.\ \texttt{working\_game.png})
-into this folder and replace this box with an \texttt{includegraphics} of it.}
+  \vspace{10pt}
+  \begin{minipage}{0.485\textwidth}\centering
+    \includegraphics[width=\linewidth]{photo_play2.png}\\[3pt]
+    \small (c) Later in the round --- longer snake
+  \end{minipage}\hfill
+  \begin{minipage}{0.485\textwidth}\centering
+    \includegraphics[width=\linewidth]{photo_gameover.png}\\[3pt]
+    \small (d) Game over --- ``YOU DIED''
+  \end{minipage}
+  \caption{The Snake game running on the monitor: start, play, and the
+  game-over screen after the snake collides.}
+  \label{fig:sequence}
+\end{figure}
 
 \subsection{Demonstration video}
 A video of the game running on the Basys3 board is available on YouTube:
