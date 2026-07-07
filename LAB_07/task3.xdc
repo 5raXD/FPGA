@@ -9,10 +9,15 @@ set_property PACKAGE_PIN W5 [get_ports clk]
 set_property IOSTANDARD LVCMOS33 [get_ports clk]
 create_clock -period 10.000 -name sys_clk_pin -waveform {0.000 5.000} -add [get_ports clk]
 
-# 50 MHz pixel clock: the "pclk" register in VGA_Interface divides sys_clk by 2.
-# Declaring it as a generated clock makes Vivado time the FFs it drives
-# (clears the 36 TIMING-17 "Non-clocked sequential cell" critical warnings).
-# create_generated_clock -name pclk -source [get_pins -hierarchical -filter {NAME =~ *pclk_reg/C}] -divide_by 2 [get_pins -hierarchical -filter {NAME =~ *pclk_reg/Q}]
+# PS/2 keyboard clock (~10-16 kHz).
+# Ps2_Interface samples on "negedge PS2Clk", so Vivado routes PS2Clk through a
+# BUFG driving 34 flip-flops. With no create_clock those 34 FFs are reported as
+# "non-clocked sequential cells" -> the TIMING-17 methodology critical warnings.
+# Declaring the clock here clears them; the PS2 <-> sys_clk crossing is slow and
+# intentionally treated as asynchronous (false path).
+create_clock -period 60000.000 -name ps2_clk [get_ports PS2Clk]
+set_clock_groups -asynchronous -group [get_clocks sys_clk_pin] -group [get_clocks ps2_clk]
+
 
 
 # Switches

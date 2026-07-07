@@ -15,6 +15,7 @@ module Pixel_Painter #(parameter GRID_X = 100, GRID_Y = 75)(
     input wire on_snake,
     input wire is_head,
     input  wire [15:0] score,
+    input  wire        enter,   // ENTER key pressed (restart gate, passed to GridMapper)
     // input  wire [1:0]  dir,
     input  wire [10:0] XCoord,
     input  wire [10:0] YCoord,
@@ -43,6 +44,7 @@ module Pixel_Painter #(parameter GRID_X = 100, GRID_Y = 75)(
     .on_snake(on_snake),
     .is_head(is_head),
     .score_in(score),
+    .enter(enter),
     .x(x),
     .y(y),
     .img_x(img_x),

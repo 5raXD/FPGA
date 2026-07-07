@@ -18,6 +18,7 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
     input wire on_snake,
     input wire is_head,
     input wire [15:0] score_in,   // real game score from snake.v (via Pixel_Painter): {8'b0, tens_bcd, ones_bcd}
+    input wire enter,             // ENTER key pressed (only this key restarts from GAME_OVER)
     // Outputs
     output wire grid_enable,
     output reg  [11:0] block_color
@@ -62,7 +63,7 @@ module GridMapper #(parameter GRID_X = 100, GRID_Y = 75)(
             case (state)
                 IDLE: state <= keyPressed? PLAY : IDLE;
                 PLAY: state <= crash? GAME_OVER : PLAY;
-                GAME_OVER: state <= keyPressed? PLAY : GAME_OVER;
+                GAME_OVER: state <= enter? PLAY : GAME_OVER; // restart only on ENTER
             endcase
 
         end

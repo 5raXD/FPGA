@@ -48,6 +48,8 @@ module snake_game(
     wire food_on_snake;
     wire crash;
     wire start_game;
+    // ENTER key (PS/2 make-code 0x5A) - the only key that restarts after game over
+    wire enter = keyPressed && (scancode == 8'h5A);
 
     ///////////////////////
     ///  IO - External  ///
@@ -116,6 +118,7 @@ module snake_game(
         .on_snake(on_snake),
         .is_head(is_head),
         .score(score),
+        .enter(enter),
         // .dir(dir),
         // Outputs
         .x(x),
