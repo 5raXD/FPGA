@@ -530,7 +530,17 @@ is latched into \texttt{plant\_x/plant\_y} only when the food is eaten
 prints head position and length so the shift behaviour is directly
 observable.
 
-\subsection{\texttt{farmer.v} - food generator}
+\subsubsection{\texttt{farmer.v} - food generator}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{hierarchy_farmer_farmer_tb.png}
+  % \caption{Food-placement coverage recorded by \texttt{farmer\_tb}
+  % ($15{,}000$ samples on the $100\times75$ grid; green = proposed at
+  % least once, dark = never proposed).}
+  \label{fig:farmer}
+\end{figure}
+
 \textbf{Purpose} This module serves as a pseudo-random food coordinates generator for the food position on the board (\texttt{food\_x}, \texttt{food\_y}). \\
 \textbf{Internal design} It holds a 16-bit shift register 
 that shifts left every clock (\texttt{100 MHz clk}), and the LSB becomes the \texttt{Xor} of the \texttt{lfsr[15], lfsr[13], lfsr[12], lfsr[10], keyPressed}
@@ -576,17 +586,22 @@ proposed at least once, dark cells never(we have achived $\approx 81\%$  coverag
 \end{figure}
 
 % =====================================================================
-\section{Timing Block}
+% \section{Timing Block}
 % =====================================================================
+
+
+\subsection{\texttt{game\_tick.v}}
+\textbf{Purpose.} Generates the movement strobe and implements the
+difficulty ramp: the higher the score, the faster the snake.
+
+
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{hierarchy_game_tick_tick_tb.png}
   \caption{Timing block highlighted.}
 \end{figure}
 
-\subsection{\texttt{game\_tick.v}}
-\textbf{Purpose.} Generates the movement strobe and implements the
-difficulty ramp: the higher the score, the faster the snake.
+
 
 \textbf{Internal design.} A counter compares against a programmable
 period \texttt{tick\_speed} and emits a one-clock \texttt{tick} pulse on
@@ -624,16 +639,18 @@ steps up, and on \texttt{tick\_speed} saturating once the clamp
 (score $\geq 54$) is reached.}
 
 % =====================================================================
-\section{Rendering Block}
+\subsection{Rendering Block}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{hierarchy_screen_render.png}
+  \caption{Rendering block highlighted}
+\end{figure}
 % =====================================================================
-% \begin{figure}[H]
-%   \centering
-%   \includegraphics[width=\textwidth]{hierarchy_Pixel_Painter_grid_mapper_FA.png}
-%   \caption{Rendering block highlighted.}
-% \end{figure}
+
 \placeholderbox{5cm}{Rendering block highlighted.}
 
-\subsection{\texttt{Pixel\_Painter.v}}
+\subsubsection{\texttt{Pixel\_Painter.v}}
 \textbf{Purpose.} Bridges between the pixel domain (VGA scan
 coordinates) and the cell domain (game grid), and composes the final
 pixel color.
@@ -647,7 +664,7 @@ in PLAY; \texttt{start\_game} (i.e.\ ``the game is on the PLAY screen'')
 is exported to the top level, where it releases the snake core from
 reset.
 
-\subsection{\texttt{grid\_mapper.v}}
+\subsubsection{\texttt{grid\_mapper.v}}
 \textbf{Purpose.} The screen FSM and color oracle: decides \emph{what
 is shown} for every cell in each game phase.
 
@@ -686,7 +703,7 @@ checkerboard, whose odd/even parity is computed by the reused full adder
   \label{fig:bitmaps}
 \end{figure}
 
-\subsection{\texttt{FA.v}}
+\subsubsection{\texttt{FA.v}}
 \textbf{Purpose.} The classic 1-bit full adder from the first
 experiment. Here its sum output ($a \oplus b \oplus c_{in}$, with
 $c_{in}=0$) computes the checkerboard parity of a cell from
@@ -696,96 +713,96 @@ block of the course.
 \textbf{Verification.} Verified exhaustively in Lab 1; its effect is the
 visible checkerboard in every gameplay screenshot.
 
-% =====================================================================
-\section{Output Block}
-% =====================================================================
-% \begin{figure}[H]
-%   \centering
-%   \includegraphics[width=\textwidth]{hierarchy_VGA_Interface_Seg_7_Display.png}
-%   \caption{Output block highlighted.}
-% \end{figure}
-\placeholderbox{5cm}{Output block highlighted.}
+% % =====================================================================
+% \section{Output Block}
+% % =====================================================================
+% % \begin{figure}[H]
+% %   \centering
+% %   \includegraphics[width=\textwidth]{hierarchy_VGA_Interface_Seg_7_Display.png}
+% %   \caption{Output block highlighted.}
+% % \end{figure}
+% \placeholderbox{5cm}{Output block highlighted.}
 
-\subsection{\texttt{VGA\_Interface.v}}
-\textbf{Purpose.} Generates VESA $800\times600$ @ 72\,Hz timing, drives
-the RGB pins with the color supplied by the renderer, and exports the
-scan coordinates.
+% \subsection{\texttt{VGA\_Interface.v}}
+% \textbf{Purpose.} Generates VESA $800\times600$ @ 72\,Hz timing, drives
+% the RGB pins with the color supplied by the renderer, and exports the
+% scan coordinates.
 
-\begin{table}[H]
-  \centering\small
-  \caption{VGA timing ($800\times600$ @ 72\,Hz, 50\,MHz pixel clock).}
-  \begin{tabular}{lccccc}
-    \toprule
-     & \textbf{Visible} & \textbf{Front porch} & \textbf{Sync} & \textbf{Back porch} & \textbf{Total} \\
-    \midrule
-    Horizontal (pixels) & 800 & 56 & 120 & 64 & 1040 \\
-    Vertical (lines)    & 600 & 37 & 6   & 23 & 666  \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+% \begin{table}[H]
+%   \centering\small
+%   \caption{VGA timing ($800\times600$ @ 72\,Hz, 50\,MHz pixel clock).}
+%   \begin{tabular}{lccccc}
+%     \toprule
+%      & \textbf{Visible} & \textbf{Front porch} & \textbf{Sync} & \textbf{Back porch} & \textbf{Total} \\
+%     \midrule
+%     Horizontal (pixels) & 800 & 56 & 120 & 64 & 1040 \\
+%     Vertical (lines)    & 600 & 37 & 6   & 23 & 666  \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
 
-\textbf{Internal design.} Instead of deriving a divided 50\,MHz clock,
-the module runs entirely at 100\,MHz with a \texttt{pix\_en}
-clock-enable that fires every second cycle -- a single clock domain,
-which keeps timing analysis clean (see
-Section~\ref{sec:problems}). Counters \texttt{h\_count}/\texttt{v\_count}
-generate \texttt{Hsync}/\texttt{Vsync} and are exported as
-\texttt{XCoord}/\texttt{YCoord}; RGB is blanked outside the visible
-region.
+% \textbf{Internal design.} Instead of deriving a divided 50\,MHz clock,
+% the module runs entirely at 100\,MHz with a \texttt{pix\_en}
+% clock-enable that fires every second cycle -- a single clock domain,
+% which keeps timing analysis clean (see
+% Section~\ref{sec:problems}). Counters \texttt{h\_count}/\texttt{v\_count}
+% generate \texttt{Hsync}/\texttt{Vsync} and are exported as
+% \texttt{XCoord}/\texttt{YCoord}; RGB is blanked outside the visible
+% region.
 
-\textbf{Verification.} Reused from Lab 6 where it was verified against
-the monitor and in simulation; here it is exercised by
-\texttt{snake\_game\_tb} and by the live display.
+% \textbf{Verification.} Reused from Lab 6 where it was verified against
+% the monitor and in simulation; here it is exercised by
+% \texttt{snake\_game\_tb} and by the live display.
 
-\subsection{\texttt{Seg\_7\_Display.v}}
-\textbf{Purpose.} Shows the 16-bit score on the 4-digit 7-segment
-display.
+% \subsection{\texttt{Seg\_7\_Display.v}}
+% \textbf{Purpose.} Shows the 16-bit score on the 4-digit 7-segment
+% display.
 
-\textbf{Internal design.} A free-running divider (\texttt{clkdiv[19:18]})
-multiplexes the four digits at $\approx$95\,Hz per digit refresh; each
-4-bit nibble is decoded to segments by a truth table, and one active-low
-anode is selected at a time. The score is displayed in hexadecimal
-nibbles, which is sufficient for the achievable snake lengths.
+% \textbf{Internal design.} A free-running divider (\texttt{clkdiv[19:18]})
+% multiplexes the four digits at $\approx$95\,Hz per digit refresh; each
+% 4-bit nibble is decoded to segments by a truth table, and one active-low
+% anode is selected at a time. The score is displayed in hexadecimal
+% nibbles, which is sufficient for the achievable snake lengths.
 
-\textbf{Verification.} Reused unchanged from the first experiments;
-verified live -- the display increments each time the snake eats.
+% \textbf{Verification.} Reused unchanged from the first experiments;
+% verified live -- the display increments each time the snake eats.
 
-% =====================================================================
-\section{Utilization of Previous Labs}
-% =====================================================================
-A central goal of this experiment was to leverage previous work.
-Table~\ref{tab:reuse} summarises what was taken and how it was adapted.
+% % =====================================================================
+% \section{Utilization of Previous Labs}
+% % =====================================================================
+% A central goal of this experiment was to leverage previous work.
+% Table~\ref{tab:reuse} summarises what was taken and how it was adapted.
 
-\begin{table}[H]
-  \centering\small
-  \caption{Reused modules and concepts.}
-  \label{tab:reuse}
-  \begin{tabular}{llp{0.47\textwidth}}
-    \toprule
-    \textbf{Module} & \textbf{From} & \textbf{Adaptation for the Snake game} \\
-    \midrule
-    \texttt{FA.v} & Lab 1 & Unchanged; wired as a 1-bit XOR to compute the
-      background checkerboard parity. \\
-    \texttt{Seg\_7\_Display.v} & Lab 1 & Unchanged; input vector connected
-      to the live score instead of a stopwatch count. \\
-    \texttt{Debouncer.v} & Lab 1 & Unchanged; conditions the reset button. \\
-    \texttt{Ps2\_Interface.v} & Lab 5 & Unchanged reuse of the keyboard
-      receiver, including break-code handling -- the game only consumes
-      \texttt{scancode}/\texttt{keyPressed}. \\
-    \texttt{VGA\_Interface.v} & Lab 6 & Adapted: the color is now an
-      input (\texttt{pixel\_color}) computed by the new renderer, and the
-      scan coordinates are exported so the renderer can answer
-      ``what color is this pixel?'' on the fly. \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+% \begin{table}[H]
+%   \centering\small
+%   \caption{Reused modules and concepts.}
+%   \label{tab:reuse}
+%   \begin{tabular}{llp{0.47\textwidth}}
+%     \toprule
+%     \textbf{Module} & \textbf{From} & \textbf{Adaptation for the Snake game} \\
+%     \midrule
+%     \texttt{FA.v} & Lab 1 & Unchanged; wired as a 1-bit XOR to compute the
+%       background checkerboard parity. \\
+%     \texttt{Seg\_7\_Display.v} & Lab 1 & Unchanged; input vector connected
+%       to the live score instead of a stopwatch count. \\
+%     \texttt{Debouncer.v} & Lab 1 & Unchanged; conditions the reset button. \\
+%     \texttt{Ps2\_Interface.v} & Lab 5 & Unchanged reuse of the keyboard
+%       receiver, including break-code handling -- the game only consumes
+%       \texttt{scancode}/\texttt{keyPressed}. \\
+%     \texttt{VGA\_Interface.v} & Lab 6 & Adapted: the color is now an
+%       input (\texttt{pixel\_color}) computed by the new renderer, and the
+%       scan coordinates are exported so the renderer can answer
+%       ``what color is this pixel?'' on the fly. \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
 
-Beyond whole modules, concepts were reused as well: \texttt{Game\_Tick}
-is the counter/frequency-divider pattern from the stopwatch experiments,
-\texttt{GridMapper}'s screen selector applies the FSM methodology from
-the earlier labs, and the testbench techniques (\texttt{\$display}
-logging, VCD dumps, plusargs) follow the flow used throughout the
-course.
+% Beyond whole modules, concepts were reused as well: \texttt{Game\_Tick}
+% is the counter/frequency-divider pattern from the stopwatch experiments,
+% \texttt{GridMapper}'s screen selector applies the FSM methodology from
+% the earlier labs, and the testbench techniques (\texttt{\$display}
+% logging, VCD dumps, plusargs) follow the flow used throughout the
+% course.
 
 % =====================================================================
 \section{Vivado Synthesis and Implementation Results}
