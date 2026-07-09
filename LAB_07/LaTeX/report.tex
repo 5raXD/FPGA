@@ -11,7 +11,7 @@
 % =====================================================================
 \documentclass[11pt,a4paper]{article}
 
-\newcommand{\IDone}{\texttt{[ID1]}}   % <-- Saleh Khalil, ID
+\newcommand{\IDone}{\texttt{[213310485]}}   % <-- Saleh Khalil, ID
 \newcommand{\IDtwo}{\texttt{[ID2]}}   % <-- Mahmood Isteteh, ID
 \newcommand{\youtubelink}{https://youtu.be/REPLACE-ME}  % <-- paste your YouTube demo URL here
 
@@ -339,24 +339,43 @@ are covered in the next subsection.
 \subsection{\texttt{snake\_game\_tb.v} -- integration testbench}
 
 \begin{itemize}
-  \item \textbf{Scenario 1 -- crash without eating.} The snake drives
+  \item \textbf{Scenario 1 - crash without eating} The snake drives
     straight into a wall without eating any food. The FSM transitions
     correctly (IDLE $\rightarrow$ PLAY $\rightarrow$ GAME\_OVER) and the
     length stays at 1 throughout.
-  \placeholderbox{5.2cm}{Annotated waveform of \texttt{snake\_game\_tb}
-    Scenario 1: \texttt{keyPressed} pulses, \texttt{dir} changes,
-    \texttt{tick} strobes, head coordinates advancing straight into a
-    wall, \texttt{crash} rising, and the \texttt{state} transition to
-    GAME\_OVER with \texttt{length} fixed at 1.}
-  \item \textbf{Scenario 2 -- eat then crash.} The snake eats one food
+
+    \begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{gm_tb_scenario_1.png}
+  \caption{Scenario 1 - crash without eating}
+  \label{fig:hier-io}
+\end{figure}
+
+
+  % \placeholderbox{5.2cm}{Annotated waveform of \texttt{snake\_game\_tb}
+  %   Scenario 1: \texttt{keyPressed} pulses, \texttt{dir} changes,
+  %   \texttt{tick} strobes, head coordinates advancing straight into a
+  %   wall, \texttt{crash} rising, and the \texttt{state} transition to
+  %   GAME\_OVER with \texttt{length} fixed at 1.}
+  \item \textbf{Scenario 2 - eat then crash} The snake eats one food
     item, growing to length 2 and confirming that \texttt{snake.v}'s
     growth logic works, then crashes into a wall.
-  \placeholderbox{5.2cm}{Annotated waveform of \texttt{snake\_game\_tb}
-    Scenario 2: \texttt{keyPressed} pulses, \texttt{dir} changes,
-    \texttt{tick} strobes, the food being eaten and \texttt{length}
-    incrementing to 2, head coordinates advancing into a wall,
-    \texttt{crash} rising, and the \texttt{state} transition to
-    GAME\_OVER.}
+
+
+        \begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{gm_tb_scenario_2.png}
+  \caption{Scenario 2 - eat then crash}
+  \label{fig:hier-io}
+\end{figure}
+
+    
+  % \placeholderbox{5.2cm}{Annotated waveform of \texttt{snake\_game\_tb}
+  %   Scenario 2: \texttt{keyPressed} pulses, \texttt{dir} changes,
+  %   \texttt{tick} strobes, the food being eaten and \texttt{length}
+  %   incrementing to 2, head coordinates advancing into a wall,
+  %   \texttt{crash} rising, and the \texttt{state} transition to
+  %   GAME\_OVER.}
 \end{itemize}
 
 
@@ -456,7 +475,7 @@ are covered in the next subsection.
 % accordingly; a reversal attempt is visible as an ignored key.
 
 % =====================================================================
-\section{Game Logic Block}
+\section{Internal Game Logic}
 % =====================================================================
 \begin{figure}[H]
   \centering
@@ -464,10 +483,10 @@ are covered in the next subsection.
   \caption{Internal logic modules highlighted.}
   \label{fig:hier-internal}
 \end{figure}
-\placeholderbox{5cm}{Game-logic block highlighted: the snake core, its food
-generator and the food-coverage testbench.}
+% \placeholderbox{5cm}{Game-logic block highlighted: the snake core, its food
+% generator and the food-coverage testbench.}
 
-\subsection{\texttt{snake.v} -- the game core}
+\subsection{\texttt{snake.v} - the game core}
 \textbf{Purpose.} Owns the snake body, movement, growth, collision
 detection and score.
 
@@ -511,28 +530,23 @@ is latched into \texttt{plant\_x/plant\_y} only when the food is eaten
 prints head position and length so the shift behaviour is directly
 observable.
 
-\subsection{\texttt{farmer.v} -- food generator}
-\textbf{Purpose.} Proposes pseudo-random food coordinates.
-
-\textbf{Internal design.} A 16-bit Fibonacci LFSR (taps 15, 13, 12, 10,
-seed \texttt{0xABCD}) shifts every clock; the keyboard strobe
-\texttt{keyPressed} is XOR-ed into the feedback as a source of true
-user-driven entropy. The outputs are
+\subsection{\texttt{farmer.v} - food generator}
+\textbf{Purpose} This module serves as a pseudo-random food coordinates generator for the food position on the board (\texttt{food\_x}, \texttt{food\_y}). \\
+\textbf{Internal design} It holds a 16-bit shift register 
+that shifts left every clock (\texttt{100 MHz clk}), and the LSB becomes the \texttt{Xor} of the \texttt{lfsr[15], lfsr[13], lfsr[12], lfsr[10], keyPressed}
+the Farmer generates output that looks random but it raility is fully deterministic so we choose to make the shift every clock and use the \texttt{keyPressed} as an entropy source to make the output less predictable. The food coordinates are computed as follows:
 $\texttt{food\_x} = \texttt{lfsr}[6{:}0] \bmod \texttt{GRID\_X}$ and
 $\texttt{food\_y} = \texttt{lfsr}[13{:}7] \bmod \texttt{GRID\_Y}$.
-Since the LFSR runs at 100\,MHz, the value latched by \texttt{snake} at
-eat time is effectively random with respect to the game timescale.
 
-\textbf{Verification -- \texttt{farmer\_tb.v} and coverage.} The unit
-testbench clocks the LFSR $15{,}000$ times ($\approx 2$ proposals per
+
+\textbf{Verification} The 
+testbench clocks the shift register $15{,}000$ times ($\approx 2$ proposals per
 grid cell), toggles \texttt{keyPressed} randomly ($\approx 1\%$ of
-clocks) and records every proposed coordinate. Figure~\ref{fig:coverage}
-shows the resulting coverage of the $100\times75$ grid: green cells were
-proposed at least once, dark cells never.
+clocks) and records every proposed coordinate. 
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.8\textwidth]{food_coverage.png}
+  \includegraphics[width=0.8\textwidth]{farmer_wavefrom.png}
   \caption{Food-placement coverage recorded by \texttt{farmer\_tb}
   ($15{,}000$ samples on the $100\times75$ grid; green = proposed at
   least once, dark = never proposed).}
@@ -545,6 +559,21 @@ The map also makes the \emph{modulo bias} of the generator visible: as
 likewise rows 0--52 for \texttt{food\_y} (mod 75). Every cell of the
 grid is reachable, and the bias is invisible during play, so this was
 accepted as a good trade-off for such a cheap generator.
+
+
+\textbf{Coverage} 
+Figure~\ref{fig:coverage}
+shows the resulting coverage of the $100\times75$ grid: green cells were
+proposed at least once, dark cells never(we have achived $\approx 81\%$  coverage) so we can confidently say that the farmer is good enogh to generate food coordinates.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{food_coverage.png}
+  \caption{Food-placement coverage recorded by \texttt{farmer\_tb}
+  ($15{,}000$ samples on the $100\times75$ grid; green = proposed at
+  least once, dark = never proposed).}
+  \label{fig:coverage}
+\end{figure}
 
 % =====================================================================
 \section{Timing Block}
