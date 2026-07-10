@@ -11,9 +11,9 @@
 % =====================================================================
 \documentclass[11pt,a4paper]{article}
 
-\newcommand{\IDone}{\texttt{[213310485]}}   % <-- Saleh Khalil, ID
+\newcommand{\IDone}{\texttt{[ID1]}}   % <-- Saleh Khalil, ID
 \newcommand{\IDtwo}{\texttt{[ID2]}}   % <-- Mahmood Isteteh, ID
-\newcommand{\youtubelink}{https://youtu.be/REPLACE-ME}  % <-- paste your YouTube demo URL here
+\newcommand{\youtubelink}{https://youtu.be/W0P9rKjtpL8}  % <-- paste your YouTube demo URL here
 
 \usepackage[margin=2.4cm]{geometry}
 \usepackage{graphicx}
@@ -479,7 +479,7 @@ are covered in the next subsection.
 % =====================================================================
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{hierarchy_internal.png}
+  \includegraphics[width=0.8\textwidth]{hierarchy_internal.png}
   \caption{Internal logic modules highlighted.}
   \label{fig:hier-internal}
 \end{figure}
@@ -488,7 +488,7 @@ are covered in the next subsection.
 
 \subsection{\texttt{snake.v} - the game core}
 \textbf{Purpose.} Owns the snake body, movement, growth, collision
-detection and score.
+detection, score and food position. It is the heart of the game.
 
 \begin{table}[H]
   \centering\small
@@ -504,7 +504,7 @@ detection and score.
     \texttt{x}, \texttt{y} & in & 7/7 & Cell queried by the renderer. \\
     \texttt{on\_snake}, \texttt{is\_head}, \texttt{is\_food} & out & 1 &
       Answers to the query: body / head / food at $(x,y)$. \\
-    \texttt{crash} & out & 1 & Latched game-over flag. \\
+    \texttt{crash} & out & 1 & Game-over flag. \\
     \texttt{score} & out & 16 & Current score (= snake length). \\
     \bottomrule
   \end{tabular}
@@ -525,38 +525,59 @@ head equals the food cell. The food position proposed by \texttt{farmer}
 is latched into \texttt{plant\_x/plant\_y} only when the food is eaten
 (or at reset), so the food stays put between meals.
 
-\textbf{Verification.} Exercised in full by \texttt{snake\_game\_tb}
-(movement, steering, growth, wall crash, restart); the per-tick log
-prints head position and length so the shift behaviour is directly
-observable.
+\textbf{Verification.} We tested it as part of \texttt{snake\_game\_tb}
+(movement, steering, growth, crash, restart).
 
+
+
+
+\newpage
 \subsubsection{\texttt{farmer.v} - food generator}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.8\textwidth]{hierarchy_farmer_farmer_tb.png}
-  % \caption{Food-placement coverage recorded by \texttt{farmer\_tb}
-  % ($15{,}000$ samples on the $100\times75$ grid; green = proposed at
-  % least once, dark = never proposed).}
+  \caption{\texttt{farmer.v} and \texttt{farmer\_tb.v} highlighted in the
+  design hierarchy.}
   \label{fig:farmer}
 \end{figure}
 
-\textbf{Purpose} This module serves as a pseudo-random food coordinates generator for the food position on the board (\texttt{food\_x}, \texttt{food\_y}). \\
-\textbf{Internal design} It holds a 16-bit shift register 
-that shifts left every clock (\texttt{100 MHz clk}), and the LSB becomes the \texttt{Xor} of the \texttt{lfsr[15], lfsr[13], lfsr[12], lfsr[10], keyPressed}
-the Farmer generates output that looks random but it raility is fully deterministic so we choose to make the shift every clock and use the \texttt{keyPressed} as an entropy source to make the output less predictable. The food coordinates are computed as follows:
+\textbf{Purpose.} This module is a pseudo-random food-coordinate
+generator for the food position on the board (\texttt{food\_x},
+\texttt{food\_y}).
+
+\textbf{Internal design.} It holds a 16-bit shift register that shifts
+left every clock (100\,MHz \texttt{clk}), where the new LSB is the
+\texttt{Xor} of \texttt{lfsr[15]}, \texttt{lfsr[13]}, \texttt{lfsr[12]},
+\texttt{lfsr[10]} and \texttt{keyPressed}. The output looks random but
+is in reality fully deterministic, so \texttt{keyPressed} is mixed in on
+every clock as an entropy source to make the output less predictable.
+The food coordinates are computed as follows:
 $\texttt{food\_x} = \texttt{lfsr}[6{:}0] \bmod \texttt{GRID\_X}$ and
 $\texttt{food\_y} = \texttt{lfsr}[13{:}7] \bmod \texttt{GRID\_Y}$.
 
-
-\textbf{Verification} The 
-testbench clocks the shift register $15{,}000$ times ($\approx 2$ proposals per
-grid cell), toggles \texttt{keyPressed} randomly ($\approx 1\%$ of
-clocks) and records every proposed coordinate. 
+\textbf{Verification.} The testbench clocks the shift register
+$15{,}000$ times ($\approx 2$ proposals per grid cell), toggles
+\texttt{keyPressed} randomly ($\approx 1\%$ of clocks) and records every
+proposed coordinate.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.8\textwidth]{farmer_wavefrom.png}
+  \caption{Simulation waveform of \texttt{farmer\_tb}: \texttt{food\_x}
+  and \texttt{food\_y} change every clock, showing that the generator
+  keeps proposing fresh coordinates.}
+  \label{fig:farmer-waveform}
+\end{figure}
+
+\textbf{Coverage.} Figure~\ref{fig:coverage} shows the resulting
+coverage of the $100\times75$ grid: green cells were proposed at least
+once, dark cells never. We achieved $\approx 81\%$ coverage, so the
+farmer is good enough to generate food coordinates across the board.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{food_coverage.png}
   \caption{Food-placement coverage recorded by \texttt{farmer\_tb}
   ($15{,}000$ samples on the $100\times75$ grid; green = proposed at
   least once, dark = never proposed).}
@@ -571,39 +592,26 @@ grid is reachable, and the bias is invisible during play, so this was
 accepted as a good trade-off for such a cheap generator.
 
 
-\textbf{Coverage} 
-Figure~\ref{fig:coverage}
-shows the resulting coverage of the $100\times75$ grid: green cells were
-proposed at least once, dark cells never(we have achived $\approx 81\%$  coverage) so we can confidently say that the farmer is good enogh to generate food coordinates.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.8\textwidth]{food_coverage.png}
-  \caption{Food-placement coverage recorded by \texttt{farmer\_tb}
-  ($15{,}000$ samples on the $100\times75$ grid; green = proposed at
-  least once, dark = never proposed).}
-  \label{fig:coverage}
-\end{figure}
-
 % =====================================================================
 % \section{Timing Block}
 % =====================================================================
 
-
+% \vspace{0.6 cm}
+\newpage
 \subsection{\texttt{game\_tick.v}}
-\textbf{Purpose.} Generates the movement strobe and implements the
+\textbf{Purpose} Generates the movement strobe and implements the
 difficulty ramp: the higher the score, the faster the snake.
 
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{hierarchy_game_tick_tick_tb.png}
+  \includegraphics[width=0.7\textwidth]{hierarchy_game_tick_tick_tb.png}
   \caption{Timing block highlighted.}
 \end{figure}
 
 
 
-\textbf{Internal design.} A counter compares against a programmable
+\textbf{Internal design.} A counter \texttt{(Lim\_inc from lab2)} compares against a programmable
 period \texttt{tick\_speed} and emits a one-clock \texttt{tick} pulse on
 wrap-around. The period starts at the parameter
 \texttt{TICK\_MAX} ($14{,}285{,}714$ clocks $= 7$\,Hz at 100\,MHz) and
@@ -611,9 +619,9 @@ decreases linearly with the score:
 \[
   \texttt{tick\_speed} = \texttt{TICK\_MAX} - \texttt{score}\cdot 2^{18},
 \]
-clamped after 54 steps so the period never underflows. The module is
-fully parametric in \texttt{TICK\_MAX} (the testbench and top level both
-instantiate it explicitly with their own value).
+% clamped after 54 steps so the period never underflows. The module is
+% fully parametric in \texttt{TICK\_MAX} (the testbench and top level both
+% instantiate it explicitly with their own value).
 
 \begin{table}[H]
   \centering\small
@@ -627,18 +635,18 @@ instantiate it explicitly with their own value).
   \end{tabular}
 \end{table}
 
-\textbf{Verification -- \texttt{tick\_tb.v}.} The unit testbench sweeps
-the score through $0, 10, 50, 60, 64, 80$ (crossing the clamp) and
-exposes the internal period plus a derived frequency probe
-(\texttt{hz = 100\,MHz / tick\_speed}) so the ramp and the clamping are
-directly visible in the waveform.
+\textbf{Verification -- \texttt{tick\_tb.v}.} The  testbench sweeps
+the score \texttt{from 0 to MAX\_LEN(=64)} and
+exposes the tick pulse and at each $clk$ calculates the frequency.
 
-\placeholderbox{4.6cm}{Annotated waveform of \texttt{tick\_tb}: arrows on
-the shrinking distance between \texttt{tick} pulses as \texttt{score}
-steps up, and on \texttt{tick\_speed} saturating once the clamp
-(score $\geq 54$) is reached.}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{tick_wavefrom.png}
+  \caption{tick\_tb waveform}
+\end{figure}
 
 % =====================================================================
+\newpage
 \subsection{Rendering Block}
 
 \begin{figure}[H]
@@ -648,21 +656,26 @@ steps up, and on \texttt{tick\_speed} saturating once the clamp
 \end{figure}
 % =====================================================================
 
-\placeholderbox{5cm}{Rendering block highlighted.}
+% \placeholderbox{5cm}{Rendering block highlighted.}
 
 \subsubsection{\texttt{Pixel\_Painter.v}}
-\textbf{Purpose.} Bridges between the pixel domain (VGA scan
+\textbf{Purpose} Bridges \texttt{VGA\_Interface.v} and
+\texttt{grid\_mapper.v}, translating between the pixel domain (VGA scan
 coordinates) and the cell domain (game grid), and composes the final
 pixel color.
 
-\textbf{Internal design.} The scan position is divided by 8
-(\texttt{XCoord >> 3}) to obtain the queried grid cell $(x,y)$, and by 4
-to obtain the $200\times150$ bitmap coordinates used by the splash
-screens. The cell color returned by \texttt{GridMapper} is overlaid
-with black 1-pixel grid lines (every 8th row/column) while the game is
-in PLAY; \texttt{start\_game} (i.e.\ ``the game is on the PLAY screen'')
-is exported to the top level, where it releases the snake core from
-reset.
+\textbf{Internal design.} The same VGA scan position is translated two
+ways in parallel, one per screen. For the PLAY screen, it is divided by
+8 (\texttt{XCoord >> 3}, \texttt{YCoord >> 3}) to obtain the queried
+grid cell $(x,y)$, which \texttt{GridMapper} uses for the snake/food/
+checkerboard logic. For the IDLE and GAME\_OVER screens, it is instead
+divided by 4 (\texttt{XCoord >> 2}, \texttt{YCoord >> 2}) to obtain the
+$200\times150$ bitmap coordinates $(\texttt{img\_x}, \texttt{img\_y})$
+used to index the welcome and skull splash screens. The cell color
+returned by \texttt{GridMapper} is overlaid with black 1-pixel grid
+lines (every 8th row/column) while the game is in PLAY;
+\texttt{start\_game} (\ ``the game is on the PLAY screen'') is
+exported to the top level, where it releases the snake core from reset.
 
 \subsubsection{\texttt{grid\_mapper.v}}
 \textbf{Purpose.} The screen FSM and color oracle: decides \emph{what
@@ -686,7 +699,7 @@ checkerboard, whose odd/even parity is computed by the reused full adder
     \midrule
     Snake head & \texttt{0x222} & Background even & \texttt{0x0C0} \\
     Snake body & \texttt{0x444} & Background odd  & \texttt{0x0F0} \\
-    Food       & \texttt{0xF11} & Grid lines      & \texttt{0x000} \\
+    Food       & \texttt{0xF11} & GAME\_OVER background & \texttt{0x000} \\
     Skull      & \texttt{0xEEC} & ``YOU DIED'' text & \texttt{0xE11} \\
     Welcome bright & \texttt{0x6E2} & Welcome dark & \texttt{0x021} \\
     \bottomrule
@@ -805,10 +818,11 @@ visible checkerboard in every gameplay screenshot.
 % course.
 
 % =====================================================================
+\newpage
 \section{Vivado Synthesis and Implementation Results}
 % =====================================================================
 The design was synthesised and implemented in Vivado for the Basys~3
-board (Artix-7 \texttt{xc7a35tlcpg236-2L}). Synthesis and implementation
+board (texttt{xc7a35tlcpg236-2L}) Synthesis and implementation
 complete with no errors, no DRC violations, and all timing constraints
 met. The Vivado reports are reproduced below.
 
@@ -855,7 +869,7 @@ met. The Vivado reports are reproduced below.
 \end{figure}
 
 \begin{figure}[H]\centering
-  \includegraphics[width=\textwidth]{netlist_schematic_flip.pdf}
+  \includegraphics[width=0.8\textwidth]{netlist_schematic_flip.pdf}
   \caption{Synthesised netlist schematic (full design).}
 \end{figure}
 
@@ -877,21 +891,21 @@ Figure~\ref{fig:sequence}.
 
 \begin{figure}[H]\centering
   \begin{minipage}{0.485\textwidth}\centering
-    \includegraphics[width=\linewidth]{photo_welcome.png}\\[3pt]
+    \includegraphics[width=0.9\linewidth]{photo_welcome.png}\\[3pt]
     \small (a) Welcome / start screen
   \end{minipage}\hfill
   \begin{minipage}{0.485\textwidth}\centering
-    \includegraphics[width=\linewidth]{photo_play1.png}\\[3pt]
+    \includegraphics[width=0.9\linewidth]{photo_play1.png}\\[3pt]
     \small (b) Playing --- snake and red food
   \end{minipage}
 
   \vspace{10pt}
   \begin{minipage}{0.485\textwidth}\centering
-    \includegraphics[width=\linewidth]{photo_play2.png}\\[3pt]
+    \includegraphics[width=0.9\linewidth]{photo_play2.png}\\[3pt]
     \small (c) Later in the round --- longer snake
   \end{minipage}\hfill
   \begin{minipage}{0.485\textwidth}\centering
-    \includegraphics[width=\linewidth]{photo_gameover.png}\\[3pt]
+    \includegraphics[width=0.9\linewidth]{photo_gameover.png}\\[3pt]
     \small (d) Game over --- ``YOU DIED''
   \end{minipage}
   \caption{The Snake game running on the monitor: start, play, and the
@@ -903,57 +917,57 @@ Figure~\ref{fig:sequence}.
 A video of the game running on the Basys3 board is available on YouTube:
 \begin{center}
   \large\href{\youtubelink}{\texttt{\youtubelink}}\\[4pt]
-  \normalsize\textcolor{red!60!black}{[REPLACE THE LINK ABOVE --- set
-  \texttt{\textbackslash youtubelink} at the top of this file to your YouTube URL]}
+  % \normalsize\textcolor{red!60!black}{[REPLACE THE LINK ABOVE --- set
+  % \texttt{\textbackslash youtubelink} at the top of this file to your YouTube URL]}
 \end{center}
 
-% =====================================================================
-\section{Problems Encountered and Solutions}\label{sec:problems}
-% =====================================================================
-\begin{enumerate}
-  \item \textbf{Debouncer X-propagation in simulation.} The debouncer's
-  hysteresis counter has no reset, so in simulation it powers up as
-  \texttt{X} and the internal reset pulse never resolves (on the FPGA
-  the global reset initialises it). \emph{Solution:} the integration
-  testbench forces the internal \texttt{reset} net directly for a few
-  cycles instead of pressing the button.
+% % =====================================================================
+% \section{Problems Encountered and Solutions}\label{sec:problems}
+% % =====================================================================
+% \begin{enumerate}
+%   \item \textbf{Debouncer X-propagation in simulation.} The debouncer's
+%   hysteresis counter has no reset, so in simulation it powers up as
+%   \texttt{X} and the internal reset pulse never resolves (on the FPGA
+%   the global reset initialises it). \emph{Solution:} the integration
+%   testbench forces the internal \texttt{reset} net directly for a few
+%   cycles instead of pressing the button.
 
-  \item \textbf{The real game tick is far too slow to simulate.} At
-  7\,Hz, one snake step takes $14.3$ million clocks. \emph{Solution:}
-  \texttt{snake\_game\_tb} generates its own fast tick (every 500
-  clocks) and forces it onto the internal \texttt{tick} net, so a whole
-  game fits in a short simulation.
+%   \item \textbf{The real game tick is far too slow to simulate.} At
+%   7\,Hz, one snake step takes $14.3$ million clocks. \emph{Solution:}
+%   \texttt{snake\_game\_tb} generates its own fast tick (every 500
+%   clocks) and forces it onto the internal \texttt{tick} net, so a whole
+%   game fits in a short simulation.
 
-  \item \textbf{Keyboard break codes re-triggered keys.} A PS/2 key
-  release sends \texttt{F0} + scancode, which naively looks like a
-  second key press. \emph{Solution:} the receiver skips
-  \texttt{E0}/\texttt{F0} bytes and re-arms on the byte following
-  \texttt{F0}, so exactly one \texttt{keyPressed} fires per physical
-  press.
+%   \item \textbf{Keyboard break codes re-triggered keys.} A PS/2 key
+%   release sends \texttt{F0} + scancode, which naively looks like a
+%   second key press. \emph{Solution:} the receiver skips
+%   \texttt{E0}/\texttt{F0} bytes and re-arms on the byte following
+%   \texttt{F0}, so exactly one \texttt{keyPressed} fires per physical
+%   press.
 
-  \item \textbf{Timing warnings from a divided pixel clock.} Driving
-  logic from a register-divided 50\,MHz clock produced ``non-clocked
-  sequential cell'' critical warnings in Vivado. \emph{Solution:} the
-  VGA module was restructured to run at 100\,MHz with a \texttt{pix\_en}
-  clock-enable every second cycle -- one clock domain, no derived
-  clocks.
+%   \item \textbf{Timing warnings from a divided pixel clock.} Driving
+%   logic from a register-divided 50\,MHz clock produced ``non-clocked
+%   sequential cell'' critical warnings in Vivado. \emph{Solution:} the
+%   VGA module was restructured to run at 100\,MHz with a \texttt{pix\_en}
+%   clock-enable every second cycle -- one clock domain, no derived
+%   clocks.
 
-  \item \textbf{Long combinational paths in the body scan.} Comparing
-  the next head against all 64 body slots combinationally, directly at
-  the tick, created long paths. \emph{Solution:} the next-head
-  coordinates, self-hit and eat flags are registered one cycle before
-  the movement update consumes them (\texttt{next\_x\_r},
-  \texttt{hit\_self\_r}, \texttt{is\_eaten\_r}).
+%   \item \textbf{Long combinational paths in the body scan.} Comparing
+%   the next head against all 64 body slots combinationally, directly at
+%   the tick, created long paths. \emph{Solution:} the next-head
+%   coordinates, self-hit and eat flags are registered one cycle before
+%   the movement update consumes them (\texttt{next\_x\_r},
+%   \texttt{hit\_self\_r}, \texttt{is\_eaten\_r}).
 
-  \item \textbf{Food generator bias.} The coverage run
-  (Figure~\ref{fig:coverage}) exposed the modulo bias of the LFSR
-  mapping. Rather than adding a rejection loop, the bias was measured,
-  shown to leave every cell reachable, and accepted; keyboard entropy
-  was mixed into the LFSR feedback to decorrelate games.
+%   \item \textbf{Food generator bias.} The coverage run
+%   (Figure~\ref{fig:coverage}) exposed the modulo bias of the LFSR
+%   mapping. Rather than adding a rejection loop, the bias was measured,
+%   shown to leave every cell reachable, and accepted; keyboard entropy
+%   was mixed into the LFSR feedback to decorrelate games.
 
-  \item \placeholderbox{2.4cm}{Any additional problems encountered
-  during the in-lab session and their solutions.}
-\end{enumerate}
+%   \item \placeholderbox{2.4cm}{Any additional problems encountered
+%   during the in-lab session and their solutions.}
+% \end{enumerate}
 
 % =====================================================================
 \section{Conclusion}
