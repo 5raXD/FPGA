@@ -295,12 +295,86 @@ are covered in the next subsection.
 \begin{itemize}
   \item \textbf{\texttt{Ps2\_Interface.v}} -- Receives PS/2 keyboard frames
     and outputs the make scancode with a single-clock \texttt{keyPressed}.
+
+    \begin{table}[H]
+      \centering\small
+      \caption{\texttt{Ps2\_Interface} interface.}
+      \begin{tabular}{lllp{0.42\textwidth}}
+        \toprule
+        \textbf{Port} & \textbf{Dir} & \textbf{Width} & \textbf{Description} \\
+        \midrule
+        \texttt{PS2Clk}  & in  & 1 & Keyboard-generated clock; data sampled
+          on its falling edge. \\
+        \texttt{PS2Data} & in  & 1 & Serial data line. \\
+        \texttt{rstn}    & in  & 1 & Active-low reset. \\
+        \texttt{scancode} & out & 8 & Last accepted make code. \\
+        \texttt{keyPressed} & out & 1 & One-clock pulse per accepted key press. \\
+        \bottomrule
+      \end{tabular}
+    \end{table}
+
   \item \textbf{\texttt{Debouncer.v}} -- Converts the bouncy centre
     push-button into a single one-clock reset pulse.
+
+    \begin{table}[H]
+      \centering\small
+      \caption{\texttt{Debouncer} interface (parameter \texttt{COUNTER\_BITS}).}
+      \begin{tabular}{lllp{0.42\textwidth}}
+        \toprule
+        \textbf{Port} & \textbf{Dir} & \textbf{Width} & \textbf{Description} \\
+        \midrule
+        \texttt{clk} & in & 1 & System clock. \\
+        \texttt{input\_unstable} & in & 1 & Raw (bouncy) push-button input. \\
+        \texttt{output\_stable} & out & 1 & One-clock pulse once the
+          hysteresis counter saturates high. \\
+        \bottomrule
+      \end{tabular}
+    \end{table}
+
   \item \textbf{\texttt{VGA\_Interface.v}} -- Generates VGA signals for
     $800\times600$ @ 72\,Hz display, drives the RGB pins with the color
     supplied by the \texttt{Pixel\_Painter.v} module, and exports the scan coordinates.
+
+    \begin{table}[H]
+      \centering\small
+      \caption{\texttt{VGA\_Interface} interface.}
+      \begin{tabular}{lllp{0.42\textwidth}}
+        \toprule
+        \textbf{Port} & \textbf{Dir} & \textbf{Width} & \textbf{Description} \\
+        \midrule
+        \texttt{clk} & in & 1 & 100\,MHz clock (internal \texttt{pix\_en}
+          enable every second cycle). \\
+        \texttt{rstn} & in & 1 & Active-low reset. \\
+        \texttt{pixel\_color} & in & 12 & RGB color of the current pixel
+          from \texttt{Pixel\_Painter}. \\
+        \texttt{vgaRed/Green/Blue} & out & $3\times4$ & VGA color pins,
+          blanked outside the visible region. \\
+        \texttt{Hsync}, \texttt{Vsync} & out & 1 & VGA synchronisation pulses. \\
+        \texttt{XCoord}, \texttt{YCoord} & out & 11 & Current scan position
+          towards \texttt{Pixel\_Painter}. \\
+        \bottomrule
+      \end{tabular}
+    \end{table}
+
   \item \textbf{\texttt{Seg\_7\_Display.v}} -- Shows the 2-digit score supplied by the \texttt{Snake.v} module on the 7-segment display.
+
+    \begin{table}[H]
+      \centering\small
+      \caption{\texttt{Seg\_7\_Display} interface.}
+      \begin{tabular}{lllp{0.42\textwidth}}
+        \toprule
+        \textbf{Port} & \textbf{Dir} & \textbf{Width} & \textbf{Description} \\
+        \midrule
+        \texttt{x} & in & 16 & Value to display (the score), one hex
+          nibble per digit. \\
+        \texttt{clk} & in & 1 & 100\,MHz clock for the digit multiplexing. \\
+        \texttt{clr} & in & 1 & Clears the digit-multiplex divider. \\
+        \texttt{a\_to\_g} & out & 7 & Segment toggles (active low). \\
+        \texttt{an} & out & 4 & Digit anodes (active low, one at a time). \\
+        \texttt{dp} & out & 1 & Decimal-point toggle. \\
+        \bottomrule
+      \end{tabular}
+    \end{table}
 \end{itemize}
 
 % \subsubsection{Internal logic modules}
@@ -479,14 +553,82 @@ are covered in the next subsection.
 % =====================================================================
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.8\textwidth]{hierarchy_internal.png}
+  \includegraphics[width=\textwidth]{hierarchy_internal.png}
   \caption{Internal logic modules highlighted.}
   \label{fig:hier-internal}
 \end{figure}
+
+This section covers the new modules that implement the game itself:
+direction control, the snake core with its food generator, the movement
+tick and the rendering pipeline.
 % \placeholderbox{5cm}{Game-logic block highlighted: the snake core, its food
 % generator and the food-coverage testbench.}
 
+\subsection{\texttt{Navigation\_System.v}}
+\textbf{Purpose.} Maps keyboard scancodes to the 2-bit snake direction
+\texttt{dir} and blocks immediate $180^{\circ}$ reversals.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{hierarchy_Navigation_System.png}
+  \caption{\texttt{Navigation\_System.v} highlighted in the design hierarchy.}
+  \label{fig:hier-nav}
+\end{figure}
+
+\begin{table}[H]
+  \centering\small
+  \caption{\texttt{Navigation\_System} interface.}
+  \begin{tabular}{lllp{0.45\textwidth}}
+    \toprule
+    \textbf{Port} & \textbf{Dir} & \textbf{Width} & \textbf{Description} \\
+    \midrule
+    \texttt{clk}, \texttt{reset} & in & 1 & Clock and synchronous reset. \\
+    \texttt{scancode} & in & 8 & Make code from \texttt{Ps2\_Interface}. \\
+    \texttt{keyPressed} & in & 1 & One-clock strobe qualifying \texttt{scancode}. \\
+    \texttt{dir} & out & 2 & Current direction towards \texttt{Snake}
+      (UP/DOWN/LEFT/RIGHT). \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering\small
+  \caption{Key mapping in \texttt{Navigation\_System}.}
+  \begin{tabular}{llll}
+    \toprule
+    \textbf{Key (numpad)} & \textbf{Scancode} & \textbf{Direction} & \textbf{Blocked while} \\
+    \midrule
+    4 & \texttt{0x6B} & LEFT  & RIGHT \\
+    6 & \texttt{0x74} & RIGHT & LEFT  \\
+    8 & \texttt{0x75} & UP    & DOWN  \\
+    5 & \texttt{0x73} & DOWN  & UP    \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\textbf{Internal design.} A clocked \texttt{case} on \texttt{scancode},
+qualified by \texttt{keyPressed}. Each assignment is guarded by
+``\texttt{if (dir != opposite)}'', which implements the
+no-immediate-reversal requirement directly in hardware. On reset the
+direction defaults to RIGHT. Any other key leaves \texttt{dir} unchanged
+(but still wakes the game from the welcome screen through
+\texttt{keyPressed}).
+
+\textbf{Verification.} Exercised by \texttt{snake\_game\_tb}: the
+scenario steers UP then LEFT and the log shows the head turning
+accordingly; a reversal attempt is visible as an ignored key.
+
+% \newpage
 \subsection{\texttt{snake.v} - the game core}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{hierarchy_snake.png}
+  \caption{\texttt{snake.v} highlighted in the design hierarchy.}
+  \label{fig:hier-nav}
+\end{figure}
+
+
 \textbf{Purpose.} Owns the snake body, movement, growth, collision
 detection, score and food position. It is the heart of the game.
 
@@ -531,12 +673,12 @@ is latched into \texttt{plant\_x/plant\_y} only when the food is eaten
 
 
 
-\newpage
+% \newpage
 \subsubsection{\texttt{farmer.v} - food generator}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.8\textwidth]{hierarchy_farmer_farmer_tb.png}
+  \includegraphics[width=0.7\textwidth]{hierarchy_farmer_farmer_tb.png}
   \caption{\texttt{farmer.v} and \texttt{farmer\_tb.v} highlighted in the
   design hierarchy.}
   \label{fig:farmer}
@@ -545,6 +687,24 @@ is latched into \texttt{plant\_x/plant\_y} only when the food is eaten
 \textbf{Purpose.} This module is a pseudo-random food-coordinate
 generator for the food position on the board (\texttt{food\_x},
 \texttt{food\_y}).
+
+\begin{table}[H]
+  \centering\small
+  \caption{\texttt{farmer} interface (parameters \texttt{GRID\_X}, \texttt{GRID\_Y}).}
+  \begin{tabular}{lllp{0.45\textwidth}}
+    \toprule
+    \textbf{Port} & \textbf{Dir} & \textbf{Width} & \textbf{Description} \\
+    \midrule
+    \texttt{clk} & in & 1 & 100\,MHz clock; the LFSR shifts every cycle. \\
+    \texttt{keyPressed} & in & 1 & Keyboard strobe mixed into the LFSR
+      feedback as an entropy source. \\
+    \texttt{food\_x} & out & 7 & Proposed food column,
+      $\texttt{lfsr}[6{:}0] \bmod \texttt{GRID\_X}$. \\
+    \texttt{food\_y} & out & 7 & Proposed food row,
+      $\texttt{lfsr}[13{:}7] \bmod \texttt{GRID\_Y}$. \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \textbf{Internal design.} It holds a 16-bit shift register that shifts
 left every clock (100\,MHz \texttt{clk}), where the new LSB is the
@@ -563,7 +723,7 @@ proposed coordinate.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.8\textwidth]{farmer_wavefrom.png}
+  \includegraphics[width=\textwidth]{farmer_wavefrom.png}
   \caption{Simulation waveform of \texttt{farmer\_tb}: \texttt{food\_x}
   and \texttt{food\_y} change every clock, showing that the generator
   keeps proposing fresh coordinates.}
@@ -597,7 +757,7 @@ accepted as a good trade-off for such a cheap generator.
 % =====================================================================
 
 % \vspace{0.6 cm}
-\newpage
+% \newpage
 \subsection{\texttt{game\_tick.v}}
 \textbf{Purpose} Generates the movement strobe and implements the
 difficulty ramp: the higher the score, the faster the snake.
@@ -609,7 +769,21 @@ difficulty ramp: the higher the score, the faster the snake.
   \caption{Timing block highlighted.}
 \end{figure}
 
-
+\begin{table}[H]
+  \centering\small
+  \caption{\texttt{Game\_Tick} interface (parameter \texttt{TICK\_MAX}).}
+  \begin{tabular}{lllp{0.45\textwidth}}
+    \toprule
+    \textbf{Port} & \textbf{Dir} & \textbf{Width} & \textbf{Description} \\
+    \midrule
+    \texttt{clk}, \texttt{reset} & in & 1 & Clock and synchronous reset. \\
+    \texttt{score} & in & 16 & Current score from \texttt{Snake};
+      shortens the tick period as it grows. \\
+    \texttt{tick} & out & 1 & One-clock movement strobe towards
+      \texttt{Snake}. \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \textbf{Internal design.} A counter \texttt{(Lim\_inc from lab2)} compares against a programmable
 period \texttt{tick\_speed} and emits a one-clock \texttt{tick} pulse on
@@ -641,12 +815,12 @@ exposes the tick pulse and at each $clk$ calculates the frequency.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.8\textwidth]{tick_wavefrom.png}
+  \includegraphics[width=\textwidth]{tick_wavefrom.png}
   \caption{tick\_tb waveform}
 \end{figure}
 
 % =====================================================================
-\newpage
+% \newpage
 \subsection{Rendering Block}
 
 \begin{figure}[H]
@@ -664,6 +838,31 @@ exposes the tick pulse and at each $clk$ calculates the frequency.
 coordinates) and the cell domain (game grid), and composes the final
 pixel color.
 
+\begin{table}[H]
+  \centering\small
+  \caption{\texttt{Pixel\_Painter} interface (parameters \texttt{GRID\_X}, \texttt{GRID\_Y}).}
+  \begin{tabular}{lllp{0.42\textwidth}}
+    \toprule
+    \textbf{Port} & \textbf{Dir} & \textbf{Width} & \textbf{Description} \\
+    \midrule
+    \texttt{clk}, \texttt{reset} & in & 1 & Clock and synchronous reset. \\
+    \texttt{tick} & in & 1 & Movement strobe from \texttt{Game\_Tick}. \\
+    \texttt{keyPressed} & in & 1 & Key strobe, forwarded to the screen FSM. \\
+    \texttt{crash} & in & 1 & Game-over flag from \texttt{Snake}. \\
+    \texttt{on\_snake}, \texttt{is\_head}, \texttt{is\_food} & in & 1 &
+      Query answers from \texttt{Snake} for cell $(x,y)$. \\
+    \texttt{XCoord}, \texttt{YCoord} & in & 11 & VGA scan coordinates
+      from \texttt{VGA\_Interface}. \\
+    \texttt{x}, \texttt{y} & out & 7/7 & Queried grid cell
+      (scan position $\div\,8$). \\
+    \texttt{pixel\_color} & out & 12 & Final RGB color towards
+      \texttt{VGA\_Interface}. \\
+    \texttt{start\_game} & out & 1 & High while the PLAY screen is shown;
+      releases the snake core from reset. \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
 \textbf{Internal design.} The same VGA scan position is translated two
 ways in parallel, one per screen. For the PLAY screen, it is divided by
 8 (\texttt{XCoord >> 3}, \texttt{YCoord >> 3}) to obtain the queried
@@ -680,6 +879,31 @@ exported to the top level, where it releases the snake core from reset.
 \subsubsection{\texttt{grid\_mapper.v}}
 \textbf{Purpose.} The screen FSM and color oracle: decides \emph{what
 is shown} for every cell in each game phase.
+
+\begin{table}[H]
+  \centering\small
+  \caption{\texttt{GridMapper} interface (parameters \texttt{GRID\_X}, \texttt{GRID\_Y}).}
+  \begin{tabular}{lllp{0.42\textwidth}}
+    \toprule
+    \textbf{Port} & \textbf{Dir} & \textbf{Width} & \textbf{Description} \\
+    \midrule
+    \texttt{clk}, \texttt{reset} & in & 1 & Clock and synchronous reset. \\
+    \texttt{keyPressed} & in & 1 & Advances the screen FSM
+      (IDLE/GAME\_OVER $\rightarrow$ PLAY). \\
+    \texttt{crash} & in & 1 & Moves the FSM from PLAY to GAME\_OVER. \\
+    \texttt{on\_snake}, \texttt{is\_head}, \texttt{is\_food} & in & 1 &
+      Cell content flags from \texttt{Snake}. \\
+    \texttt{x}, \texttt{y} & in & 7/7 & Queried grid cell from
+      \texttt{Pixel\_Painter}. \\
+    \texttt{img\_x}, \texttt{img\_y} & in & 8/8 & Bitmap coordinates for
+      the welcome / game-over screens. \\
+    \texttt{grid\_enable} & out & 1 & High in PLAY; enables the grid-line
+      overlay in \texttt{Pixel\_Painter}. \\
+    \texttt{block\_color} & out & 12 & Color of the queried cell for the
+      current screen. \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \textbf{Internal design.} A three-state FSM -- IDLE (welcome screen),
 PLAY, GAME\_OVER -- advances on \texttt{keyPressed} and \texttt{crash}.
